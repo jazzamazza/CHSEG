@@ -7,5 +7,6 @@ venv :
 
 run:	venv
 	python3 set_up.py	
+	
 clean:
 	rm -r venv

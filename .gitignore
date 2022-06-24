@@ -131,3 +131,6 @@ dmypy.json
 # Point Cloud Data
 *.npy
 *.ply
+
+# Images
+.png

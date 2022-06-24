@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.cluster import KMeans
 import open3d as o3d
+from mpl_toolkits import mplot3d
+from datetime import datetime
 
 # Clustering class with various clustering methods
 class Clustering:
@@ -10,14 +12,39 @@ class Clustering:
           
      # k means clustering method --> clusters a dataset into k (given) clusters
      def k_means_clustering(self, k):
-          print("\n------------------k means---------------------")
-          kmeans = KMeans(n_clusters=k) # number of clusters (k)
-          kmeans.fit(self.pcd) # apply k means to dataset
+          x = np.array(self.pcd)
           
-          print("\nCluster centres:")
-          print(kmeans.cluster_centers_)
-          print("\nLabels:")
-          print(kmeans.labels_)
+          print("\n------------------k means---------------------")
+          kmeans = KMeans(n_clusters=k, n_init=10) # number of clusters (k)
+          kmeans.fit(x) # apply k means to dataset
+          
+          print("\nCluster centres:", kmeans.cluster_centers_)
+          print("\nLabels:", kmeans.labels_)
+          
+          # Visualise K-Means
+          plt.scatter(x[:,0],x[:,1], label='True Position')
+          y_km = kmeans.predict(x)
+          colors = list(map(lambda x: '#3b4cc0' if x == 1 else '#b40426', y_km)) 
+          plt.scatter(x[:,0], x[:,1], c=colors, marker="o", picker=True)
+          plt.scatter(
+               kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1],
+               s=250, marker='*',
+               c='red', edgecolor='black',
+               label='centroids'
+          )
+          plt.title('Two clusters of data')
+          
+          #current_time = datetime.now().strftime("%H:%M:%S")
+          #print("saving fig: Current Time = ", current_time)
+          plt.savefig('k_means_clusters.png') 
+          #current_time = datetime.now().strftime("%H:%M:%S")
+          #print("saved fig: Current Time = ", current_time)
+          
+          #current_time = datetime.now().strftime("%H:%M:%S")
+          #print("displaying fig: Current Time = ", current_time)
+          plt.show()
+          #current_time = datetime.now().strftime("%H:%M:%S")
+          #print("displayed fig: Current Time = ", current_time)
 
 # Tester method to test Clustering class and k_means algorithm          
 def testMethod():
@@ -65,6 +92,7 @@ def loadPointCloud_ply():
      #load point cloud .ply file
      path = "/home/leah/Documents/Thesis_Set_UP/CHSEG/church_registered.ply"
      pcd = o3d.io.read_point_cloud(path)
+     
      print(pcd)
      print(np.asarray(pcd.points))
 
@@ -85,7 +113,7 @@ def setup():
 
 # main method
 def main():
-    #testMethod()
+    #testMethod() #this works
     
     pointCloud = setup() # load point cloud and store in a numpy array
     
