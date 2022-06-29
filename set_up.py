@@ -1,3 +1,4 @@
+from operator import truth
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.cluster import KMeans
@@ -12,39 +13,30 @@ class Clustering:
           
      # k means clustering method --> clusters a dataset into k (given) clusters
      def k_means_clustering(self, k):
-          x = np.array(self.pcd)
+          x = self.pcd
           
           print("\n------------------k means---------------------")
           kmeans = KMeans(n_clusters=k, n_init=10) # number of clusters (k)
           kmeans.fit(x) # apply k means to dataset
           
-          print("\nCluster centres:", kmeans.cluster_centers_)
-          print("\nLabels:", kmeans.labels_)
+          #print("\nCluster centres:", kmeans.cluster_centers_)
           
           # Visualise K-Means
-          plt.scatter(x[:,0],x[:,1], label='True Position')
           y_km = kmeans.predict(x)
-          colors = list(map(lambda x: '#3b4cc0' if x == 1 else '#b40426', y_km)) 
-          plt.scatter(x[:,0], x[:,1], c=colors, marker="o", picker=True)
+          centroids = kmeans.cluster_centers_
+          unique_labels = np.unique(y_km)
+          for i in unique_labels:
+               plt.scatter(x[y_km == i , 0] , x[y_km == i , 1] , label = i, marker='o', picker=True)
           plt.scatter(
-               kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1],
-               s=250, marker='*',
+               centroids[:, 0], centroids[:, 1],
+               s=100, marker='*',
                c='red', edgecolor='black',
                label='centroids'
           )
+          #plt.legend()
           plt.title('Two clusters of data')
-          
-          #current_time = datetime.now().strftime("%H:%M:%S")
-          #print("saving fig: Current Time = ", current_time)
           plt.savefig('k_means_clusters.png') 
-          #current_time = datetime.now().strftime("%H:%M:%S")
-          #print("saved fig: Current Time = ", current_time)
-          
-          #current_time = datetime.now().strftime("%H:%M:%S")
-          #print("displaying fig: Current Time = ", current_time)
           plt.show()
-          #current_time = datetime.now().strftime("%H:%M:%S")
-          #print("displayed fig: Current Time = ", current_time)
 
 # Tester method to test Clustering class and k_means algorithm          
 def testMethod():
@@ -71,19 +63,26 @@ def loadPointCloud_npy():
      pointCloud = np.load(inputPath)
      print("Point cloud size: ", pointCloud.size)
      
+     
      # format using open3d
      pcd = o3d.geometry.PointCloud()
      pcd.points = o3d.utility.Vector3dVector(pointCloud[:,:3])
+     intensities = pointCloud[:,3:4]
+     truthLabels = pointCloud[:,4:5]
      print(pcd)
      
-     print("1: ", pcd.has_colors())
+     print("Intensities:", intensities)
+     print("Truth Labels:", truthLabels)
 
      # visualise point cloud
-     # my laptop cannot render the normal point cloud, so I had to downsample it 
      downpcd = pcd.voxel_down_sample(voxel_size=0.05)
      o3d.visualization.draw_geometries([downpcd])
      
-     return pointCloud
+     pc = np.asarray(downpcd.points)
+     print("Downsampled Point cloud size: ", pc.size)
+     print("0 is:", pc[0])
+     
+     return pc
 
 # Method to load and visualise a point cloud in a .ply file using open3d
 def loadPointCloud_ply():
@@ -95,8 +94,11 @@ def loadPointCloud_ply():
      
      print(pcd)
      print(np.asarray(pcd.points))
-
-     # my laptop cannot render the normal point cloud, so I had to downsample it 
+     print("Has colours:", pcd.has_colors(), np.asarray(pcd.colors)[0])
+     print("Has normals:", pcd.has_normals(), np.asarray(pcd.normals)[0])
+     print("Has points:", pcd.has_points(), np.asarray(pcd.points)[0])
+     print("Has covariances:", pcd.has_covariances())
+     
      downpcd = pcd.voxel_down_sample(voxel_size=0.05)
      
      # visualise point cloud
@@ -104,22 +106,32 @@ def loadPointCloud_ply():
                                    front=[0.4257, -0.2125, -0.8795],
                                    lookat=[2.6172, 2.0475, 1.532],
                                    up=[-0.0694, -0.9768, 0.2024])
+     pc = np.asarray(downpcd.points)
+     print("Downsampled Point cloud size: ", pc.size)
+     
+     return pc
 
 # Helper method to call method to load .ply and .npy point cloud files        
 def setup():
      pointCloud = loadPointCloud_npy()
-     loadPointCloud_ply()
+     #pointCloud = loadPointCloud_ply()
      return pointCloud
 
 # main method
 def main():
     #testMethod() #this works
     
+    start_time = datetime.now()
+    print("Start Time = ", start_time.strftime("%H:%M:%S"))
+    
     pointCloud = setup() # load point cloud and store in a numpy array
     
     # Cluster the point cloud
     clustering = Clustering(pointCloud)
-    clustering.k_means_clustering(2)
+    clustering.k_means_clustering(15)
+    
+    end_time = datetime.now()
+    print("End Time = ", end_time.strftime("%H:%M:%S"))
             
 if __name__=="__main__":
     main()
