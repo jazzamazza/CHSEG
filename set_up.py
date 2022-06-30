@@ -6,6 +6,8 @@ from sklearn.cluster import KMeans
 import open3d as o3d
 from mpl_toolkits import mplot3d
 from datetime import datetime
+from yaml import load
+import laspy as lp
 
 # Clustering class with various clustering methods
 class Clustering:
@@ -93,10 +95,12 @@ def loadPointCloud_ply():
      print("\nLOAD PLY POINT CLOUD DATA")
 
      #load point cloud .ply file
-     path = "/home/leah/Documents/Thesis_Set_UP/CHSEG/church_registered.ply"
+     #path = "/home/leah/Documents/Thesis_Set_UP/CHSEG/church_registered.ply"
+     path = "/home/leah/Documents/Thesis_Set_UP/CHSEG/church_registered _cldCmp.ply"
      pcd = o3d.io.read_point_cloud(path)
      
      print(pcd)
+
      #print(np.asarray(pcd.points))
      #print("Has colours:", pcd.has_colors(), np.asarray(pcd.colors)[0])
      #print("Has normals:", pcd.has_normals(), np.asarray(pcd.normals)[0])
@@ -115,11 +119,52 @@ def loadPointCloud_ply():
      
      return pc
 
+def loadPointCloud_las():
+     print("\nLOAD LAS POINT CLOUD DATA\n")
+     
+     path = "/home/leah/Documents/Thesis_Set_UP/CHSEG/church_registered _cldCmp.las"
+     pcd = lp.read(path)
+
+     print("All features:", list(pcd.point_format.dimension_names))
+     points = np.vstack((pcd.x, pcd.y, pcd.z)).transpose()
+     
+     print("Cloud Compare Features:", list(pcd.point_format.extra_dimension_names))
+     planarity = np.vstack(pcd['Planarity (0.049006)'])
+     intensity = np.vstack(pcd['NormalX'])
+     
+     print("\nPoints", points)
+     print("\nPlanarity:", planarity)
+     print("\nIntensity:", intensity)
+     
+     # format using open3d
+     pc = o3d.geometry.PointCloud()
+     pc.points = o3d.utility.Vector3dVector(points)
+     zero = planarity # placeholder
+     arr = np.hstack((planarity, intensity))
+     cloudCompareFeatures = np.hstack((arr, zero)) # form a 3D vector to add to o3d pcd
+     pc.normals = o3d.utility.Vector3dVector(cloudCompareFeatures) # store additional features (intensity & planarity) in pc.normals
+     print(pc)
+
+     # visualise point cloud
+     downpcd = pc.voxel_down_sample(voxel_size=0.05) # downsample pc
+     o3d.visualization.draw_geometries([downpcd])
+     
+     pc_points = np.asarray(downpcd.points) # convert pc points to np array
+     pc_features = np.asarray(downpcd.normals) # convert pc additional features to np array
+     finalPCD = np.hstack((pc_points, pc_features)) # concatenate the 2 np arrays
+     print("Downsampled Point cloud size: ", finalPCD.size)
+     print("0 is:", finalPCD[0])
+     
+     print(finalPCD[0])
+     
+     return finalPCD
+
 # Helper method to call method to load .ply and .npy point cloud files        
 def setup():
      pointCloud = loadPointCloud_npy()
      #pointCloud = loadPointCloud_ply()
-     return pointCloud
+     pointCloud_las = loadPointCloud_las()
+     return pointCloud, pointCloud_las
 
 # main method
 def main():
@@ -128,11 +173,14 @@ def main():
     start_time = datetime.now()
     print("Start Time = ", start_time.strftime("%H:%M:%S"))
     
-    pointCloud = setup() # load point cloud and store in a numpy array
+    pointCloud, pointCloud_las = setup() # load point cloud and store in a numpy array
     
     # Cluster the point cloud
     clustering = Clustering(pointCloud)
     clustering.k_means_clustering(15)
+    
+    clustering_cldCmp = Clustering(pointCloud_las)
+    clustering_cldCmp.k_means_clustering(15)
     
     end_time = datetime.now()
     print("End Time = ", end_time.strftime("%H:%M:%S"))
