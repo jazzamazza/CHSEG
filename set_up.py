@@ -1,3 +1,4 @@
+from curses import raw
 from operator import truth
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,8 +19,6 @@ class Clustering:
           print("\n------------------k means---------------------")
           kmeans = KMeans(n_clusters=k, n_init=10) # number of clusters (k)
           kmeans.fit(x) # apply k means to dataset
-          
-          #print("\nCluster centres:", kmeans.cluster_centers_)
           
           # Visualise K-Means
           y_km = kmeans.predict(x)
@@ -63,26 +62,31 @@ def loadPointCloud_npy():
      pointCloud = np.load(inputPath)
      print("Point cloud size: ", pointCloud.size)
      
-     
      # format using open3d
      pcd = o3d.geometry.PointCloud()
-     pcd.points = o3d.utility.Vector3dVector(pointCloud[:,:3])
-     intensities = pointCloud[:,3:4]
-     truthLabels = pointCloud[:,4:5]
+     pcd.points = o3d.utility.Vector3dVector(pointCloud[:,:3]) # add {x,y,z} points to pcd
+     intensities = pointCloud[:,3:4] # add intensity values to pcd
+     truthLabels = pointCloud[:,4:5] # add truth labels to pcd
+     zero = pointCloud[:,4:5] # placeholder
+     arr = np.hstack((intensities, truthLabels))
+     rawFeatures = np.hstack((arr, zero)) # form a 3D vector to add to o3d pcd
+     pcd.normals = o3d.utility.Vector3dVector(rawFeatures) # store additional features (intensity & truth labels) in pcd.normals
      print(pcd)
-     
-     print("Intensities:", intensities)
-     print("Truth Labels:", truthLabels)
 
      # visualise point cloud
-     downpcd = pcd.voxel_down_sample(voxel_size=0.05)
+     downpcd = pcd.voxel_down_sample(voxel_size=0.05) # downsample pcd
      o3d.visualization.draw_geometries([downpcd])
      
-     pc = np.asarray(downpcd.points)
+     pc_points = np.asarray(downpcd.points) # convert pcd points to np array
+     pc_features = np.asarray(downpcd.normals) # convert pcd additional features to np array
+     pc = np.hstack((pc_points, pc_features)) # concatenate the 2 np arrays
      print("Downsampled Point cloud size: ", pc.size)
      print("0 is:", pc[0])
      
-     return pc
+     finalPCD = np.delete(pc, [4,5], 1) # remove info unneccessary for clustering from pcd
+     print(finalPCD[0])
+     
+     return finalPCD
 
 # Method to load and visualise a point cloud in a .ply file using open3d
 def loadPointCloud_ply():
@@ -93,11 +97,11 @@ def loadPointCloud_ply():
      pcd = o3d.io.read_point_cloud(path)
      
      print(pcd)
-     print(np.asarray(pcd.points))
-     print("Has colours:", pcd.has_colors(), np.asarray(pcd.colors)[0])
-     print("Has normals:", pcd.has_normals(), np.asarray(pcd.normals)[0])
-     print("Has points:", pcd.has_points(), np.asarray(pcd.points)[0])
-     print("Has covariances:", pcd.has_covariances())
+     #print(np.asarray(pcd.points))
+     #print("Has colours:", pcd.has_colors(), np.asarray(pcd.colors)[0])
+     #print("Has normals:", pcd.has_normals(), np.asarray(pcd.normals)[0])
+     #print("Has points:", pcd.has_points(), np.asarray(pcd.points)[0])
+     #print("Has covariances:", pcd.has_covariances())
      
      downpcd = pcd.voxel_down_sample(voxel_size=0.05)
      
