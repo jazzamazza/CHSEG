@@ -1,0 +1,7 @@
+numpy
+matplotlib
+sklearn
+torch
+torchvision
+torchaudio
+laspy
