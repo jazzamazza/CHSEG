@@ -41,6 +41,7 @@ class Clustering:
           plt.title('Two clusters of data')
           plt.savefig('k_means_clusters.png') 
           plt.show()
+
      def silhouette(self):
     
           x = self.pcd
@@ -209,8 +210,7 @@ def loadPointCloud_ply():
      print("\nLOAD PLY POINT CLOUD DATA")
 
      #load point cloud .ply file
-     #path = "/home/leah/Documents/Thesis_Set_UP/CHSEG/church_registered.ply"
-     path = "/home/leah/Documents/Thesis_Set_UP/CHSEG/church_registered _cldCmp.ply"
+     path = "/home/leah/Documents/Thesis_Set_UP/CHSEG/church_registered.ply"
      pcd = o3d.io.read_point_cloud(path)
      
      print(pcd)
@@ -232,7 +232,7 @@ def loadPointCloud_ply():
      print("Downsampled Point cloud size: ", pc.size)
      
      return pc
-
+     
 def loadPointCloud_las():
      print("\nLOAD LAS POINT CLOUD DATA\n")
      
