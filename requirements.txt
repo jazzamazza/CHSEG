@@ -1,7 +1,10 @@
+wheel
+open3d
 numpy
 matplotlib
 sklearn
-torch
+torch == 1.8.*
 torchvision
-torchaudio
+#torchaudio
 laspy
+tensorboard

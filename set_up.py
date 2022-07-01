@@ -11,6 +11,8 @@ import laspy as lp
 from scipy.spatial.distance import cdist
 from sklearn.metrics import silhouette_samples, silhouette_score
 import matplotlib.cm as cm
+import open3d.ml.torch as o3d_ml_torch
+
 
 # Clustering class with various clustering methods
 class Clustering:
@@ -273,6 +275,14 @@ def loadPointCloud_las():
      
      return finalPCD
 
+def stanford():
+     path = "./data/stanford"
+     #sdata = o3d_ml_torch.datasets.S3DIS(dataset_path=path)
+     #print(sdata.)
+     #pcd = o3d.io.read_point_cloud(sdata.path)
+     #o3d.visualization.draw_geometries([pcd])
+     
+
 # Helper method to call method to load .ply and .npy point cloud files        
 def setup():
      pointCloud = loadPointCloud_npy()
@@ -297,7 +307,9 @@ def main():
     clustering_cldCmp.k_means_clustering(15)
     
     end_time = datetime.now()
+    total_time = end_time - start_time
     print("End Time = ", end_time.strftime("%H:%M:%S"))
+    print("Total Time = ", total_time.strftime("%H:%M:%S"))
             
 if __name__=="__main__":
     main()
