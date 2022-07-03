@@ -143,7 +143,6 @@ class Clustering:
 
           plt.show()
 
-
      #output
      # For n_clusters = 2 The average silhouette_score is : 0.3889045527426348
      # For n_clusters = 3 The average silhouette_score is : 0.3403178007585951
@@ -154,24 +153,8 @@ class Clustering:
      # For n_clusters = 8 The average silhouette_score is : 0.329213106052044
      # For n_clusters = 9 The average silhouette_score is : 0.31500958433214615
 
-# Tester method to test Clustering class and k_means algorithm          
-def testMethod():
-     X = np.array([[5,3],
-     [10,15],
-     [15,12],
-     [24,10],
-     [30,45],
-     [85,70],
-     [71,80],
-     [60,78],
-     [55,52],
-     [80,91],])
-     
-     clustering = Clustering(X)
-     clustering.k_means_clustering(4)
-
 # Method to load and visualise a point cloud in a .npy file using open3d
-def loadPointCloud_npy():
+def loadPointCloud_npy(vis):
      print("\nLOAD NPY POINT CLOUD DATA")
 
      #load point cloud to numpy
@@ -192,7 +175,8 @@ def loadPointCloud_npy():
 
      # visualise point cloud
      downpcd = pcd.voxel_down_sample(voxel_size=0.05) # downsample pcd
-     o3d.visualization.draw_geometries([downpcd])
+     if (vis):
+          o3d.visualization.draw_geometries([downpcd])
      
      pc_points = np.asarray(downpcd.points) # convert pcd points to np array
      pc_features = np.asarray(downpcd.normals) # convert pcd additional features to np array
@@ -214,12 +198,6 @@ def loadPointCloud_ply():
      pcd = o3d.io.read_point_cloud(path)
      
      print(pcd)
-
-     #print(np.asarray(pcd.points))
-     #print("Has colours:", pcd.has_colors(), np.asarray(pcd.colors)[0])
-     #print("Has normals:", pcd.has_normals(), np.asarray(pcd.normals)[0])
-     #print("Has points:", pcd.has_points(), np.asarray(pcd.points)[0])
-     #print("Has covariances:", pcd.has_covariances())
      
      downpcd = pcd.voxel_down_sample(voxel_size=0.05)
      
@@ -233,7 +211,7 @@ def loadPointCloud_ply():
      
      return pc
      
-def loadPointCloud_las():
+def loadPointCloud_las(vis):
      print("\nLOAD LAS POINT CLOUD DATA\n")
      
      path = "/home/leah/Documents/Thesis_Set_UP/CHSEG/church_registered _cldCmp.las"
@@ -261,7 +239,8 @@ def loadPointCloud_las():
 
      # visualise point cloud
      downpcd = pc.voxel_down_sample(voxel_size=0.05) # downsample pc
-     o3d.visualization.draw_geometries([downpcd])
+     if (vis): 
+          o3d.visualization.draw_geometries([downpcd])
      
      pc_points = np.asarray(downpcd.points) # convert pc points to np array
      pc_features = np.asarray(downpcd.normals) # convert pc additional features to np array
@@ -281,9 +260,7 @@ def setup():
      return pointCloud, pointCloud_las
 
 # main method
-def main():
-    #testMethod() #this works
-    
+def main():  
     start_time = datetime.now()
     print("Start Time = ", start_time.strftime("%H:%M:%S"))
     
@@ -298,6 +275,49 @@ def main():
     
     end_time = datetime.now()
     print("End Time = ", end_time.strftime("%H:%M:%S"))
+
+# Helper method to call method to load point cloud files  
+# Returns a PointCloud in a numpy array      
+def newSetup(option, vis):
+     if (option == "1"): pointCloud = loadPointCloud_npy(vis) # setup point cloud with raw features 
+     elif (option == "2"): pointCloud = loadPointCloud_las(vis) # setup point cloud with Cloud Compare features
+     #elif (option == "3"): pointCloud = loadPointCloud_las() # setup point cloud with PointNet++ features
+     return pointCloud
+
+# interactive application
+def application():
+     userInput = ""
+     while (userInput != "q"):
+          print("--------------Welcome---------------")
+          print("Type q to quit the application")
+          # Choose Point Cloud
+          userInput = input("\nChoose Point Cloud Input:"+
+                         "\n 1 : Point Cloud with Raw Features"+
+                         "\n 2 : Point Cloud with Cloud Compare Features"+
+                         "\n 3 : Point Cloud with PointNet++ Features\n")
+          if (userInput == "q"): break
+          pcd_choice = userInput
+          
+          # Setup and visualise point cloud based on user input
+          userInput = input("\nVisualise Point Cloud (y/n)?")
+          if (userInput == "q"): break
+          if (userInput=="y"):
+               pointCloud = newSetup(pcd_choice, True)
+          else:
+               pointCloud = newSetup(pcd_choice, False)
+          clustering = Clustering(pointCloud)
+     
+          while (userInput != "r"):
+               # cluster point cloud    
+               userInput = input("\nChoose Clustering Method(s):"+
+                              "\n 0 : K-Means Clustering" +
+                              "\n 1 : Clustering Method 1"+
+                              "\n 2 : Clustering Method 2"+
+                              "\n 3 : Clustering Method 3"+
+                              "\n r : Restart the Application\n")
+               if (userInput == "q"): break
+               elif (userInput == "0"): clustering.k_means_clustering(15)
             
 if __name__=="__main__":
-    main()
+    application()
+    #main()
