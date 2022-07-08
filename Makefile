@@ -1,6 +1,6 @@
 install: venv
 	. venv/bin/activate; pip3 install -r requirements.txt
-	pip3 install open3d
+#pip3 install open3d
 
 venv :
 	test -d venv || python3 -m venv venv

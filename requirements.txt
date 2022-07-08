@@ -1,6 +1,10 @@
+wheel
+open3d
 numpy
 matplotlib
 sklearn
 torch
 torchvision
 torchaudio
+laspy
+tensorboard
