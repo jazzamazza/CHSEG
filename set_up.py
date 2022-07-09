@@ -284,7 +284,7 @@ def loadPointCloud_ply(vis):
 def loadPointCloud_las(vis):
      print("\nLOAD LAS POINT CLOUD DATA\n")
      
-     path = "/Users/A102178/Desktop/church_registered_cldCmp6.las"  #church_registered _cldCmp (1).las
+     path = "/Users/A102178/Desktop/church_registered_cldCmp_subSampled.las"  #church_registered _cldCmp (1).las
      pcd = lp.read(path)
 
      print("All features:", list(pcd.point_format.dimension_names))
@@ -299,50 +299,87 @@ def loadPointCloud_las(vis):
      SurfaceVariation = np.vstack(pcd['Surface variation (0.049006)'])
      Omnivariance = np.vstack(pcd['Omnivariance (0.049006)'])
      Eigenentropy = np.vstack(pcd['Eigenentropy (0.049006)'])
+     zero = intensity
+
+     print("planarity", planarity[0])
+     print("anisotropy", anisotropy[0])
+     print("linearity", Linearity[0])
+     print("surface variation", SurfaceVariation[0])
+     print("omnivariance", Omnivariance[0])
+     print("eigentropy", Eigenentropy[0])
+
+     # array1 = np.hstack((points))
+     array2 = np.hstack((anisotropy, planarity, Eigenentropy))
+     array3 = np.hstack((Linearity, SurfaceVariation, zero))
+
+     arr1 = np.asarray(points)
+     # arr2 = np.asarray(array2)
+     # arr3 = np.asarray(array3)
+
+     print("points: ", points[0])
+     print("array 1: ", arr1[0])
+     print("array 2: ", array2[0])
+     print("array 3: ", array3[0])
+
+     finalArray = np.hstack((points, array2, array3))
+     # finalarr = np.concatenate((points, array2, array3))
+
+     print("size", finalArray.size)
+     print("final array", finalArray[0])
+
+     return finalArray
+
+     # print("concat", finalarr[0])
+
+     # # array1 = np.hstack(points)
+     # # array2 = np.hstack((anisotropy, planarity, Eigenentropy))
+     # # array3 = np.hstack((Linearity, SurfaceVariation, Omnivariance))
+
+     # # finalArray = np.hstack((array1, array2, array3))
+
+
+     # # format using open3d
+     # pc = o3d.geometry.PointCloud()
+     # pc.points = o3d.utility.Vector3dVector(points)
+     # zero = intensity # placeholder
+     # arr = np.hstack((anisotropy, planarity, Eigenentropy))
+     # arr1 = np.hstack((Linearity, SurfaceVariation, zero))
+     # pc.normals = o3d.utility.Vector3dVector(arr) # store additional features (intensity & planarity) in pc.normals
+     # pc.colors = o3d.utility.Vector3dVector(arr1)
+     # print(pc)
+
+
+     # #0visualise point cloud
+     # downpcd = pc.voxel_down_sample(voxel_size=0.05) # downsample pc
+     # if (vis): 
+     #      o3d.visualization.draw_geometries([downpcd])
      
-     # print("\nPoints", points)
-     # print("\nPlanarity:", planarity)
-     # print("\nIntensity:", intensity)
+     # pc_points = np.asarray(downpcd.points) # convert pc points to np array
+     # pc_features = np.asarray(downpcd.normals) # convert pc additional features to np array
+     # pc_features1 = np.asarray(downpcd.color)
+
+     # print("pc_points", np.asarray(pc.points))
+     # print("pc_features", np.asarray(pc.normals))
+
+     # print("pc_points downsampled", pc_points)
+     # print("pc_features downsampled", pc_features)
+
+     # finalPCD = np.hstack((pc_points, pc_features)) # concatenate the 2 np arrays - ADDED FEATURES1 - SAYS MISSING VALUES FOR K-MEANS
+     # print("final pcd", finalPCD[0])
+
+     # print("features_1 ", pc_features1)
+     # print("stacked feature one and two: ", np.hstack((pc_features, pc_features1)))
      
-     # format using open3d
-     pc = o3d.geometry.PointCloud()
-     pc.points = o3d.utility.Vector3dVector(points)
-     zero = intensity # placeholder
-     arr = np.hstack((anisotropy, planarity, Eigenentropy))
-     arr1 = np.hstack((Linearity, SurfaceVariation, Omnivariance))
-     #arr2 = np.hstack(Eigenentropy, Omnivariance)
-     #cloudCompareFeatures = np.hstack((arr, zero)) # form a 3D vector to add to o3d pcd
-     #cloudCompareFeatures1 = np.hstack((arr1))
-     pc.normals = o3d.utility.Vector3dVector(arr) # store additional features (intensity & planarity) in pc.normals
-     pc.colors = o3d.utility.Vector3dVector(arr1)
-     print(pc)
+     # finalPCD1 = np.hstack((finalPCD, pc_features1))
+     # print("Downsampled Point cloud size: ", finalPCD1.size)  
+     # print("0 is:", finalPCD1[0])
 
 
-     #0visualise point cloud
-     downpcd = pc.voxel_down_sample(voxel_size=0.05) # downsample pc
-     if (vis): 
-          o3d.visualization.draw_geometries([downpcd])
+     # #remove_nanFinal = finalPCD[np.logical_not(np.isnan(finalPCD))]
+     # # remove_nanFinal = np.nan_to_num(finalPCD)
+     # # final = np.hstack(remove_nanFinal)
      
-     pc_points = np.asarray(downpcd.points) # convert pc points to np array
-     pc_features = np.asarray(downpcd.normals) # convert pc additional features to np array
-     pc_features1 = np.asarray(downpcd.colors)
-
-     print("pc_points", np.asarray(pc.points))
-     print("pc_features", np.asarray(pc.normals))
-
-     print("pc_points downsampled", pc_points)
-     print("pc_features downsampled", pc_features)
-
-     finalPCD = np.hstack((pc_points, pc_features, pc_features1)) # concatenate the 2 np arrays - ADDED FEATURES1 - SAYS MISSING VALUES FOR K-MEANS
-     print("Downsampled Point cloud size: ", finalPCD.size)  # pc_features1
-     print("0 is:", finalPCD[0])
-
-
-     #remove_nanFinal = finalPCD[np.logical_not(np.isnan(finalPCD))]
-     # remove_nanFinal = np.nan_to_num(finalPCD)
-     # final = np.hstack(remove_nanFinal)
-     
-     return finalPCD
+     # return finalPCD1
 
 # Helper method to call method to load .ply and .npy point cloud files        
 def setup():
