@@ -6,7 +6,7 @@ venv :
 	test -d venv || python3 -m venv venv
 
 run:	venv
-	python3 set_up.py	
+	python3 CHSEG_main.py	
 	
 clean:
 	rm -r venv

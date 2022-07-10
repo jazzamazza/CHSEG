@@ -4,3 +4,5 @@ sklearn
 torch
 torchvision
 torchaudio
+laspy
+faiss-cpu
