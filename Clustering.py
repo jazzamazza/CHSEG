@@ -16,8 +16,11 @@ import faiss
 
 # Clustering class with various clustering methods
 class Clustering:
-     def __init__(self, pointCloud):
+     def __init__(self, pointCloud, pcd_choice):
           self.pcd = pointCloud
+          if (pcd_choice == "1"): self.type = "raw"
+          elif (pcd_choice == "2"): self.type = "cldCmp"
+          elif (pcd_choice == "3"): self.type = "pnet++"
      
      # K-MEANS CLUSTERING USING FAISS LIBRARY - SPEEDS UP COMPUTATION
      def k_means_clustering_faiss(self, k):
@@ -47,7 +50,7 @@ class Clustering:
           label='centroids'
       )
       plt.title('K-Means Clustering')
-      plt.savefig('k_means_clusters_las.png') 
+      plt.savefig('k_means_clusters_' + self.type + '.png') 
       plt.show()
   
      # k means clustering method --> clusters a dataset into k (given) clusters

@@ -5,7 +5,7 @@ import laspy as lp
 
 # Method to load and visualise a point cloud in a .npy file using open3d
 def loadPointCloud_npy(vis):
-     print("\nLOAD NPY POINT CLOUD DATA")
+     print("\n******************Loading Point Cloud with Raw Features (x, y, z, intensity) *******************")
 
      #load point cloud to numpy
      inputPath = "/home/leah/Documents/Thesis_Set_UP/CHSEG/church_registered.npy" #path to point cloud file
@@ -43,7 +43,7 @@ def loadPointCloud_npy(vis):
      return finalPCD
 
 def loadPointCloud_las(vis):
-      print("\nLOAD LAS POINT CLOUD DATA\n")
+      print("\n******************Loading Point Cloud with Cloud Compare Generated Features (x, y, z, intensity) *******************")
      
       path = "/home/leah/Documents/Thesis_Set_UP/CHSEG/church_registered _cldCmp.las"
       pcd = lp.read(path)
