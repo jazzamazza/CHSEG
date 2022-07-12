@@ -49,4 +49,5 @@ def application():
                #elif (userInput == "1"): DBSCAN_clustering(pointCloud)
             
 if __name__=="__main__":
-    application()
+    #application()
+    convertPCD()

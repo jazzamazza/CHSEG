@@ -6,3 +6,5 @@ torchvision
 torchaudio
 laspy
 faiss-cpu
+tqdm
+open3d

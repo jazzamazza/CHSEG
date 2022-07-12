@@ -136,7 +136,7 @@ def convertPCD():
   print("\n******************Convert Point Cloud to PointNet++ Readable Format*******************")
 
   #load point cloud to numpy
-  inputPath = "C:\\Users\\leahm\\Music\\Thesis\\03 Project\\11 July\\church_registered.npy"  #path to point cloud file
+  inputPath = "./data/church_registered.npy"  #path to point cloud file
   pointCloud = np.load(inputPath)
   print("Point cloud size: ", pointCloud.size)
      
@@ -153,14 +153,14 @@ def convertPCD():
   print(pcd)
 
   # save point cloud 
-  o3d.io.write_point_cloud("C:\\Users\\leahm\\Music\\Thesis\\03 Project\\11 July\\church_registered_pntNet.ply", pcd)
+  o3d.io.write_point_cloud("./data/church_registered_updated.ply", pcd)
 
 # Method to load and visualise a point cloud in a .ply file using open3d
 def loadPointCloud_ply():
      print("\n******************Loading Point Cloud (.ply) with Raw Features (x, y, z, intensity) *******************")
 
      #load point cloud .ply file
-     path = "C:\\Users\\leahm\\Music\\Thesis\\03 Project\\11 July\\church_registered_pntNet.ply"
+     path = "./data/church_registered_updated.ply"
      pcd = o3d.io.read_point_cloud(path)
      print(pcd)
 
