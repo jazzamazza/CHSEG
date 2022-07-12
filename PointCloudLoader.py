@@ -128,3 +128,51 @@ def loadPointCloud_las(vis):
         #print("0 is:", finalPCD[0])
      
       return finalPCD
+
+# raw point cloud data = x, y, z, intensity
+# but PointNet++ expects = x, y, z, r, g, b
+# so we store intensity value as r, g, b
+def convertPCD():
+  print("\n******************Convert Point Cloud to PointNet++ Readable Format*******************")
+
+  #load point cloud to numpy
+  inputPath = "C:\\Users\\leahm\\Music\\Thesis\\03 Project\\11 July\\church_registered.npy"  #path to point cloud file
+  pointCloud = np.load(inputPath)
+  print("Point cloud size: ", pointCloud.size)
+     
+  # divide pointCloud into points and features 
+  points = pointCloud[:,:3]
+  intensity = pointCloud[:,3:4] 
+  truthLabel = pointCloud[:,4:5] 
+    
+  # format using open3d
+  pcd = o3d.geometry.PointCloud()
+  pcd.points = o3d.utility.Vector3dVector(points) # add {x,y,z} points to pcd
+  features = np.hstack((intensity, intensity, intensity)) # form a 3D vector to add to o3d pcd
+  pcd.colors = o3d.utility.Vector3dVector(features) # store intensity as every value in color vector
+  print(pcd)
+
+  # save point cloud 
+  o3d.io.write_point_cloud("C:\\Users\\leahm\\Music\\Thesis\\03 Project\\11 July\\church_registered_pntNet.ply", pcd)
+
+# Method to load and visualise a point cloud in a .ply file using open3d
+def loadPointCloud_ply():
+     print("\n******************Loading Point Cloud (.ply) with Raw Features (x, y, z, intensity) *******************")
+
+     #load point cloud .ply file
+     path = "C:\\Users\\leahm\\Music\\Thesis\\03 Project\\11 July\\church_registered_pntNet.ply"
+     pcd = o3d.io.read_point_cloud(path)
+     print(pcd)
+
+     points = np.asarray(pcd.points)
+     print("Points:\n", points)
+     coord_min, coord_max = np.amin(points, axis=0)[:3], np.amax(points, axis=0)[:3]
+     print("coord_min: ", coord_min)
+     print("coord_max: ", coord_max)
+     
+     # visualise point cloud
+     downpcd = pcd.voxel_down_sample(voxel_size=0.05)
+     o3d.visualization.draw_geometries([downpcd], zoom=0.3412,
+                                   front=[0.4257, -0.2125, -0.8795],
+                                   lookat=[2.6172, 2.0475, 1.532],
+                                   up=[-0.0694, -0.9768, 0.2024])
