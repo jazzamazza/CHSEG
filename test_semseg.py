@@ -13,8 +13,8 @@ Date: Nov 2019
 
 import argparse
 import os
-from data_utils.S3DISDataLoader import ScannetDatasetWholeScene
-from data_utils.indoor3d_util import g_label2color
+from S3DISDataLoader import ScannetDatasetWholeScene
+#from data_utils.indoor3d_util import g_label2color
 import torch
 import logging
 from pathlib import Path
@@ -68,6 +68,7 @@ def main(args):
     '''HYPER PARAMETER'''
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
     experiment_dir = 'log/sem_seg/' + args.log_dir
+    print("experiment dir:", experiment_dir)
     visual_dir = experiment_dir + '/visual/'
     visual_dir = Path(visual_dir)
     visual_dir.mkdir(exist_ok=True)
@@ -88,12 +89,14 @@ def main(args):
     BATCH_SIZE = args.batch_size
     NUM_POINT = args.num_point
 
-    root = 'data/s3dis/stanford_indoor3d/'
+    root = '/content/drive/MyDrive/Thesis_Testing/PNET/Data'
 
-    TEST_DATASET_WHOLE_SCENE = ScannetDatasetWholeScene(root, split='test', test_area=args.test_area, block_points=NUM_POINT)
+    TEST_DATASET_WHOLE_SCENE = ScannetDatasetWholeScene(root)
     log_string("The number of test data is: %d" % len(TEST_DATASET_WHOLE_SCENE))
 
     '''MODEL LOADING'''
+    print("DIRECTORY:",experiment_dir + '/logs')
+    print(os.listdir(experiment_dir + '/logs'))
     model_name = os.listdir(experiment_dir + '/logs')[0].split('.')[0]
     MODEL = importlib.import_module(model_name)
     classifier = MODEL.get_model(NUM_CLASSES).cuda()
@@ -123,9 +126,11 @@ def main(args):
 
             whole_scene_data = TEST_DATASET_WHOLE_SCENE.scene_points_list[batch_idx]    #get all data
             whole_scene_label = TEST_DATASET_WHOLE_SCENE.semantic_labels_list[batch_idx]    #get all labels 
-            vote_label_pool = np.zeros((whole_scene_label.shape[0], NUM_CLASSES))
+            #vote_label_pool = np.zeros((whole_scene_label.shape[0], NUM_CLASSES))
             #for _ in tqdm(range(args.num_votes), total=args.num_votes):
-            scene_data, scene_label, scene_smpw, scene_point_index = TEST_DATASET_WHOLE_SCENE[batch_idx]
+            #scene_data, scene_label, scene_smpw, scene_point_index = TEST_DATASET_WHOLE_SCENE[batch_idx] #dealing with index error
+            scene_data, scene_label, scene_point_index = TEST_DATASET_WHOLE_SCENE[batch_idx]
+            print("outside")
             num_blocks = scene_data.shape[0]
             s_batch_num = (num_blocks + BATCH_SIZE - 1) // BATCH_SIZE
             batch_data = np.zeros((BATCH_SIZE, NUM_POINT, 9))
@@ -137,6 +142,7 @@ def main(args):
             feat_list = []
             xyz_list = []
             for sbatch in range(s_batch_num):
+                print("sbatch:", sbatch)
                 start_idx = sbatch * BATCH_SIZE
                 end_idx = min((sbatch + 1) * BATCH_SIZE, num_blocks)
                 real_batch_size = end_idx - start_idx
@@ -214,5 +220,6 @@ def main(args):
 
 
 if __name__ == '__main__':
+    
     args = parse_args()
     main(args)
