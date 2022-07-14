@@ -93,22 +93,22 @@ class ScannetDatasetWholeScene():
                 data_batch[:, 3:6] /= 255.0
                 data_batch = np.concatenate((data_batch, normlized_xyz), axis=1)
                 label_batch = labels[point_idxs].astype(int)
-                print("LABEL BATCH:", label_batch)
-                print("label weights size", self.labelweights.size)
+                #print("LABEL BATCH:", label_batch)
+                #print("label weights size", self.labelweights.size)
                 #batch_weight = self.labelweights[label_batch] #IndexError: index 19 is out of bounds for axis 0 with size 13
                 print("hey")
                 data_room = np.vstack([data_room, data_batch]) if data_room.size else data_batch
                 print("done data room")
-                label_room = np.hstack([label_room, label_batch]) if label_room.size else label_batch
-                print("done label room")
+                #label_room = np.hstack([label_room, label_batch]) if label_room.size else label_batch
+                #print("done label room")
                 #sample_weight = np.hstack([sample_weight, batch_weight]) if label_room.size else batch_weight #index error
-                index_room = np.hstack([index_room, point_idxs]) if index_room.size else point_idxs
-        #data_room = data_room.reshape((-1, self.block_points, data_room.shape[1]))
+                #index_room = np.hstack([index_room, point_idxs]) if index_room.size else point_idxs
+        data_room = data_room.reshape((-1, self.block_points, data_room.shape[1]))
         #label_room = label_room.reshape((-1, self.block_points))
         #sample_weight = sample_weight.reshape((-1, self.block_points)) # index error
         #index_room = index_room.reshape((-1, self.block_points))
         #return data_room, label_room, sample_weight, index_room # index error
-        return data_room, label_room, index_room
+        return data_room
 
     def __len__(self):
         return len(self.scene_points_list)
