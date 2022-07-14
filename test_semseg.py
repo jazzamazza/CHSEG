@@ -129,7 +129,7 @@ def main(args):
             #vote_label_pool = np.zeros((whole_scene_label.shape[0], NUM_CLASSES))
             #for _ in tqdm(range(args.num_votes), total=args.num_votes):
             #scene_data, scene_label, scene_smpw, scene_point_index = TEST_DATASET_WHOLE_SCENE[batch_idx] #dealing with index error
-            scene_data, scene_label, scene_point_index = TEST_DATASET_WHOLE_SCENE[batch_idx]
+            scene_data = TEST_DATASET_WHOLE_SCENE[batch_idx]
             print("outside")
             num_blocks = scene_data.shape[0]
             s_batch_num = (num_blocks + BATCH_SIZE - 1) // BATCH_SIZE
@@ -147,9 +147,9 @@ def main(args):
                 end_idx = min((sbatch + 1) * BATCH_SIZE, num_blocks)
                 real_batch_size = end_idx - start_idx
                 batch_data[0:real_batch_size, ...] = scene_data[start_idx:end_idx, ...]
-                batch_label[0:real_batch_size, ...] = scene_label[start_idx:end_idx, ...]
-                batch_point_index[0:real_batch_size, ...] = scene_point_index[start_idx:end_idx, ...]
-                batch_smpw[0:real_batch_size, ...] = scene_smpw[start_idx:end_idx, ...]
+                #batch_label[0:real_batch_size, ...] = scene_label[start_idx:end_idx, ...]
+                #batch_point_index[0:real_batch_size, ...] = scene_point_index[start_idx:end_idx, ...]
+                #batch_smpw[0:real_batch_size, ...] = scene_smpw[start_idx:end_idx, ...]
                 batch_data[:, :, 3:6] /= 1.0
 
                 torch_data = torch.Tensor(batch_data)
