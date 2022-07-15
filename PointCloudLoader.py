@@ -152,8 +152,10 @@ def convertPCD():
   pcd.colors = o3d.utility.Vector3dVector(features) # store intensity as every value in color vector
   print(pcd)
 
+  downpcd = pcd.voxel_down_sample(voxel_size=0.05)
+  
   # save point cloud 
-  o3d.io.write_point_cloud("./data/church_registered_updated.ply", pcd)
+  o3d.io.write_point_cloud("./data/church_registered_updated.ply", downpcd)
 
 # Method to load and visualise a point cloud in a .ply file using open3d
 def loadPointCloud_ply():

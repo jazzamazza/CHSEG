@@ -26,7 +26,7 @@ class ScannetDatasetWholeScene():
         self.semantic_labels_list = []
         self.room_coord_min, self.room_coord_max = [], []
         for file in self.file_list:
-            path = "/content/drive/MyDrive/Thesis_Testing/PNET/Data/church_registered_updated.ply"
+            path = "./data/church_registered_updated.ply"
             pcd = o3d.io.read_point_cloud(path)
             data = np.hstack((np.asarray(pcd.points), np.asarray(pcd.colors)))
             print(data)
@@ -61,7 +61,7 @@ class ScannetDatasetWholeScene():
         data_room, label_room, sample_weight, index_room = np.array([]), np.array([]), np.array([]),  np.array([])
         print("grid_x:", grid_x, ", grid_y:", grid_y)
         for index_y in range(0, grid_y):
-            print("outer")
+            #print("outer")
             print("index_y:", index_y)
             for index_x in range(0, grid_x):
                 #print("inner")
@@ -96,9 +96,9 @@ class ScannetDatasetWholeScene():
                 #print("LABEL BATCH:", label_batch)
                 #print("label weights size", self.labelweights.size)
                 #batch_weight = self.labelweights[label_batch] #IndexError: index 19 is out of bounds for axis 0 with size 13
-                print("hey")
+                #print("hey")
                 data_room = np.vstack([data_room, data_batch]) if data_room.size else data_batch
-                print("done data room")
+                #print("done data room")
                 #label_room = np.hstack([label_room, label_batch]) if label_room.size else label_batch
                 #print("done label room")
                 #sample_weight = np.hstack([sample_weight, batch_weight]) if label_room.size else batch_weight #index error
