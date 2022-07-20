@@ -95,13 +95,20 @@ def main(args):
             torch_data = torch.Tensor(batch_data)
             torch_data = torch_data.float().cuda()
             torch_data = torch_data.transpose(2, 1)
-            seg_pred, feat = classifier(torch_data)
+            feat, seg_pred, points1 = classifier(torch_data)
 
-            xyz_list = torch.cat((xyz_list, torch_data[:,:3]), 0)
+            #xyz_list = torch.cat((xyz_list, torch_data[:,:3]), 0)
+            xyz_list = torch.cat((xyz_list, torch_data[:,:3, :]), 0)
             feat_list = torch.cat((feat_list, feat), 0)
+
+            print('feat', feat_list)
+            print('xyz', xyz_list)
         
         print('feat size', feat_list.size())
         print('xyz size', xyz_list.size())
+
+        print('feat', feat_list)
+        print('xyz', xyz_list)
 
         final_feat_list = feat_list.cpu().data.numpy()
         final_xyz_list = xyz_list.cpu().data.numpy()
@@ -110,12 +117,13 @@ def main(args):
         print("finalPCD[0]:", finalPCD[0])
 
         finalPCD_new = finalPCD.reshape(-1,2)
+        print("finalPCD_new[0]:", finalPCD_new[0])
+
         print("*********************************")
 
         clustering = Clustering(finalPCD_new, "3")
         clustering.k_means_clustering_faiss(3)
 
-        print("Done!")
 
 
 if __name__ == '__main__':
