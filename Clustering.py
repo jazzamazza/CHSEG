@@ -30,8 +30,11 @@ class Clustering:
       kmeans.train(x.astype(np.float32))
 
       # predict:
-      prediction = kmeans.index.search(x.astype(np.float32), 1)[1]
+      prediction = kmeans.index.search(x.astype(np.float32), 1)[1] #This will return the nearest centroid for each line vector in x in I 
+      print('Prediction: '+prediction)
+      #L2distances = kmeans.index.search(x.astype(np.float32), 1)[0] #contains the squared L2 distances.
       y_km = prediction.flatten()
+      print('Prediction flattened: '+y_km)
       print("finished faiss_k_means")
      
       # Visualise K-Means

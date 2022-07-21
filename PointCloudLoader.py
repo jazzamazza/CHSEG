@@ -45,7 +45,7 @@ def loadPointCloud_npy(vis):
 def loadPointCloud_las(vis):
       print("\n******************Loading Point Cloud with Cloud Compare Generated Features (x, y, z, intensity) *******************")
      
-      path = "/home/leah/Documents/Thesis_Set_UP/CHSEG/church_registered _cldCmp.las"
+      path = "./Data/church_registered _cloudCompare.las"
       pcd = lp.read(path)
 
       print("All features:", list(pcd.point_format.dimension_names))
@@ -54,6 +54,7 @@ def loadPointCloud_las(vis):
       print("c-continguous:", points.flags['C_CONTIGUOUS'])
       
       cloudCompareFeatures = list(pcd.point_format.extra_dimension_names)
+    
       print("Cloud Compare Features:", cloudCompareFeatures)
       planarity = np.vstack(pcd['Planarity (0.049006)'])
       intensity = np.vstack(pcd['NormalX'])
@@ -62,6 +63,16 @@ def loadPointCloud_las(vis):
       surfaceVariation = np.vstack(pcd['Surface variation (0.049006)'])
       eigenentropy = np.vstack(pcd['Eigenentropy (0.049006)'])
       omnivariance = np.vstack(pcd['Omnivariance (0.049006)'])
+      eigenvalues_sum = np.vstack(pcd['Eigenvalues sum (0.049006)'])
+      pca1 = np.vstack(pcd['PCA1 (0.049006'])
+      pca2 = np.vstack(pcd['PCA2 (0.049006'])
+      sphericity = np.vstack(pcd['Sphericity (0.049006'])
+      verticality = np.vstack(pcd['Verticality (0.049006'])
+      first_eigen = np.vstack(pcd['1st eigenvalue (0.049006'])
+      second_eigen = np.vstack(pcd['2nd eigenvalue (0.049006'])
+      third_eigen = np.vstack(pcd['3rd eigenvalue (0.049006'])
+      
+      
       
       #########
       print("nan planarity?:",np.isnan(planarity).any())
@@ -76,15 +87,31 @@ def loadPointCloud_las(vis):
       linearity = np.nan_to_num(linearity)
       surfaceVariation = np.nan_to_num(surfaceVariation)
       eigenentropy = np.nan_to_num(eigenentropy)
+      omnivariance = np.nan_to_num(omnivariance)
+      eigenvalues_sum= np.nan_to_num(eigenvalues_sum)
+      pca1 = np.nan_to_num(pca1)
+      pca2 = np.nan_to_num(pca2)
+      sphericity = np.nan_to_num(sphericity)
+      verticality = np.nan_to_num(verticality)
+      first_eigen = np.nan_to_num(first_eigen)
+      second_eigen = np.nan_to_num(second_eigen)
+      third_eigen = np.nan_to_num(third_eigen)
+      
+      
       ######
 
       features = np.hstack((planarity, anisotropy, linearity, surfaceVariation, eigenentropy, intensity))
+      features1 = np.hstack((omnivariance, eigenvalues_sum, pca1, pca2, sphericity, verticality))
+      features2 = np.hstack((first_eigen, second_eigen, third_eigen))
+      
+      final_features = np.hstack(features, features1, features2)
+      
 
       print("points:", points)
       print("nan points?:",np.isnan(points).any())
-      print("features:", features)
-      print("nan features?:",np.isnan(features).any())
-      finalPCD = np.hstack((points, features))
+      print("features:", final_features)
+      print("nan features?:",np.isnan(final_features).any())
+      finalPCD = np.hstack((points, final_features))
 
       print("finalPCD 0:", finalPCD)
       print("nan finalPCD?:",np.isnan(finalPCD).any())

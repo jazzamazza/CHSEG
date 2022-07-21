@@ -83,8 +83,8 @@ def main(args):
         s_batch_num = (num_blocks + BATCH_SIZE - 1) // BATCH_SIZE
         batch_data = np.zeros((BATCH_SIZE, NUM_POINT, 9))
 
-        feat_list = torch.tensor([]).cuda()
-        xyz_list = torch.tensor([]).cuda()
+        feat_list = [] 
+        xyz_list = []
         for sbatch in range(s_batch_num):
             start_idx = sbatch * BATCH_SIZE
             end_idx = min((sbatch + 1) * BATCH_SIZE, num_blocks)
@@ -96,33 +96,88 @@ def main(args):
             torch_data = torch_data.float().cuda()
             torch_data = torch_data.transpose(2, 1)
             feat, seg_pred, points1 = classifier(torch_data)
+            
+            #f = feat.permute(0, 2, 1).detach().cpu().numpy()
+            #p = torch_data[:,:3,:].permute(0, 2, 1).detach().cpu().numpy()
 
-            #xyz_list = torch.cat((xyz_list, torch_data[:,:3]), 0)
-            xyz_list = torch.cat((xyz_list, torch_data[:,:3, :]), 0)
-            feat_list = torch.cat((feat_list, feat), 0)
 
-            print('feat', feat_list)
-            print('xyz', xyz_list)
+            f = feat.detach().cpu().numpy()
+            p = torch_data[:,:3,:].permute(0, 2, 1).detach().cpu().numpy()
+
+
+            xyz_list.append(p)
+            feat_list.append(f)
+
+            print("p.shape:", p.shape)
+            print("f.shape:", f.shape)
+
+
+            #print('feat', feat_list)
+            #print('xyz', xyz_list)
         
-        print('feat size', feat_list.size())
-        print('xyz size', xyz_list.size())
+        #print('feat shape', feat_list.shape)
+        #print('xyz shape', xyz_list.shape)
 
-        print('feat', feat_list)
-        print('xyz', xyz_list)
+        #print('feat', feat_list)
+        #print('xyz', xyz_list)
 
-        final_feat_list = feat_list.cpu().data.numpy()
-        final_xyz_list = xyz_list.cpu().data.numpy()
+        #final_feat_list = feat_list.cpu().data.numpy()
+        #final_xyz_list = xyz_list.cpu().data.numpy()
+
+        final_feat_list1 = np.vstack((feat_list))
+        final_xyz_list1 = np.vstack((xyz_list))
+
+        final_feat_list1 = final_feat_list1.copy(order='C')
+
+        print("c-continguous final_feat_list1:", final_feat_list1.flags['C_CONTIGUOUS'])
+        print("c-continguous final_xyz_list1:", final_xyz_list1.flags['C_CONTIGUOUS'])
+
+        print('feat shape 1', final_feat_list1.shape)
+        print('xyz shape 1', final_xyz_list1.shape)
+
+        final_feat_list = np.vstack((final_feat_list1))
+        final_xyz_list = np.vstack((final_xyz_list1))
+
+        print("c-continguous:", final_feat_list.flags['C_CONTIGUOUS'])
+        print("c-continguous:", final_xyz_list.flags['C_CONTIGUOUS'])
         
-        finalPCD = np.hstack((final_xyz_list, final_feat_list))
-        print("finalPCD[0]:", finalPCD[0])
+        
+        print('feat shape', final_feat_list.shape)
+        print('xyz shape', final_xyz_list.shape)
 
-        finalPCD_new = finalPCD.reshape(-1,2)
-        print("finalPCD_new[0]:", finalPCD_new[0])
+        print("final_feat_list:", final_feat_list)
+        print("final_xyz_list:", final_xyz_list)
+
+        from sklearn import preprocessing
+        scalar = preprocessing.MinMaxScaler()
+        normalised_feat = scalar.fit_transform(final_feat_list)
+
+        scalar2 = preprocessing.MinMaxScaler()
+        normalised_xyz = scalar2.fit_transform(final_xyz_list)
+
+        print("calculating finalPCD")
+        finalPCD = np.column_stack((normalised_xyz, normalised_feat))
+        #print("finalPCD[0]:", finalPCD[0])
+
+        print("c-continguous:", finalPCD.flags['C_CONTIGUOUS'])
+
+        print("finalPCD shape :", finalPCD.shape)
+        #print("finalPCD shape 1 :", finalPCD.shape[1])
+        #print("finalPCD shape:", finalPCD.shape)
+        #print("finalPCD size:", finalPCD.size())
+        #finalPCD_new = finalPCD.reshape(-1,2)
+        #print("finalPCD_new[0]:", finalPCD_new[0])
 
         print("*********************************")
 
-        clustering = Clustering(finalPCD_new, "3")
-        clustering.k_means_clustering_faiss(3)
+        clustering = Clustering(finalPCD, "3")
+        clustering.k_means_clustering_faiss(3, "finalPCD")
+
+        clustering1 = Clustering(normalised_feat, "3")
+        clustering1.k_means_clustering_faiss(3, "feat")
+
+        clustering2 = Clustering(normalised_xyz, "3")
+        clustering2.k_means_clustering_faiss(3, "xyz")
 
 
 
