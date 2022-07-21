@@ -2,8 +2,9 @@ import numpy as np
 import open3d as o3d
 
 # CHANGE PATHS:
-inputPath = "/Data/church_registered.npy"  #path to point cloud file
-outputPath = "/Data/church_registered_ds_2.ply""
+rootPath = "./Data/"
+
+inputPath = rootPath+"church_registered.npy"  #path to point cloud file
 
 pointCloud = np.load(inputPath)
 print("Point cloud size: ", pointCloud.size)
@@ -20,7 +21,11 @@ features = np.hstack((intensity, intensity, intensity)) # form a 3D vector to ad
 pcd.colors = o3d.utility.Vector3dVector(features) # store intensity as every value in color vector
 print(pcd)
 
-downpcd = pcd.voxel_down_sample(voxel_size=2)
+downsample_size = 0.05
+
+downpcd = pcd.voxel_down_sample(voxel_size=downsample_size)
+
+outputPath = rootPath+"church_registered_downsampled_"+str(downsample_size)+".ply"
 
 # save point cloud 
 o3d.io.write_point_cloud(outputPath, downpcd)

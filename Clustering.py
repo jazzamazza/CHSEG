@@ -17,6 +17,7 @@ class Clustering:
           if (pcd_choice == "1"): self.type = "raw"
           elif (pcd_choice == "2"): self.type = "cldCmp"
           elif (pcd_choice == "3"): self.type = "pnet++"
+          elif (pcd_choice == "4"): self.type = "test"
      
      # K-MEANS CLUSTERING USING FAISS LIBRARY - SPEEDS UP COMPUTATION
      def k_means_clustering_faiss(self, k):
@@ -31,15 +32,20 @@ class Clustering:
 
       # predict:
       prediction = kmeans.index.search(x.astype(np.float32), 1)[1] #This will return the nearest centroid for each line vector in x in I 
-      print('Prediction: '+prediction)
+      #print('Prediction: '+prediction)
       #L2distances = kmeans.index.search(x.astype(np.float32), 1)[0] #contains the squared L2 distances.
       y_km = prediction.flatten()
-      print('Prediction flattened: '+y_km)
+      #print('Prediction flattened: '+y_km)
       print("finished faiss_k_means")
+      
+      #o3d.visualization.draw_geometries([x])
+      
+      #o3d.visualization.draw_geometries([prediction])
      
       # Visualise K-Means
       centroids = kmeans.centroids
       unique_labels = np.unique(y_km)
+      
       for i in unique_labels:
           plt.scatter(x[y_km == i , 0] , x[y_km == i , 1] , label = i, marker='o', picker=True)
       plt.scatter(

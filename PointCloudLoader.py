@@ -185,13 +185,15 @@ def convertPCD():
   o3d.io.write_point_cloud("./Data/church_registered_updated.ply", downpcd)
 
 # Method to load and visualise a point cloud in a .ply file using open3d
-def loadPointCloud_ply():
+def loadPointCloud_ply(vis):
      print("\n******************Loading Point Cloud (.ply) with Raw Features (x, y, z, intensity) *******************")
 
      #load point cloud .ply file
-     path = "./Data/church_registered_updated.ply"
+     path = "./Data/church_registered_downsampled_0.5.ply"
      pcd = o3d.io.read_point_cloud(path)
      print(pcd)
+     
+     pcd_npy = np.asarray(pcd.points)
 
      points = np.asarray(pcd.points)
      print("Points:\n", points)
@@ -199,9 +201,12 @@ def loadPointCloud_ply():
      print("coord_min: ", coord_min)
      print("coord_max: ", coord_max)
      
-     # visualise point cloud
-     downpcd = pcd.voxel_down_sample(voxel_size=0.05)
-     o3d.visualization.draw_geometries([downpcd], zoom=0.3412,
-                                   front=[0.4257, -0.2125, -0.8795],
-                                   lookat=[2.6172, 2.0475, 1.532],
-                                   up=[-0.0694, -0.9768, 0.2024])
+     if (vis):
+      # visualise point cloud
+      downpcd = pcd.voxel_down_sample(voxel_size=0.05)
+      o3d.visualization.draw_geometries([downpcd], zoom=0.3412,
+                                    front=[0.4257, -0.2125, -0.8795],
+                                    lookat=[2.6172, 2.0475, 1.532],
+                                    up=[-0.0694, -0.9768, 0.2024])
+      
+     return pcd_npy
