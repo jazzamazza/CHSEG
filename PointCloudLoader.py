@@ -8,7 +8,7 @@ def loadPointCloud_npy(vis):
      print("\n******************Loading Point Cloud with Raw Features (x, y, z, intensity) *******************")
 
      #load point cloud to numpy
-     inputPath = "/home/leah/Documents/Thesis_Set_UP/CHSEG/church_registered.npy" #path to point cloud file
+     inputPath = "./Data/church_registered.npy" #path to point cloud file
      pointCloud = np.load(inputPath)
      print("Point cloud size: ", pointCloud.size)
      
@@ -45,7 +45,7 @@ def loadPointCloud_npy(vis):
 def loadPointCloud_las(vis):
       print("\n******************Loading Point Cloud with Cloud Compare Generated Features (x, y, z, intensity) *******************")
      
-      path = "./Data/church_registered _cloudCompare.las"
+      path = "./Data/church_registered_cloudCompare.las"
       pcd = lp.read(path)
 
       print("All features:", list(pcd.point_format.dimension_names))
@@ -163,7 +163,7 @@ def convertPCD():
   print("\n******************Convert Point Cloud to PointNet++ Readable Format*******************")
 
   #load point cloud to numpy
-  inputPath = "./data/church_registered.npy"  #path to point cloud file
+  inputPath = "./Data/church_registered.npy"  #path to point cloud file
   pointCloud = np.load(inputPath)
   print("Point cloud size: ", pointCloud.size)
      
@@ -182,14 +182,14 @@ def convertPCD():
   downpcd = pcd.voxel_down_sample(voxel_size=0.05)
   
   # save point cloud 
-  o3d.io.write_point_cloud("./data/church_registered_updated.ply", downpcd)
+  o3d.io.write_point_cloud("./Data/church_registered_updated.ply", downpcd)
 
 # Method to load and visualise a point cloud in a .ply file using open3d
 def loadPointCloud_ply():
      print("\n******************Loading Point Cloud (.ply) with Raw Features (x, y, z, intensity) *******************")
 
      #load point cloud .ply file
-     path = "./data/church_registered_updated.ply"
+     path = "./Data/church_registered_updated.ply"
      pcd = o3d.io.read_point_cloud(path)
      print(pcd)
 
