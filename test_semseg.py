@@ -1,3 +1,26 @@
+test_semseg.py
+Who has access
+L
+C
+System properties
+Type
+Text
+Size
+7 KB
+Storage used
+11 KBOwned by University of Cape Town
+Location
+CHSEG
+Creator
+Leah Gluckman
+Modified
+2:34 PM by me
+Opened
+3:35 PM by me
+Created
+Jul 20, 2022
+Add a description
+Viewers can download
 """
 Author: Benny
 Date: Nov 2019
@@ -15,6 +38,7 @@ from tqdm import tqdm
 import provider
 import numpy as np
 from Clustering import *
+import open3d as o3d
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = BASE_DIR
@@ -56,7 +80,7 @@ def main(args):
     NUM_POINT = args.num_point
 
     root = "/content/drive/MyDrive/Thesis_Testing/PNET/Data"
-    DATASET = ScannetDatasetWholeScene(root)
+    DATASET = ScannetDatasetWholeScene(root)            #test semseg 
 
     '''MODEL LOADING'''
     print("DIRECTORY:",experiment_dir + '/logs')
@@ -77,11 +101,25 @@ def main(args):
 
         whole_scene_data = DATASET.scene_points_list[0]    #get all data
         whole_scene_label = DATASET.semantic_labels_list[0]    #get all labels 
+        
+        # path = '/content/drive/MyDrive/PNET/church_registered_updated1.ply'
+        # pcd = o3d.io.read_point_cloud(path)
+        # data = np.hstack((np.asarray(pcd.points), np.asarray(pcd.colors)))
+        # print(data)
+
+        #data = np.load(root + file)
+        #points = data[:, :3]
+        #scene_data = data
+        
         scene_data = DATASET[0]
+        #print("indexed scene data", scene_data[:][3])
+        #np.save('/content/drive/MyDrive/PNET/Data/scene_data', scene_data[:][3]) #points in s3dis
+        print("scene_data shape", scene_data.shape)
         print("outside")
         num_blocks = scene_data.shape[0]
         s_batch_num = (num_blocks + BATCH_SIZE - 1) // BATCH_SIZE
         batch_data = np.zeros((BATCH_SIZE, NUM_POINT, 9))
+    
 
         feat_list = [] 
         xyz_list = []
@@ -95,7 +133,7 @@ def main(args):
             torch_data = torch.Tensor(batch_data)
             torch_data = torch_data.float().cuda()
             torch_data = torch_data.transpose(2, 1)
-            feat, seg_pred, points1 = classifier(torch_data)
+            feat, seg_pred = classifier(torch_data)
             
             #f = feat.permute(0, 2, 1).detach().cpu().numpy()
             #p = torch_data[:,:3,:].permute(0, 2, 1).detach().cpu().numpy()
@@ -112,20 +150,26 @@ def main(args):
             print("f.shape:", f.shape)
 
 
-            #print('feat', feat_list)
-            #print('xyz', xyz_list)
+            # print('feat', feat_list)
+            # print('xyz', xyz_list)
         
-        #print('feat shape', feat_list.shape)
-        #print('xyz shape', xyz_list.shape)
+        # print('feat shape', feat_list.shape)
+        # print('xyz shape', xyz_list.shape)
 
-        #print('feat', feat_list)
-        #print('xyz', xyz_list)
+        print('feat', feat_list)
+        print('xyz', xyz_list[:][3])
+
+        #new_xyz = xyz_list[:][3]
 
         #final_feat_list = feat_list.cpu().data.numpy()
         #final_xyz_list = xyz_list.cpu().data.numpy()
 
+        #np.save('/content/drive/MyDrive/PNET/Data/xyz_list', new_xyz) 
+
         final_feat_list1 = np.vstack((feat_list))
         final_xyz_list1 = np.vstack((xyz_list))
+
+        #np.save('/content/drive/MyDrive/PNET/Data/after_vstack', final_xyz_list1) 
 
         final_feat_list1 = final_feat_list1.copy(order='C')
 
@@ -137,6 +181,8 @@ def main(args):
 
         final_feat_list = np.vstack((final_feat_list1))
         final_xyz_list = np.vstack((final_xyz_list1))
+
+        #np.save('/content/drive/MyDrive/PNET/Data/after_vstackX2', final_xyz_list) 
 
         print("c-continguous:", final_feat_list.flags['C_CONTIGUOUS'])
         print("c-continguous:", final_xyz_list.flags['C_CONTIGUOUS'])
@@ -152,13 +198,11 @@ def main(args):
         scalar = preprocessing.MinMaxScaler()
         normalised_feat = scalar.fit_transform(final_feat_list)
 
-        scalar2 = preprocessing.MinMaxScaler()
-        normalised_xyz = scalar2.fit_transform(final_xyz_list)
-
         print("calculating finalPCD")
-        finalPCD = np.column_stack((normalised_xyz, normalised_feat))
+        finalPCD = np.column_stack((final_xyz_list, normalised_feat))
         #print("finalPCD[0]:", finalPCD[0])
 
+        np.save('/content/drive/Shareddrives/CHSEG/data/finalPCD', finalPCD)
         print("c-continguous:", finalPCD.flags['C_CONTIGUOUS'])
 
         print("finalPCD shape :", finalPCD.shape)
@@ -169,15 +213,17 @@ def main(args):
         #print("finalPCD_new[0]:", finalPCD_new[0])
 
         print("*********************************")
+        
+
 
         clustering = Clustering(finalPCD, "3")
-        clustering.k_means_clustering_faiss(3, "finalPCD")
+        clustering.k_means_clustering_faiss(3, "CHSEG_finalPCD")
 
         clustering1 = Clustering(normalised_feat, "3")
-        clustering1.k_means_clustering_faiss(3, "feat")
+        clustering1.k_means_clustering_faiss(3, "CHSEG_feat")
 
-        clustering2 = Clustering(normalised_xyz, "3")
-        clustering2.k_means_clustering_faiss(3, "xyz")
+        clustering2 = Clustering(final_xyz_list, "3")
+        clustering2.k_means_clustering_faiss(3, "CHSEG_xyz_list")
 
 
 
