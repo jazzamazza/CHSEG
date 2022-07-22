@@ -6,58 +6,30 @@ import open3d as o3d
 
 class ScannetDatasetWholeScene():
     # prepare to give prediction on each points
-    def __init__(self, root, block_points=4096, split='test', test_area=5, stride=0.5, block_size=1.0, padding=0.001):
+    def __init__(self, block_points=4096, stride=0.5, block_size=1.0, padding=0.001):
         self.block_points = block_points
         self.block_size = block_size
         self.padding = padding
-        self.root = root #path #./data/
-        self.split = split #=test
         self.stride = stride
         self.scene_points_num = []
-        # assert split in ['train', 'test']
-        # if self.split == 'train':
-        #     self.file_list = [d for d in os.listdir(root) if d.find('Area_%d' % test_area) is -1]
-        # else:
-        #     self.file_list = [d for d in os.listdir(root) if d.find('Area_%d' % test_area) is not -1]
-        #self.file_list = "./data/church_registered_updated.ply" #to do conv
-        #self.file_list = ['church_registered_updated.ply']
-        self.file_list = ['church_registered_updated1.ply']
         
         self.scene_points_list = []
         self.semantic_labels_list = []
         self.room_coord_min, self.room_coord_max = [], []
-        for file in self.file_list:
-            #path = "/content/drive/MyDrive/Thesis_Testing/PNET/Data/church_registered_updated.ply"
-            path = '/content/drive/Shareddrives/CHSEG/data/church_registered_updated.ply'
-            pcd = o3d.io.read_point_cloud(path)
-            data = np.hstack((np.asarray(pcd.points), np.asarray(pcd.colors)))
-            print(data)
+        
+        path = '/content/drive/Shareddrives/CHSEG/data/church_registered_updated.ply'
+        pcd = o3d.io.read_point_cloud(path)
+        data = np.hstack((np.asarray(pcd.points), np.asarray(pcd.colors)))
+        print(data)
 
-            #data = np.load(root + file)
-            points = data[:, :3]
-            #np.save('/content/drive/MyDrive/PNET/Data/points', points) #points in s3dis
-            print(points)
-            self.scene_points_list.append(data[:, :6])
-            self.semantic_labels_list.append(data[:, :6])
-            print("scene_points_list", self.scene_points_list)
-            print("semantic_labels_list", self.semantic_labels_list)
-            coord_min, coord_max = np.amin(points, axis=0)[:3], np.amax(points, axis=0)[:3]
-            #self.room_coord_min.append(coord_min), self.room_coord_max.append(coord_max)
+        points = data[:, :3]
+        print(points)
+        self.scene_points_list.append(data[:, :6])
+        self.semantic_labels_list.append(data[:, :6])
+        coord_min, coord_max = np.amin(points, axis=0)[:3], np.amax(points, axis=0)[:3]
         assert len(self.scene_points_list) == len(self.semantic_labels_list)
 
-        labelweights = np.zeros(13)
-        for seg in self.semantic_labels_list:
-            tmp, _ = np.histogram(seg, range(14))
-            self.scene_points_num.append(seg.shape[0])
-            labelweights += tmp
-        labelweights = labelweights.astype(np.float32)
-        labelweights = labelweights / np.sum(labelweights)
-        self.labelweights = np.power(np.amax(labelweights) / labelweights, 1 / 3.0)
-        print("LABELWEIGHTS:", self.labelweights)
-        print("label weights size", self.labelweights.size)
-
     def __getitem__(self, index):
-        print("INDEX IS:", index)
         point_set_ini = self.scene_points_list[index]
         points = point_set_ini[:,:6]
         labels = self.semantic_labels_list[index]
@@ -67,11 +39,8 @@ class ScannetDatasetWholeScene():
         data_room, label_room, sample_weight, index_room = np.array([]), np.array([]), np.array([]),  np.array([])
         print("grid_x:", grid_x, ", grid_y:", grid_y)
         for index_y in range(0, grid_y):
-            print("outer")
             print("index_y:", index_y)
             for index_x in range(0, grid_x):
-                #print("inner")
-                #print("index_x:", index_x, " & index_y:", index_y)
                 s_x = coord_min[0] + index_x * self.stride
                 e_x = min(s_x + self.block_size, coord_max[0])
                 s_x = e_x - self.block_size
@@ -96,29 +65,10 @@ class ScannetDatasetWholeScene():
                 # normlized_xyz[:, 2] = data_batch[:, 2] / coord_max[2]
                 # data_batch[:, 0] = data_batch[:, 0] - (s_x + self.block_size / 2.0)
                 # data_batch[:, 1] = data_batch[:, 1] - (s_y + self.block_size / 2.0)
-                # data_batch[:, 3:6] /= 255.0
                 data_batch = np.concatenate((data_batch, normlized_xyz), axis=1)    
                 label_batch = labels[point_idxs].astype(int)
-                #print("LABEL BATCH:", label_batch)
-                #print("label weights size", self.labelweights.size)
-                #batch_weight = self.labelweights[label_batch] #IndexError: index 19 is out of bounds for axis 0 with size 13
-                #print("hey")
                 data_room = np.vstack([data_room, data_batch]) if data_room.size else data_batch  #normalized - if just take point indexes - also return orginal points - FIRST THREE COLUMNS OF DATA BATCH BEFORE NORMALIZED  
-                #print("done data room")
-                #label_room = np.hstack([label_room, label_batch]) if label_room.size else label_batch
-                #print("done label room")
-                #sample_weight = np.hstack([sample_weight, batch_weight]) if label_room.size else batch_weight #index error
-                #index_room = np.hstack([index_room, point_idxs]) if index_room.size else point_idxs
-        print("hi")
         data_room = data_room.reshape((-1, self.block_points, data_room.shape[1]))
-        #label_room = label_room.reshape((-1, self.block_points))
-        #sample_weight = sample_weight.reshape((-1, self.block_points)) # index error
-        #index_room = index_room.reshape((-1, self.block_points))
-        #return data_room, label_room, sample_weight, index_room # index error
-        print("data_room", data_room)
-        print("data_room_size", data_room.size)
-        print("data_room indexed", data_room[:,3])
-        #np.save('/content/drive/MyDrive/PNET/Data/data_room', data_room) #points in s3dis
         return data_room 
 
     def __len__(self):
