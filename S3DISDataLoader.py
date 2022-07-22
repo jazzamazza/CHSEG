@@ -1,26 +1,3 @@
-S3DISDataLoader.py
-Who has access
-L
-C
-System properties
-Type
-Text
-Size
-7 KB
-Storage used
-12 KBOwned by University of Cape Town
-Location
-CHSEG
-Creator
-Leah Gluckman
-Modified
-2:34 PM by me
-Opened
-3:37 PM by me
-Created
-Jul 20, 2022
-Add a description
-Viewers can download
 import os
 import numpy as np
 from tqdm import tqdm
