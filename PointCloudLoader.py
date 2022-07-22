@@ -8,7 +8,7 @@ def loadPointCloud_npy(vis):
      print("\n******************Loading Point Cloud with Raw Features (x, y, z, intensity) *******************")
 
      #load point cloud to numpy
-     inputPath = "/home/leah/Documents/Thesis_Set_UP/CHSEG/church_registered.npy" #path to point cloud file
+     inputPath = "./Data/church_registered.npy" #path to point cloud file
      pointCloud = np.load(inputPath)
      print("Point cloud size: ", pointCloud.size)
      
@@ -45,7 +45,7 @@ def loadPointCloud_npy(vis):
 def loadPointCloud_las(vis):
       print("\n******************Loading Point Cloud with Cloud Compare Generated Features (x, y, z, intensity) *******************")
      
-      path = "/home/leah/Documents/Thesis_Set_UP/CHSEG/church_registered _cldCmp.las"
+      path = "./Data/church_registered_cloudCompare.las"
       pcd = lp.read(path)
 
       print("All features:", list(pcd.point_format.dimension_names))
@@ -54,6 +54,7 @@ def loadPointCloud_las(vis):
       print("c-continguous:", points.flags['C_CONTIGUOUS'])
       
       cloudCompareFeatures = list(pcd.point_format.extra_dimension_names)
+    
       print("Cloud Compare Features:", cloudCompareFeatures)
       planarity = np.vstack(pcd['Planarity (0.049006)'])
       intensity = np.vstack(pcd['NormalX'])
@@ -62,6 +63,16 @@ def loadPointCloud_las(vis):
       surfaceVariation = np.vstack(pcd['Surface variation (0.049006)'])
       eigenentropy = np.vstack(pcd['Eigenentropy (0.049006)'])
       omnivariance = np.vstack(pcd['Omnivariance (0.049006)'])
+      eigenvalues_sum = np.vstack(pcd['Eigenvalues sum (0.049006)'])
+      pca1 = np.vstack(pcd['PCA1 (0.049006'])
+      pca2 = np.vstack(pcd['PCA2 (0.049006'])
+      sphericity = np.vstack(pcd['Sphericity (0.049006'])
+      verticality = np.vstack(pcd['Verticality (0.049006'])
+      first_eigen = np.vstack(pcd['1st eigenvalue (0.049006'])
+      second_eigen = np.vstack(pcd['2nd eigenvalue (0.049006'])
+      third_eigen = np.vstack(pcd['3rd eigenvalue (0.049006'])
+      
+      
       
       #########
       print("nan planarity?:",np.isnan(planarity).any())
@@ -76,15 +87,31 @@ def loadPointCloud_las(vis):
       linearity = np.nan_to_num(linearity)
       surfaceVariation = np.nan_to_num(surfaceVariation)
       eigenentropy = np.nan_to_num(eigenentropy)
+      omnivariance = np.nan_to_num(omnivariance)
+      eigenvalues_sum= np.nan_to_num(eigenvalues_sum)
+      pca1 = np.nan_to_num(pca1)
+      pca2 = np.nan_to_num(pca2)
+      sphericity = np.nan_to_num(sphericity)
+      verticality = np.nan_to_num(verticality)
+      first_eigen = np.nan_to_num(first_eigen)
+      second_eigen = np.nan_to_num(second_eigen)
+      third_eigen = np.nan_to_num(third_eigen)
+      
+      
       ######
 
       features = np.hstack((planarity, anisotropy, linearity, surfaceVariation, eigenentropy, intensity))
+      features1 = np.hstack((omnivariance, eigenvalues_sum, pca1, pca2, sphericity, verticality))
+      features2 = np.hstack((first_eigen, second_eigen, third_eigen))
+      
+      final_features = np.hstack(features, features1, features2)
+      
 
       print("points:", points)
       print("nan points?:",np.isnan(points).any())
-      print("features:", features)
-      print("nan features?:",np.isnan(features).any())
-      finalPCD = np.hstack((points, features))
+      print("features:", final_features)
+      print("nan features?:",np.isnan(final_features).any())
+      finalPCD = np.hstack((points, final_features))
 
       print("finalPCD 0:", finalPCD)
       print("nan finalPCD?:",np.isnan(finalPCD).any())
@@ -136,7 +163,7 @@ def convertPCD():
   print("\n******************Convert Point Cloud to PointNet++ Readable Format*******************")
 
   #load point cloud to numpy
-  inputPath = "./data/church_registered.npy"  #path to point cloud file
+  inputPath = "./Data/church_registered.npy"  #path to point cloud file
   pointCloud = np.load(inputPath)
   print("Point cloud size: ", pointCloud.size)
      
@@ -152,17 +179,21 @@ def convertPCD():
   pcd.colors = o3d.utility.Vector3dVector(features) # store intensity as every value in color vector
   print(pcd)
 
+  downpcd = pcd.voxel_down_sample(voxel_size=0.05)
+  
   # save point cloud 
-  o3d.io.write_point_cloud("./data/church_registered_updated.ply", pcd)
+  o3d.io.write_point_cloud("./Data/church_registered_updated.ply", downpcd)
 
 # Method to load and visualise a point cloud in a .ply file using open3d
-def loadPointCloud_ply():
+def loadPointCloud_ply(vis):
      print("\n******************Loading Point Cloud (.ply) with Raw Features (x, y, z, intensity) *******************")
 
      #load point cloud .ply file
-     path = "./data/church_registered_updated.ply"
+     path = "./Data/church_registered_downsampled_0.5.ply"
      pcd = o3d.io.read_point_cloud(path)
      print(pcd)
+     
+     pcd_npy = np.asarray(pcd.points)
 
      points = np.asarray(pcd.points)
      print("Points:\n", points)
@@ -170,9 +201,12 @@ def loadPointCloud_ply():
      print("coord_min: ", coord_min)
      print("coord_max: ", coord_max)
      
-     # visualise point cloud
-     downpcd = pcd.voxel_down_sample(voxel_size=0.05)
-     o3d.visualization.draw_geometries([downpcd], zoom=0.3412,
-                                   front=[0.4257, -0.2125, -0.8795],
-                                   lookat=[2.6172, 2.0475, 1.532],
-                                   up=[-0.0694, -0.9768, 0.2024])
+     if (vis):
+      # visualise point cloud
+      downpcd = pcd.voxel_down_sample(voxel_size=0.05)
+      o3d.visualization.draw_geometries([downpcd], zoom=0.3412,
+                                    front=[0.4257, -0.2125, -0.8795],
+                                    lookat=[2.6172, 2.0475, 1.532],
+                                    up=[-0.0694, -0.9768, 0.2024])
+      
+     return pcd_npy

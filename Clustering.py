@@ -19,7 +19,7 @@ class Clustering:
           elif (pcd_choice == "3"): self.type = "pnet++"
      
      # K-MEANS CLUSTERING USING FAISS LIBRARY - SPEEDS UP COMPUTATION
-     def k_means_clustering_faiss(self, k):
+     def k_means_clustering_faiss(self, k, imageName):
       x = self.pcd
       print("starting faiss_k_means")
       # train:
@@ -36,17 +36,23 @@ class Clustering:
      
       # Visualise K-Means
       centroids = kmeans.centroids
+      print("centroids:", centroids)
       unique_labels = np.unique(y_km)
+      print("unique_labels:", unique_labels)
       for i in unique_labels:
           plt.scatter(x[y_km == i , 0] , x[y_km == i , 1] , label = i, marker='o', picker=True)
+          print("plotting", i)
       plt.scatter(
           centroids[:, 0], centroids[:, 1],
           s=100, marker='*',
           c='red', edgecolor='black',
           label='centroids'
       )
+      print("creating title")
       plt.title('K-Means Clustering')
-      plt.savefig('k_means_clusters_' + self.type + '.png') 
+      print("saving figure")
+      plt.savefig(self.type + imageName + '.png')
+      #plt.savefig('k_means_clusters_' + self.type + imageName + '.png') 
       plt.show()
   
      # k means clustering method --> clusters a dataset into k (given) clusters

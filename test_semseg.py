@@ -15,19 +15,12 @@ from tqdm import tqdm
 import provider
 import numpy as np
 from Clustering import *
+import open3d as o3d
+from sklearn import preprocessing
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = BASE_DIR
 sys.path.append(os.path.join(ROOT_DIR, 'models'))
-
-classes = ['ceiling', 'floor', 'wall', 'beam', 'column', 'window', 'door', 'table', 'chair', 'sofa', 'bookcase',
-           'board', 'clutter']
-class2label = {cls: i for i, cls in enumerate(classes)}
-seg_classes = class2label
-seg_label_to_cat = {}
-for i, cat in enumerate(seg_classes.keys()):
-    seg_label_to_cat[i] = cat
-
 
 def parse_args():
     '''PARAMETERS'''
@@ -36,9 +29,6 @@ def parse_args():
     parser.add_argument('--gpu', type=str, default='0', help='specify gpu device')
     parser.add_argument('--num_point', type=int, default=4096, help='point number [default: 4096]')
     parser.add_argument('--log_dir', type=str, required=True, help='experiment root')
-    parser.add_argument('--visual', action='store_true', default=False, help='visualize result [default: False]')
-    parser.add_argument('--test_area', type=int, default=5, help='area for testing, option: 1-6 [default: 5]')
-    parser.add_argument('--num_votes', type=int, default=3, help='aggregate segmentation scores with voting [default: 5]')
     return parser.parse_args()
 
 def main(args):
@@ -50,9 +40,6 @@ def main(args):
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
     experiment_dir = 'log/sem_seg/' + args.log_dir
     print("experiment dir:", experiment_dir)
-    visual_dir = experiment_dir + '/visual/'
-    visual_dir = Path(visual_dir)
-    visual_dir.mkdir(exist_ok=True)
 
     '''LOG'''
     args = parse_args()
@@ -70,13 +57,9 @@ def main(args):
     BATCH_SIZE = args.batch_size
     NUM_POINT = args.num_point
 
-    root = "/content/drive/MyDrive/Thesis_Testing/PNET/Data"
-    TEST_DATASET_WHOLE_SCENE = ScannetDatasetWholeScene(root)
-    log_string("The number of test data is: %d" % len(TEST_DATASET_WHOLE_SCENE))
+    DATASET = ScannetDatasetWholeScene()            
 
     '''MODEL LOADING'''
-    print("DIRECTORY:",experiment_dir + '/logs')
-    print(os.listdir(experiment_dir + '/logs'))
     model_name = os.listdir(experiment_dir + '/logs')[0].split('.')[0]
     MODEL = importlib.import_module(model_name)
     classifier = MODEL.get_model(NUM_CLASSES).cuda()
@@ -85,52 +68,69 @@ def main(args):
     classifier = classifier.eval()
 
     with torch.no_grad():
-        scene_id = TEST_DATASET_WHOLE_SCENE.file_list
-        scene_id = [x[:-4] for x in scene_id]
-        num_batches = len(TEST_DATASET_WHOLE_SCENE)
-
         log_string('---- EVALUATION WHOLE SCENE----')
 
-        whole_scene_data = TEST_DATASET_WHOLE_SCENE.scene_points_list[0]    #get all data
-        whole_scene_label = TEST_DATASET_WHOLE_SCENE.semantic_labels_list[0]    #get all labels 
-        scene_data = TEST_DATASET_WHOLE_SCENE[0]
-        print("outside")
+        whole_scene_data = DATASET.scene_points_list[0]    #get all data
+        whole_scene_label = DATASET.semantic_labels_list[0]    #get all labels   
+        scene_data = DATASET[0]
+        print("Outside Data Loader")
         num_blocks = scene_data.shape[0]
         s_batch_num = (num_blocks + BATCH_SIZE - 1) // BATCH_SIZE
         batch_data = np.zeros((BATCH_SIZE, NUM_POINT, 9))
-
-        feat_list = torch.tensor([]).cuda()
-        xyz_list = torch.tensor([]).cuda()
+    
+        feat_list = [] 
+        xyz_list = []
         for sbatch in range(s_batch_num):
             start_idx = sbatch * BATCH_SIZE
             end_idx = min((sbatch + 1) * BATCH_SIZE, num_blocks)
             real_batch_size = end_idx - start_idx
             batch_data[0:real_batch_size, ...] = scene_data[start_idx:end_idx, ...]
-            #batch_data[:, :, 3:6] /= 1.0
-
             torch_data = torch.Tensor(batch_data)
             torch_data = torch_data.float().cuda()
             torch_data = torch_data.transpose(2, 1)
-            seg_pred, feat = classifier(torch_data)
+            feat, seg_pred = classifier(torch_data)
+            
+            f = feat.detach().cpu().numpy()
+            p = torch_data[:,:3,:].permute(0, 2, 1).detach().cpu().numpy()
 
-            xyz_list = torch.cat((xyz_list, torch_data[:,:3]), 0)
-            feat_list = torch.cat((feat_list, feat), 0)
-        
-        print('feat size', feat_list.size())
-        print('xyz size', xyz_list.size())
+            xyz_list.append(p)
+            feat_list.append(f)
 
-        final_feat_list = feat_list.cpu().data.numpy()
-        final_xyz_list = xyz_list.cpu().data.numpy()
+        new_feat_list = np.vstack((feat_list))
+        new_xyz_list = np.vstack((xyz_list))
+
+        final_feat_list1 = new_feat_list.copy(order='C')
+
+        print('new_feat_list shape:', new_feat_list.shape)
+        print('new_xyz_list shape:', new_xyz_list.shape)
+
+        final_feat_list = np.vstack((new_feat_list))
+        final_xyz_list = np.vstack((new_xyz_list))
         
-        finalPCD = np.hstack((final_xyz_list, final_feat_list))
-        print("finalPCD[0]:", finalPCD[0])
+        print('final_feat_list shape:', final_feat_list.shape)
+        print('final_xyz_list shape:', final_xyz_list.shape)
+
+        print("final_feat_list:", final_feat_list)
+        print("final_xyz_list:", final_xyz_list)
+
+        scalar = preprocessing.MinMaxScaler()
+        normalised_feat = scalar.fit_transform(final_feat_list)
+
+        print("Calculating finalPCD")
+        finalPCD = np.column_stack((final_xyz_list, normalised_feat))
+
+        np.save('/content/drive/MyDrive/GitHubTest/data/finalPCD.npy', finalPCD)
+        print("finalPCD shape:", finalPCD.shape)
         print("*********************************")
 
         clustering = Clustering(finalPCD, "3")
-        clustering.k_means_clustering_faiss(15)
+        clustering.k_means_clustering_faiss(20, "CHSEG_finalPCD!")
 
-        print("Done!")
+        # clustering1 = Clustering(normalised_feat, "3")
+        # clustering1.k_means_clustering_faiss(3, "CHSEG_feat")
 
+        # clustering2 = Clustering(final_xyz_list, "3")
+        # clustering2.k_means_clustering_faiss(3, "CHSEG_xyz_list")
 
 if __name__ == '__main__':
     
