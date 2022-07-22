@@ -1,26 +1,3 @@
-test_semseg.py
-Who has access
-L
-C
-System properties
-Type
-Text
-Size
-7 KB
-Storage used
-11 KBOwned by University of Cape Town
-Location
-CHSEG
-Creator
-Leah Gluckman
-Modified
-2:34 PM by me
-Opened
-3:35 PM by me
-Created
-Jul 20, 2022
-Add a description
-Viewers can download
 """
 Author: Benny
 Date: Nov 2019
