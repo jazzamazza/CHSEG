@@ -17,10 +17,9 @@ class Clustering:
           if (pcd_choice == "1"): self.type = "raw"
           elif (pcd_choice == "2"): self.type = "cldCmp"
           elif (pcd_choice == "3"): self.type = "pnet++"
-          elif (pcd_choice == "4"): self.type = "test"
      
      # K-MEANS CLUSTERING USING FAISS LIBRARY - SPEEDS UP COMPUTATION
-     def k_means_clustering_faiss(self, k):
+     def k_means_clustering_faiss(self, k, imageName):
       x = self.pcd
       print("starting faiss_k_means")
       # train:
@@ -31,31 +30,29 @@ class Clustering:
       kmeans.train(x.astype(np.float32))
 
       # predict:
-      prediction = kmeans.index.search(x.astype(np.float32), 1)[1] #This will return the nearest centroid for each line vector in x in I 
-      #print('Prediction: '+prediction)
-      #L2distances = kmeans.index.search(x.astype(np.float32), 1)[0] #contains the squared L2 distances.
+      prediction = kmeans.index.search(x.astype(np.float32), 1)[1]
       y_km = prediction.flatten()
-      #print('Prediction flattened: '+y_km)
       print("finished faiss_k_means")
-      
-      #o3d.visualization.draw_geometries([x])
-      
-      #o3d.visualization.draw_geometries([prediction])
      
       # Visualise K-Means
       centroids = kmeans.centroids
+      print("centroids:", centroids)
       unique_labels = np.unique(y_km)
-      
+      print("unique_labels:", unique_labels)
       for i in unique_labels:
           plt.scatter(x[y_km == i , 0] , x[y_km == i , 1] , label = i, marker='o', picker=True)
+          print("plotting", i)
       plt.scatter(
           centroids[:, 0], centroids[:, 1],
           s=100, marker='*',
           c='red', edgecolor='black',
           label='centroids'
       )
+      print("creating title")
       plt.title('K-Means Clustering')
-      plt.savefig('k_means_clusters_' + self.type + '.png') 
+      print("saving figure")
+      plt.savefig(self.type + imageName + '.png')
+      #plt.savefig('k_means_clusters_' + self.type + imageName + '.png') 
       plt.show()
   
      # k means clustering method --> clusters a dataset into k (given) clusters
