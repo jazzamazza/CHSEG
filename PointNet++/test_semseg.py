@@ -8,7 +8,6 @@ import torch
 import sys
 import importlib
 import numpy as np
-from Clustering import *
 from sklearn import preprocessing
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -29,7 +28,7 @@ def main_semseg():
     model_name = 'pointnet2_sem_seg'
     MODEL = importlib.import_module(model_name)
     classifier = MODEL.get_model(NUM_CLASSES).cuda()
-    checkpoint = torch.load('best_model.pth') 
+    checkpoint = torch.load('PointNet++/best_model.pth') 
     classifier.load_state_dict(checkpoint['model_state_dict'])
     classifier = classifier.eval()
 
@@ -83,8 +82,9 @@ def main_semseg():
         print("finalPCD shape:", finalPCD.shape)
         print("*********************************")
 
-        clustering = Clustering(finalPCD, "3")
-        clustering.k_means_clustering_faiss(20, "CHSEG_finalPCD!")
+        return finalPCD
+        #clustering = Clustering(finalPCD, "3")
+        #clustering.k_means_clustering_faiss(20, "CHSEG_finalPCD!")
 
 if __name__ == '__main__':
     main_semseg()
