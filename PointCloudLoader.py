@@ -168,7 +168,7 @@ class PointCloudLoader:
     
       return finalPCD
 
-  def convert_pcd():
+  def convert_pcd(self):
     
     # raw point cloud data = x, y, z, intensity
     # but PointNet++ expects = x, y, z, r, g, b
@@ -176,8 +176,8 @@ class PointCloudLoader:
     print("\n******************Convert Point Cloud to PointNet++ Readable Format*******************")
 
     #load point cloud to numpy
-    inputPath = "./Data/church_registered.npy"  #path to point cloud file
-    point_cloud = np.load(inputPath)
+    path = self.pcd_path  #path to point cloud file
+    point_cloud = np.load(path)
     print("Point cloud size: ", point_cloud.size)
       
     # divide point_cloud into points and features 
