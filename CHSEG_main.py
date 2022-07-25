@@ -41,7 +41,7 @@ def application():
                               "\n 3 : Clustering Method 3"+
                               "\n r : Restart the Application\n")
                if (userInput == "q"): break
-               elif (userInput == "0"): clustering.k_means_clustering_faiss(15)
+               elif (userInput == "0"): clustering.k_means_clustering_faiss(15, "")
                elif (userInput == "1"): clustering.optics_clustering()
             
 if __name__=="__main__":
