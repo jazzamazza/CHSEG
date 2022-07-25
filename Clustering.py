@@ -23,7 +23,6 @@ class Clustering:
       x = self.pcd
       print("starting faiss_k_means")
       # train:
-      #k = 15
       n_init = 10
       max_iter = 300
       kmeans = faiss.Kmeans(d=x.shape[1], k=k, niter=max_iter, nredo=n_init)
@@ -51,8 +50,7 @@ class Clustering:
       print("creating title")
       plt.title('K-Means Clustering')
       print("saving figure")
-      plt.savefig(self.type + imageName + '.png')
-      #plt.savefig('k_means_clusters_' + self.type + imageName + '.png') 
+      plt.savefig('k_means_clusters_' + self.type + imageName + '.png') 
       plt.show()
   
      # k means clustering method --> clusters a dataset into k (given) clusters
@@ -79,14 +77,12 @@ class Clustering:
                label='centroids'
           )
           #plt.legend()
-          plt.title('Two clusters of data')
+          plt.title('K-Means Clustering')
           plt.savefig('k_means_clusters.png') 
           plt.show()
 
      def silhouette(self):
-    
           x = self.pcd
-     
           K = range(2,10)
           for k in K:
                fig, (ax1, ax2) = plt.subplots(1, 2)
@@ -106,12 +102,7 @@ class Clustering:
                cluster_labels = clusterer.fit_predict(x)
 
                silhouette_avg = silhouette_score(x, cluster_labels)
-               print(
-                    "For n_clusters =",
-                         k,
-                    "The average silhouette_score is :",
-                         silhouette_avg,
-               )
+               print("For n_clusters =", k, "The average silhouette_score is :", silhouette_avg)
                sample_silhouette_values = silhouette_samples(x, cluster_labels)
      
                y_lower = 10
@@ -119,9 +110,7 @@ class Clustering:
                     # Aggregate the silhouette scores for samples belonging to
                     # cluster i, and sort them
                     ith_cluster_silhouette_values = sample_silhouette_values[cluster_labels == i]
-
                     ith_cluster_silhouette_values.sort()
-
                     size_cluster_i = ith_cluster_silhouette_values.shape[0]
                     y_upper = y_lower + size_cluster_i
 
@@ -146,14 +135,12 @@ class Clustering:
 
                ax1.axvline(x=silhouette_avg, color="red", linestyle="--")
 
-               ax1.set_yticks([])  # Clear the yaxis labels / ticks
+               ax1.set_yticks([])  # Clear the y-axis labels / ticks
                ax1.set_xticks([-0.1, 0, 0.2, 0.4, 0.6, 0.8, 1])
 
                # 2nd Plot showing the actual clusters formed
                colors = cm.nipy_spectral(cluster_labels.astype(float) / k)
-               ax2.scatter(
-                    x[:, 0], x[:, 1], marker=".", s=30, lw=0, alpha=0.7, c=colors, edgecolor="k"
-               )
+               ax2.scatter(x[:, 0], x[:, 1], marker=".", s=30, lw=0, alpha=0.7, c=colors, edgecolor="k")
 
                # Labeling the clusters
                centers = clusterer.cluster_centers_
