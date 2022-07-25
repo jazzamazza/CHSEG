@@ -1,13 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.cluster import KMeans
-import open3d as o3d
-from mpl_toolkits import mplot3d
-from datetime import datetime
-import laspy as lp
 from sklearn.metrics import silhouette_samples, silhouette_score
 import matplotlib.cm as cm
-from sklearn.cluster import DBSCAN
 import faiss
 
 # Clustering class with various clustering methods
