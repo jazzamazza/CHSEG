@@ -1,51 +1,63 @@
-# PointCloudLoader
+# point_cloudLoader
+from curses import has_colors
 import numpy as np
 import open3d as o3d
 import laspy as lp
+from PointCloudViewer import PointCloudViewer 
 
-# Method to load and visualise a point cloud in a .npy file using open3d
-def loadPointCloud_npy(vis):
-     print("\n******************Loading Point Cloud with Raw Features (x, y, z, intensity) *******************")
+class PointCloudLoader:
+  """Point cloud loader
+  """
+  def __init__(self, path):
+    """Constructor
 
-     #load point cloud to numpy
-     inputPath = "./Data/church_registered.npy" #path to point cloud file
-     pointCloud = np.load(inputPath)
-     print("Point cloud size: ", pointCloud.size)
-     
-     # divide pointCloud into points and features 
-     points = pointCloud[:,:3]
-     intensity = pointCloud[:,3:4] 
-     truthLabel = pointCloud[:,4:5] 
-     finalPCD = np.hstack((points, intensity))
-     print("finalPCD[0]:",finalPCD[0])
+    Args:
+        path (file): file path
+    """
+    self.pcd_path = path
+
+  # Method to load and visualise a point cloud in a .npy file using open3d
+  def load_point_cloud_npy(self, vis):
+    """Method to load and visualise a point cloud stored as a .npy file
+
+    Args:
+        vis (bool): enable visualisation or now
+
+    Returns:
+        nparray: Point cloud as numpy array
+    """
+    print("\n****************** Loading Point Cloud *******************")
+    point_cloud = np.load(self.pcd_path)
+    self.get_attributes(point_cloud)   
+    # divide point_cloud into points and features 
+    print("original pcd[0]:",point_cloud[0])
+    points = point_cloud[:,:3]
+    print("points[0]",points[0])
+    intensity = point_cloud[:,3:4]
+    print("intensity[0]",intensity[0])
+    truth_label = point_cloud[:,4:5]
+    print("truth label[0]",truth_label[0]) 
     
-     if (vis):
-         # format using open3d
-         pcd = o3d.geometry.PointCloud()
-         pcd.points = o3d.utility.Vector3dVector(pointCloud[:,:3]) # add {x,y,z} points to pcd
-         zero = pointCloud[:,4:5] # placeholder
-         rawFeatures = np.hstack((intensity, truthLabel, zero)) # form a 3D vector to add to o3d pcd
-         pcd.normals = o3d.utility.Vector3dVector(rawFeatures) # store additional features (intensity & truth labels) in pcd.normals
-         print(pcd)
+    print("\n****************** Final Point Cloud *******************")
+    final_pcd = np.hstack((points, intensity)) #without truth label
+    self.get_attributes(final_pcd, "final_pcd") 
+    print("hstacked pcd[0]:",final_pcd[0])
+    
+    if (vis):
+      pview = PointCloudViewer()
+      pview.vis_npy(points, intensity, truth_label)
+      
+    return final_pcd
 
-         # visualise point cloud
-         downpcd = pcd.voxel_down_sample(voxel_size=0.05) # downsample pcd
-         o3d.visualization.draw_geometries([downpcd])
-     
-     #pc_points = np.asarray(downpcd.points) # convert pcd points to np array
-     #pc_features = np.asarray(downpcd.normals) # convert pcd additional features to np array
-     #pc = np.hstack((pc_points, pc_features)) # concatenate the 2 np arrays
-     #print("Downsampled Point cloud size: ", pc.size)
-     #print("0 is:", pc[0])
-     #finalPCD = np.delete(pc, [4,5], 1) # remove info unneccessary for clustering from pcd
-     #print(finalPCD[0])
-     
-     return finalPCD
-
-def loadPointCloud_las(vis):
+  def load_point_cloud_las(self, vis):
       print("\n******************Loading Point Cloud with Cloud Compare Generated Features (x, y, z, intensity) *******************")
-     
-      path = "./Data/church_registered_cloudCompare.las"
+    
+      path = self.pcd_path
+      
+      #understand las header data
+      with lp.open(path) as pcd_f:
+        print(pcd_f.header)
+      
       pcd = lp.read(path)
 
       print("All features:", list(pcd.point_format.dimension_names))
@@ -136,7 +148,7 @@ def loadPointCloud_las(vis):
       
       if (vis): 
         # format using open3d
-        pc = o3d.geometry.PointCloud()
+        pc = o3d.geometry.point_cloud()
         pc.points = o3d.utility.Vector3dVector(points)
         cloudCompareFeatures_1 = np.hstack((planarity, anisotropy, linearity))
         cloudCompareFeatures_2 = np.hstack((surfaceVariation, eigenentropy, intensity)) # form a 3D vector to add to o3d pcd
@@ -147,66 +159,89 @@ def loadPointCloud_las(vis):
         # visualise point cloud
         downpcd = pc.voxel_down_sample(voxel_size=0.05) # downsample pc
         o3d.visualization.draw_geometries([downpcd])
-     
+    
         #pc_points = np.asarray(downpcd.points) # convert pc points to np array
         #pc_features = np.asarray(downpcd.normals) # convert pc additional features to np array
         #finalPCD = np.hstack((pc_points, pc_features)) # concatenate the 2 np arrays
         #print("Downsampled Point cloud size: ", finalPCD.size)
         #print("0 is:", finalPCD[0])
-     
+    
       return finalPCD
 
-# raw point cloud data = x, y, z, intensity
-# but PointNet++ expects = x, y, z, r, g, b
-# so we store intensity value as r, g, b
-def convertPCD():
-  print("\n******************Convert Point Cloud to PointNet++ Readable Format*******************")
-
-  #load point cloud to numpy
-  inputPath = "./Data/church_registered.npy"  #path to point cloud file
-  pointCloud = np.load(inputPath)
-  print("Point cloud size: ", pointCloud.size)
-     
-  # divide pointCloud into points and features 
-  points = pointCloud[:,:3]
-  intensity = pointCloud[:,3:4] 
-  truthLabel = pointCloud[:,4:5] 
+  def convert_pcd():
     
-  # format using open3d
-  pcd = o3d.geometry.PointCloud()
-  pcd.points = o3d.utility.Vector3dVector(points) # add {x,y,z} points to pcd
-  features = np.hstack((intensity, intensity, intensity)) # form a 3D vector to add to o3d pcd
-  pcd.colors = o3d.utility.Vector3dVector(features) # store intensity as every value in color vector
-  print(pcd)
+    # raw point cloud data = x, y, z, intensity
+    # but PointNet++ expects = x, y, z, r, g, b
+    # so we store intensity value as r, g, b
+    print("\n******************Convert Point Cloud to PointNet++ Readable Format*******************")
 
-  downpcd = pcd.voxel_down_sample(voxel_size=0.05)
-  
-  # save point cloud 
-  o3d.io.write_point_cloud("./Data/church_registered_updated.ply", downpcd)
-
-# Method to load and visualise a point cloud in a .ply file using open3d
-def loadPointCloud_ply(vis):
-     print("\n******************Loading Point Cloud (.ply) with Raw Features (x, y, z, intensity) *******************")
-
-     #load point cloud .ply file
-     path = "./Data/church_registered_downsampled_0.5.ply"
-     pcd = o3d.io.read_point_cloud(path)
-     print(pcd)
-     
-     pcd_npy = np.asarray(pcd.points)
-
-     points = np.asarray(pcd.points)
-     print("Points:\n", points)
-     coord_min, coord_max = np.amin(points, axis=0)[:3], np.amax(points, axis=0)[:3]
-     print("coord_min: ", coord_min)
-     print("coord_max: ", coord_max)
-     
-     if (vis):
-      # visualise point cloud
-      downpcd = pcd.voxel_down_sample(voxel_size=0.05)
-      o3d.visualization.draw_geometries([downpcd], zoom=0.3412,
-                                    front=[0.4257, -0.2125, -0.8795],
-                                    lookat=[2.6172, 2.0475, 1.532],
-                                    up=[-0.0694, -0.9768, 0.2024])
+    #load point cloud to numpy
+    inputPath = "./Data/church_registered.npy"  #path to point cloud file
+    point_cloud = np.load(inputPath)
+    print("Point cloud size: ", point_cloud.size)
       
-     return pcd_npy
+    # divide point_cloud into points and features 
+    points = point_cloud[:,:3]
+    intensity = point_cloud[:,3:4] 
+    truthLabel = point_cloud[:,4:5] 
+      
+    # format using open3d
+    pcd = o3d.geometry.point_cloud()
+    pcd.points = o3d.utility.Vector3dVector(points) # add {x,y,z} points to pcd
+    features = np.hstack((intensity, intensity, intensity)) # form a 3D vector to add to o3d pcd
+    pcd.colors = o3d.utility.Vector3dVector(features) # store intensity as every value in color vector
+    print(pcd)
+
+    downpcd = pcd.voxel_down_sample(voxel_size=0.05)
+    
+    # save point cloud 
+    o3d.io.write_point_cloud("./Data/church_registered_updated.ply", downpcd)
+
+  # Method to load and visualise a point cloud in a .ply file using open3d
+  def load_point_cloud_ply(self, vis):
+    print("\n******************Loading Point Cloud (.ply) with Raw Features (x, y, z, intensity) *******************")
+
+    #load point cloud .ply file
+    path = self.pcd_path
+    pcd = o3d.io.read_point_cloud(path, print_progress=True)
+    print("Point Cloud Loaded:", pcd)
+    
+    has_points = pcd.has_points()
+    has_colors = pcd.has_colors()
+    has_normals = pcd.has_normals()
+    has_covariances = pcd.has_covariances()
+    print("pcd has points ->", has_points)
+    if has_points:
+      print(np.asarray(pcd.points))
+    print("pcd has colours ->", has_colors)
+    if has_colors:
+      print(np.asarray(pcd.colors))
+    print("pcd has normals ->", has_normals)
+    if has_normals:
+      print(np.asarray(pcd.normals))
+    print("pcd has covariances ->", has_covariances)
+    if has_covariances:
+      print(np.asarray(pcd.covariances))
+      
+    pcd_points = np.asarray(pcd.points)
+    pcd_npy = np.copy(pcd_points)
+    
+    if (vis):
+      pview = PointCloudViewer()
+      pview.vis_ply(pcd)
+      
+    return pcd_npy
+
+  def get_attributes(self, pcd, arr_name="Point Cloud"):
+    """Prints attributes of given numpy array to console
+
+    Args:
+        pcd (Any): Point Cloud Array
+    """
+    heading_label = arr_name+" Attributes:"
+    heading_label += ('\n') + (len(heading_label)*'*')
+    print("\n" + heading_label)
+    print("\t- Point cloud size:", np.size(pcd))
+    print("\t- Point cloud dim:", np.ndim(pcd))  
+    print("\t- Point cloud shape:", np.shape(pcd))
+    print("\t- Point cloud data type:", pcd.dtype,'\n')  
