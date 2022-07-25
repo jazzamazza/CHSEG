@@ -2,6 +2,9 @@
 import numpy as np
 import open3d as o3d
 import laspy as lp
+import sys
+import importlib
+import os
 
 # Method to load and visualise a point cloud in a .npy file using open3d
 def loadPointCloud_npy(vis):
@@ -210,3 +213,10 @@ def loadPointCloud_ply(vis):
                                     up=[-0.0694, -0.9768, 0.2024])
       
      return pcd_npy
+
+def loadPointCloud_pNet(vis):
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    ROOT_DIR = BASE_DIR
+    sys.path.append(os.path.join(ROOT_DIR, 'PointNet++'))
+    pnet = importlib.import_module('test_semseg')
+    return pnet.main_semseg()
