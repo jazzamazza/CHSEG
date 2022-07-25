@@ -3,7 +3,7 @@ Code adapted from https://github.com/yanx27/Pointnet_Pointnet2_pytorch.git
 """
 
 import os
-from S3DISDataLoader import DataLoader
+from PointNet_DataLoader import DataLoader
 import torch
 import sys
 import importlib
