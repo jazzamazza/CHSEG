@@ -51,11 +51,6 @@ def application():
                               "\n 4 : Clustering Method 4"+
                               "\n 5 : Clustering Method 5"+
                               "\n x : skip to testing"+
-                              "\n 6 : Silhouete Score for kmeans"+
-                              "\n 7 : Silhouete Score for kmedoids"+
-                              "\n 8 : Silhouete Score for GMM"+
-                              "\n 9 : DB index"+
-                              "\n 10 : try sil kmeans"+
                               "\n r : Restart the Application\n")
                if (userInput == "q"): break
                elif (userInput == "0"): clustering.k_means_clustering_faiss(15)
