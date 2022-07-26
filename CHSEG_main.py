@@ -43,7 +43,7 @@ def application():
      
           while (userInput != "r"):
                # cluster point cloud    
-               userInput = input("\nChoose Clustering Method(s):"+
+               userInput = input("\nChoose Clustering Method(s) or skip to testing:"+
                               "\n 0 : K-Means Clustering" +
                               "\n 1 : Clustering Method 1"+
                               "\n 2 : Clustering Method 2"+
