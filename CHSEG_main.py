@@ -1,5 +1,37 @@
 from Clustering import Clustering
-from PointCloudLoader import *
+from PointCloudLoader import PointCloudLoader
+from tkinter import filedialog as fd
+
+def load(vis):
+    file_types = [('Point Cloud Files','*.ply *.npy *.las *.xyz *.pcd')]
+    file_name = fd.askopenfilename(title="Open a point cloud file", initialdir="./Data", filetypes=file_types)
+    print("Selected File:",file_name)
+    if file_name == '':
+        file_path = "./Data/church_registered.ply"
+    else:
+        file_path = file_name
+    #init PointCloudLoader    
+    pc_loader = PointCloudLoader(file_path)
+    
+    options = {0: "PLY", 1: "NPY", 2: "LAS"}
+    try:
+        user_input = int(input("\nMenu:\n0 - for PLY\n1 - for NPY\n2 - for LAS\nYour selection [0/1/2]: "))
+        
+        #Open3D Visualisation
+        if (options.get(user_input)=="PLY"):
+            pcd = pc_loader.load_point_cloud_ply(vis)
+            return pcd
+        #PPTK Visualisation
+        elif (options.get(user_input)=="NPY"):
+            pcd = pc_loader.load_point_cloud_npy(vis)
+            return pcd
+        elif (options.get(user_input)=="LAS"):
+            pcd = pc_loader.load_point_cloud_las(vis)
+            return pcd        
+        else:
+            print("Invalid option selected")
+    except ValueError:
+        print("Invalid Input. Please Enter a number.")
 
 # Helper method to call method to load point cloud files  
 # Returns a PointCloud in a numpy array      
@@ -27,9 +59,9 @@ def application():
           userInput = input("\nVisualise Point Cloud (y/n)?")
           if (userInput == "q"): break
           if (userInput=="y"):
-               pointCloud = setup(pcd_choice, True)
+               pointCloud = load(True)
           else:
-               pointCloud = setup(pcd_choice, False)
+               pointCloud = load(False)
           clustering = Clustering(pointCloud, pcd_choice)
      
           while (userInput != "r"):
