@@ -1,10 +1,7 @@
-import os
 import numpy as np
-from tqdm import tqdm
-from torch.utils.data import Dataset
 import open3d as o3d
 
-class ScannetDatasetWholeScene():
+class DataLoader():
     # prepare to give prediction on each points
     def __init__(self, block_points=4096, stride=0.5, block_size=1.0, padding=0.001):
         self.block_points = block_points
@@ -12,10 +9,8 @@ class ScannetDatasetWholeScene():
         self.padding = padding
         self.stride = stride
         self.scene_points_num = []
-        
         self.scene_points_list = []
         self.semantic_labels_list = []
-        self.room_coord_min, self.room_coord_max = [], []
         
         path = '/content/drive/Shareddrives/CHSEG/data/church_registered_updated.ply'
         pcd = o3d.io.read_point_cloud(path)
@@ -32,11 +27,10 @@ class ScannetDatasetWholeScene():
     def __getitem__(self, index):
         point_set_ini = self.scene_points_list[index]
         points = point_set_ini[:,:6]
-        labels = self.semantic_labels_list[index]
         coord_min, coord_max = np.amin(points, axis=0)[:3], np.amax(points, axis=0)[:3]
         grid_x = int(np.ceil(float(coord_max[0] - coord_min[0] - self.block_size) / self.stride) + 1)
         grid_y = int(np.ceil(float(coord_max[1] - coord_min[1] - self.block_size) / self.stride) + 1)
-        data_room, label_room, sample_weight, index_room = np.array([]), np.array([]), np.array([]),  np.array([])
+        data_room = np.array([])
         print("grid_x:", grid_x, ", grid_y:", grid_y)
         for index_y in range(0, grid_y):
             print("index_y:", index_y)
@@ -66,7 +60,6 @@ class ScannetDatasetWholeScene():
                 # data_batch[:, 0] = data_batch[:, 0] - (s_x + self.block_size / 2.0)
                 # data_batch[:, 1] = data_batch[:, 1] - (s_y + self.block_size / 2.0)
                 data_batch = np.concatenate((data_batch, normlized_xyz), axis=1)    
-                label_batch = labels[point_idxs].astype(int)
                 data_room = np.vstack([data_room, data_batch]) if data_room.size else data_batch  #normalized - if just take point indexes - also return orginal points - FIRST THREE COLUMNS OF DATA BATCH BEFORE NORMALIZED  
         data_room = data_room.reshape((-1, self.block_points, data_room.shape[1]))
         return data_room 

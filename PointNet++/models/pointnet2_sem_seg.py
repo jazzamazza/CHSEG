@@ -2,7 +2,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from models.pointnet2_utils import PointNetSetAbstraction,PointNetFeaturePropagation
 
-
 class get_model(nn.Module):
     def __init__(self, num_classes):
         super(get_model, self).__init__()
@@ -47,9 +46,3 @@ class get_loss(nn.Module):
         total_loss = F.nll_loss(pred, target, weight=weight)
 
         return total_loss
-
-if __name__ == '__main__':
-    import  torch
-    model = get_model(13)
-    xyz = torch.rand(6, 9, 2048)
-    (model(xyz))
