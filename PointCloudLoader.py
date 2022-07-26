@@ -3,6 +3,9 @@ from curses import has_colors
 import numpy as np
 import open3d as o3d
 import laspy as lp
+import sys
+import importlib
+import os
 from PointCloudViewer import PointCloudViewer 
 
 class PointCloudLoader:
@@ -179,7 +182,7 @@ class PointCloudLoader:
     path = self.pcd_path  #path to point cloud file
     point_cloud = np.load(path)
     print("Point cloud size: ", point_cloud.size)
-      
+    
     # divide point_cloud into points and features 
     points = point_cloud[:,:3]
     intensity = point_cloud[:,3:4] 
@@ -232,6 +235,13 @@ class PointCloudLoader:
       
     return pcd_npy
 
+  def loadPointCloud_pNet(vis):
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    ROOT_DIR = BASE_DIR
+    sys.path.append(os.path.join(ROOT_DIR, 'PointNet++'))
+    pnet = importlib.import_module('test_semseg')
+    return pnet.main_semseg()
+
   def get_attributes(self, pcd, arr_name="Point Cloud"):
     """Prints attributes of given numpy array to console
 
@@ -244,4 +254,4 @@ class PointCloudLoader:
     print("\t- Point cloud size:", np.size(pcd))
     print("\t- Point cloud dim:", np.ndim(pcd))  
     print("\t- Point cloud shape:", np.shape(pcd))
-    print("\t- Point cloud data type:", pcd.dtype,'\n')  
+    print("\t- Point cloud data type:", pcd.dtype,'\n')
