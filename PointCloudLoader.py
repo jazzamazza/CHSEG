@@ -79,13 +79,13 @@ class PointCloudLoader:
       eigenentropy = np.vstack(pcd['Eigenentropy (0.049006)'])
       omnivariance = np.vstack(pcd['Omnivariance (0.049006)'])
       eigenvalues_sum = np.vstack(pcd['Eigenvalues sum (0.049006)'])
-      pca1 = np.vstack(pcd['PCA1 (0.049006'])
-      pca2 = np.vstack(pcd['PCA2 (0.049006'])
-      sphericity = np.vstack(pcd['Sphericity (0.049006'])
-      verticality = np.vstack(pcd['Verticality (0.049006'])
-      first_eigen = np.vstack(pcd['1st eigenvalue (0.049006'])
-      second_eigen = np.vstack(pcd['2nd eigenvalue (0.049006'])
-      third_eigen = np.vstack(pcd['3rd eigenvalue (0.049006'])
+      pca1 = np.vstack(pcd['PCA1 (0.049006)'])
+      pca2 = np.vstack(pcd['PCA2 (0.049006)'])
+      sphericity = np.vstack(pcd['Sphericity (0.049006)'])
+      verticality = np.vstack(pcd['Verticality (0.049006)'])
+      first_eigen = np.vstack(pcd['1st eigenvalue (0.049006)'])
+      second_eigen = np.vstack(pcd['2nd eigenvalue (0.049006)'])
+      third_eigen = np.vstack(pcd['3rd eigenvalue (0.049006)'])
       
       
       
@@ -118,8 +118,8 @@ class PointCloudLoader:
       features = np.hstack((planarity, anisotropy, linearity, surfaceVariation, eigenentropy, intensity))
       features1 = np.hstack((omnivariance, eigenvalues_sum, pca1, pca2, sphericity, verticality))
       features2 = np.hstack((first_eigen, second_eigen, third_eigen))
-      
-      final_features = np.hstack(features, features1, features2)
+   
+      final_features = np.hstack((features, features1, features2))
       
 
       print("points:", points)
