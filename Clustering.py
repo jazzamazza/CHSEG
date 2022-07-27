@@ -4,6 +4,7 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_samples, silhouette_score
 import matplotlib.cm as cm
 import faiss
+from sklearn.cluster import Birch
 
 # Clustering class with various clustering methods
 class Clustering:
@@ -12,6 +13,7 @@ class Clustering:
           if (pcd_choice == "1"): self.type = "raw"
           elif (pcd_choice == "2"): self.type = "cldCmp"
           elif (pcd_choice == "3"): self.type = "pnet++"
+          elif (pcd_choice == "4"): self.type = "birch"
      
      # K-MEANS CLUSTERING USING FAISS LIBRARY - SPEEDS UP COMPUTATION
      def k_means_clustering_faiss(self, k, imageName):
@@ -75,6 +77,10 @@ class Clustering:
           plt.title('K-Means Clustering')
           plt.savefig('k_means_clusters.png') 
           plt.show()
+     
+     def birch(self, k):
+          birch = Birch(n_clusters=k)
+          
 
      def silhouette(self):
           x = self.pcd
