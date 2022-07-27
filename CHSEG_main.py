@@ -36,10 +36,17 @@ def load(vis):
 # Helper method to call method to load point cloud files  
 # Returns a PointCloud in a numpy array      
 def setup(option, vis):
-     if (option == "1"): pointCloud = loadPointCloud_npy(vis) # setup point cloud with raw features 
-     elif (option == "2"): pointCloud = loadPointCloud_las(vis) # setup point cloud with Cloud Compare features
-     elif (option == "3"): pointCloud = loadPointCloud_pNet(vis) # setup point cloud with PointNet++ features
-     return pointCloud
+    #SET PATH
+    file_path = "./Data/church_registered.npy"
+    pc_loader = PointCloudLoader(file_path)
+    if (option == "1"): 
+        pointCloud = pc_loader.load_point_cloud_npy(vis) # setup point cloud with raw features 
+    elif (option == "2"): 
+        pointCloud = pc_loader.load_point_cloud_las(vis) # setup point cloud with Cloud Compare features
+    elif (option == "3"): 
+        pointCloud = pc_loader.loadPointCloud_pNet(vis) # setup point cloud with PointNet++ features
+    
+    return pointCloud
 
 # interactive application
 def application():
@@ -59,9 +66,9 @@ def application():
           userInput = input("\nVisualise Point Cloud (y/n)?")
           if (userInput == "q"): break
           if (userInput=="y"):
-               pointCloud = load(True)
+               pointCloud = setup(pcd_choice,True)
           else:
-               pointCloud = load(False)
+               pointCloud = setup(pcd_choice,False)
           clustering = Clustering(pointCloud, pcd_choice)
      
           while (userInput != "r"):
