@@ -12,7 +12,7 @@ class PointCloudViewer:
     def vis_npy(self, points, intensity, truth_label):
         options = {0: "O3D", 1: "PPTK"}
         try:
-            user_input = int(input("\nMenu:\n0 - for Open3D\n1 - for PPTK\nYour selection [0/1]: "))
+            user_input = int(input("\nVisualisation Menu:\n0 - for Open3D\n1 - for PPTK\nYour selection [0/1]: "))
             
             #Open3D Visualisation
             if (options.get(user_input)=="O3D"):
