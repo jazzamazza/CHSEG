@@ -83,13 +83,14 @@ def application():
                               "\n 0 : K-Means Clustering" +
                               "\n 1 : Clustering Method 1"+
                               "\n 2 : Birch"+
-                              "\n 3 : Clustering Method 3"+
+                              "\n 3 : cure"+
                               "\n q : or quit the app"+
                               "\n r : Restart the Application\n")
                if (userInput == "q"): break
                elif (userInput == "0"): clustering.k_means_clustering_faiss(15, "")
                elif (userInput == "1"): clustering.optics_clustering()
                elif (userInput == "2"): clustering.birch(13)
+               elif (userInput == "3"): clustering.cure_clustering(13)
             
 if __name__=="__main__":
     application()

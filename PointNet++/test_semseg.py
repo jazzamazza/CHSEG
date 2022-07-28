@@ -78,7 +78,7 @@ def main_semseg():
         print("Calculating finalPCD")
         finalPCD = np.column_stack((final_xyz_list, normalised_feat))
         
-        path = "./Data/church_registered_pnet.npy"
+        path = "./Data/church_registered_pnet_final.npy"
         np.save(path, finalPCD)
         print("finalPCD shape:", finalPCD.shape)
         print("*********************************")

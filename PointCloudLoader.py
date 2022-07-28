@@ -41,6 +41,8 @@ class PointCloudLoader:
     truth_label = point_cloud[:,4:5]
     print("truth label[0]",truth_label[0]) 
     
+    #testp, testi, testl = np.load(self.pcd_path)
+    
     print("\n****************** Final Point Cloud *******************")
     final_pcd = np.hstack((points, intensity)) #without truth label
     self.get_attributes(final_pcd, "final_pcd") 

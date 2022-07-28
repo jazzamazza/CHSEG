@@ -4,8 +4,15 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_samples, silhouette_score
 import matplotlib.cm as cm
 import faiss
-from sklearn.cluster import Birch
 import pptk
+
+#jared methods
+from sklearn.cluster import Birch
+from pyclustering.cluster.cure import cure
+from pyclustering.cluster.rock import rock
+
+from pyclustering.cluster import cluster_visualizer_multidim
+from pyclustering.utils import read_sample
 
 # Clustering class with various clustering methods
 class Clustering:
@@ -99,6 +106,64 @@ class Clustering:
           # truth_label_1d = truth_label.flatten()
           view = pptk.viewer(points,intensity_1d, pred_lab)
           print("PPTK Loaded")
+          
+     def cure_clustering(self, k):
+          k=3
+          heading = "CURE Clustering"
+          heading = ('*' * len(heading)) + heading + ('*' * len(heading))
+          print(heading)
+          print("Using", k, "Clusters")
+          x = np.asarray(self.pcd)
+          #x = read_sample(self.pcd)
+          print("X shape",np.shape(x))
+          cure_cluster = cure(x,k)
+          print("process start")
+          cure_cluster.process()
+          clusters = cure_cluster.get_clusters()
+          print("clusters",clusters)
+          print("shape clust",np.shape(clusters))
+          means = cure_cluster.get_means()
+          print("means",means[0])
+          print("shape means",np.shape(means))
+          
+          reps = cure_cluster.get_representors()
+          #print("means",means)
+          print("shape reps",np.shape(reps))
+          print("reps", reps[0])
+          
+          # visualizer = cluster_visualizer_multidim()
+          # visualizer.append_clusters(clusters, x)
+          # visualizer.show()
+          
+          # plt.scatter(x[:,0], x[:,1], c = clusters, cmap= "plasma") 
+          # plt.title("cure")
+          # plt.show()
+          
+          # unique_labels = set(clusters)
+          # for i in unique_labels:
+          # plt.scatter(x[alg == i , 0] , x[alg == i , 1] , label = i, marker='o', picker=True)
+          # plt.title(title)
+          # plt.show()
+          # plt.savefig(imgName)
+          
+          points = self.pcd[:,0:3]
+          intensity_1d = (self.pcd[:,3:4]).flatten()
+          #predlab = clusters[]
+          
+          print("Visualising in PPTK")
+          # intensity_1d = intensity.flatten()
+          # truth_label_1d = truth_label.flatten()
+          #view = pptk.viewer(points,intensity_1d, pred_lab)
+          print("PPTK Loaded")
+          
+          # vis = cluster_visualizer_multidim()
+          # vis.append_clusters(clusters,x,marker="o",markersize=5)
+          # #vis.append_clusters(means,x,marker="*",markersize=5)
+          # #vis.show(pair_filter=[[0,1]], max_row_size=2)
+          # vis.show()
+          # vis.save("cure_clustering.png")
+          #vis.show(pair_filter=[[1,2],[1,3],[27,28],[27,29]],max_row_size=2)
+          
           
 
      def silhouette(self):
