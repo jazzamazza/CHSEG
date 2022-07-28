@@ -31,7 +31,7 @@ class PointCloudLoader:
     """
     print("\n****************** Loading Point Cloud *******************")
     point_cloud = np.load(self.pcd_path)
-    self.get_attributes(point_cloud)   
+    self.get_attributes(point_cloud, "original pc")   
     # divide point_cloud into points and features 
     print("original pcd[0]:",point_cloud[0])
     points = point_cloud[:,:3]
@@ -51,6 +51,38 @@ class PointCloudLoader:
       pview.vis_npy(points, intensity, truth_label)
       
     return final_pcd
+  
+  # def load_point_cloud_npy_dsample(self, vis):
+  #     """Method to load and visualise a point cloud stored as a .npy file
+
+  #     Args:
+  #         vis (bool): enable visualisation or now
+
+  #     Returns:
+  #         nparray: Point cloud as numpy array
+  #     """
+  #     print("\n****************** Loading Point Cloud *******************")
+  #     point_cloud = np.load(self.pcd_path)
+  #     self.get_attributes(point_cloud, "original pc")   
+  #     # divide point_cloud into points and features 
+  #     print("original pcd[0]:",point_cloud[0])
+  #     points = point_cloud[:,:3]
+  #     print("points[0]",points[0])
+  #     intensity = point_cloud[:,3:4]
+  #     print("intensity[0]",intensity[0])
+  #     truth_label = point_cloud[:,7:8]
+  #     print("truth label[0]",truth_label[0]) 
+      
+  #     print("\n****************** Final Point Cloud *******************")
+  #     final_pcd = np.hstack((points, intensity)) #without truth label
+  #     self.get_attributes(final_pcd, "final_pcd") 
+  #     print("hstacked pcd[0]:",final_pcd[0])
+      
+  #     if (vis):
+  #       pview = PointCloudViewer()
+  #       pview.vis_npy(points, intensity, truth_label)
+        
+  #     return final_pcd
 
   def load_point_cloud_las(self, vis):
       print("\n******************Loading Point Cloud with Cloud Compare Generated Features (x, y, z, intensity) *******************")
@@ -216,22 +248,69 @@ class PointCloudLoader:
     print("pcd has points ->", has_points)
     if has_points:
       print(np.asarray(pcd.points))
+      #print(np.asarray(pcd.points)[1789886])
     print("pcd has colours ->", has_colors)
     if has_colors:
       print(np.asarray(pcd.colors))
+      #print(np.asarray(pcd.colors)[1789886])
     print("pcd has normals ->", has_normals)
     if has_normals:
       print(np.asarray(pcd.normals))
+      #print(np.asarray(pcd.normals)[1789886])
     print("pcd has covariances ->", has_covariances)
     if has_covariances:
       print(np.asarray(pcd.covariances))
       
     pcd_points = np.asarray(pcd.points)
+    pcd_intensity = np.asarray(pcd.colors)[:,0:3]
+    pcd_truth = np.asarray(pcd.colors)[:,0:1]
+    pcd_npy = np.hstack((pcd_points, pcd_intensity, pcd_truth))
+    print(pcd_npy)
     pcd_npy = np.copy(pcd_points)
     
     if (vis):
       pview = PointCloudViewer()
-      pview.vis_ply(pcd)
+      pview.vis_ply(pcd, pcd_points, pcd_intensity, pcd_truth)
+      
+    return pcd_npy
+
+  def load_point_cloud_dsample_ply(self, vis):
+    print("\n******************Loading Point Cloud (.ply) with Raw Features (x, y, z, intensity) *******************")
+
+    #load point cloud .ply file
+    path = self.pcd_path
+    pcd = o3d.io.read_point_cloud(path, print_progress=True)
+    print("Point Cloud Loaded:", pcd)
+    
+    has_points = pcd.has_points()
+    has_colors = pcd.has_colors()
+    has_normals = pcd.has_normals()
+    has_covariances = pcd.has_covariances()
+    print("pcd has points ->", has_points)
+    if has_points:
+      print(np.asarray(pcd.points))
+      #print(np.asarray(pcd.points)[1789886])
+    print("pcd has colours ->", has_colors)
+    if has_colors:
+      print(np.asarray(pcd.colors))
+      #print(np.asarray(pcd.colors)[1789886])
+    print("pcd has normals ->", has_normals)
+    if has_normals:
+      print(np.asarray(pcd.normals))
+      #print(np.asarray(pcd.normals)[1789886])
+    print("pcd has covariances ->", has_covariances)
+    if has_covariances:
+      print(np.asarray(pcd.covariances))
+      
+    pcd_points = np.asarray(pcd.points)
+    pcd_intensity = np.asarray(pcd.colors)[:,0:1]
+    pcd_truth = np.asarray(pcd.normals)[:,0:1]
+    pcd_npy = np.hstack((pcd_points, pcd_intensity, pcd_truth))
+    print(pcd_npy)
+    
+    if (vis):
+      pview = PointCloudViewer()
+      pview.vis_ply(pcd, pcd_points, pcd_intensity, pcd_truth)
       
     return pcd_npy
 
@@ -254,4 +333,5 @@ class PointCloudLoader:
     print("\t- Point cloud size:", np.size(pcd))
     print("\t- Point cloud dim:", np.ndim(pcd))  
     print("\t- Point cloud shape:", np.shape(pcd))
+    print("\t- Point cloud points:", np.shape(pcd)[0])
     print("\t- Point cloud data type:", pcd.dtype,'\n')

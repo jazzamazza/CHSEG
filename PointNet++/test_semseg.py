@@ -77,12 +77,14 @@ def main_semseg():
 
         print("Calculating finalPCD")
         finalPCD = np.column_stack((final_xyz_list, normalised_feat))
-
-        np.save('/content/drive/MyDrive/GitHubTest/data/finalPCD.npy', finalPCD)
+        
+        path = "./Data/church_registered_pnet.npy"
+        np.save(path, finalPCD)
         print("finalPCD shape:", finalPCD.shape)
         print("*********************************")
 
         return finalPCD
+        
         #clustering = Clustering(finalPCD, "3")
         #clustering.k_means_clustering_faiss(20, "CHSEG_finalPCD!")
 

@@ -5,6 +5,7 @@ from sklearn.metrics import silhouette_samples, silhouette_score
 import matplotlib.cm as cm
 import faiss
 from sklearn.cluster import Birch
+import pptk
 
 # Clustering class with various clustering methods
 class Clustering:
@@ -13,7 +14,6 @@ class Clustering:
           if (pcd_choice == "1"): self.type = "raw"
           elif (pcd_choice == "2"): self.type = "cldCmp"
           elif (pcd_choice == "3"): self.type = "pnet++"
-          elif (pcd_choice == "4"): self.type = "birch"
      
      # K-MEANS CLUSTERING USING FAISS LIBRARY - SPEEDS UP COMPUTATION
      def k_means_clustering_faiss(self, k, imageName):
@@ -79,7 +79,26 @@ class Clustering:
           plt.show()
      
      def birch(self, k):
+          heading = "BIRCH Clustering"
+          heading = ('*' * len(heading)) + heading + ('*' * len(heading))
+          print(heading)
+          print("Using", k, "Clusters")
           birch = Birch(n_clusters=k)
+          x = self.pcd
+          print("X shape",np.shape(x))
+          print("Fit start")
+          birch.fit(x)
+          print("Pred start")
+          pred_lab = birch.predict(x)
+          print("labels",pred_lab)
+          print("shape",np.shape(pred_lab))
+          intensity_1d = x[:,3:4].flatten()
+          points = x[:,:3]
+          print("Visualising in PPTK")
+          # intensity_1d = intensity.flatten()
+          # truth_label_1d = truth_label.flatten()
+          view = pptk.viewer(points,intensity_1d, pred_lab)
+          print("PPTK Loaded")
           
 
      def silhouette(self):

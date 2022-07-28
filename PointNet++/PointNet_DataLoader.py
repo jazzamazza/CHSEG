@@ -12,7 +12,7 @@ class DataLoader():
         self.scene_points_list = []
         self.semantic_labels_list = []
         
-        path = '/content/drive/Shareddrives/CHSEG/data/church_registered_updated.ply'
+        path = './Data/church_registered_pnet_0.075.ply'
         pcd = o3d.io.read_point_cloud(path)
         data = np.hstack((np.asarray(pcd.points), np.asarray(pcd.colors)))
         print(data)
