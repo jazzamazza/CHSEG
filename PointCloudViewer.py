@@ -83,6 +83,25 @@ class PointCloudViewer:
         except ValueError:
             print("Invalid Input. Please Enter a number.")
             
+    def vis_npy_pnet_feat(self,pcd, points, features):
+        #print("Visualising in PPTK")
+        #feats1d = features.flatten()
+        #print("shape feats 1d", np.shape(feats1d))
+        #print("feats pnet", feats1d)
+        #view = pptk.viewer(points, feats1d)
+        #print("PPTK Loaded")
+        
+        for i in range (3, 127):
+            print("Visualising in PPTK")
+            print("index",i)
+            #intensity = point_cloud[:,3:4]
+            feat_1d = pcd[:,i:(i+1)]
+            feat_1d = feat_1d.flatten()
+            print("View set")
+            view = pptk.viewer(points, feat_1d)
+            view.wait()
+            view.close()
+            
     def vis_ply(self, pcd, points, intensity, truth_label):
         options = {0: "O3D", 1: "PPTK"}
         try:
@@ -110,6 +129,7 @@ class PointCloudViewer:
                 truth_label_1d = truth_label.flatten()
                 view = pptk.viewer(points,intensity_1d, truth_label_1d)
                 print("PPTK Loaded")
+                
                 
             else:
                 print("Invalid option selected")

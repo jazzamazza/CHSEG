@@ -17,14 +17,15 @@ def load():
     #init PointCloudLoader    
     pc_loader = PointCloudLoader(file_path)
     
-    options = {0: "PLY", 1: "NPY", 2: "LAS", 3: "RDPLY"}
+    options = {0: "PLY", 1: "NPY", 2: "LAS", 3: "RDPLY", 4: "PNNPY"}
     try:
         user_input = int(input("\nMenu:"
                                +"\n0 - for PLY"
                                +"\n1 - for NPY"
                                +"\n2 - for LAS"
                                +"\n3 - for raw PLY Downsampled"
-                               +"\nYour selection [0/1/2/3]: "))
+                               +"\n4 - for pnet npy"
+                               +"\nYour selection [0/1/2/3/4]: "))
         
         #Open3D Visualisation
         if (options.get(user_input)=="PLY"):
@@ -39,6 +40,9 @@ def load():
             
         elif (options.get(user_input)=="RDPLY"):
             pcd = pc_loader.load_point_cloud_dsample_ply(vis)
+            
+        elif (options.get(user_input)=="PNNPY"):
+            pcd, points, feats = pc_loader.load_point_cloud_npy_pnet_final(vis)
                     
         else:
             print("Invalid option selected")
