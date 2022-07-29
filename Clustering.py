@@ -67,9 +67,18 @@ class Clustering:
           
           # Visualise K-Means
           y_km = kmeans.predict(x)
-          print("y_km:", y_km)
+          print("y_km:", y_km.shape())
           centroids = kmeans.cluster_centers_
-          print("centroids:", centroids)
+          print("centroids:", centroids.shape())
+          
+          # intensity_1d = x[:,3:4].flatten()
+          # points = x[:,:3]
+          # print("Visualising in PPTK")
+          # # intensity_1d = intensity.flatten()
+          # # truth_label_1d = truth_label.flatten()
+          # view = pptk.viewer(points,intensity_1d, pred_lab)
+          # print("PPTK Loaded")
+          
           unique_labels = np.unique(y_km)
           print("unique_labels:", unique_labels)
           for i in unique_labels:
@@ -106,6 +115,21 @@ class Clustering:
           # truth_label_1d = truth_label.flatten()
           view = pptk.viewer(points,intensity_1d, pred_lab)
           print("PPTK Loaded")
+          
+          unique_labels = np.unique(pred_lab)
+          print("unique_labels:", unique_labels)
+          for i in unique_labels:
+               plt.scatter(x[pred_lab == i , 0] , x[pred_lab == i , 1] , label = i, marker='o', picker=True)
+          # plt.scatter(
+          #      centroids[:, 0], centroids[:, 1],
+          #      s=100, marker='*',
+          #      c='red', edgecolor='black',
+          #      label='centroids'
+          # )
+          #plt.legend()
+          plt.title('K-Means Clustering')
+          plt.savefig('k_means_clusters.png') 
+          plt.show()
           
      def cure_clustering(self, k):
           k=3

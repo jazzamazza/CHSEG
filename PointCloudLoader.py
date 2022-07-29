@@ -7,6 +7,7 @@ import sys
 import importlib
 import os
 from PointCloudViewer import PointCloudViewer 
+from tkinter import filedialog as fd
 
 class PointCloudLoader:
   """Point cloud loader
@@ -17,7 +18,23 @@ class PointCloudLoader:
     Args:
         path (file): file path
     """
-    self.pcd_path = path
+    if path=="":
+      self.path = self.load()
+    else:
+      self.pcd_path = path
+    
+  def load(self):
+    file_types = [('Point Cloud Files','*.ply *.npy *.las *.xyz *.pcd')]
+    file_name = fd.askopenfilename(title="Open a point cloud file", initialdir="./Data", filetypes=file_types)
+    print("Selected File:",file_name)
+    
+    if file_name == '':
+        file_path = "./Data/church_registered.ply"
+    else:
+        file_path = file_name
+        print("file ext:", file_name[-4:])
+    
+    return file_path
 
   # Method to load and visualise a point cloud in a .npy file using open3d
   def load_point_cloud_npy(self, vis):
