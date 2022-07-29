@@ -6,7 +6,7 @@ import laspy as lp
 import sys
 import importlib
 import os
-from PointCloudViewer import PointCloudViewer 
+ 
 
 class PointCloudLoader:
   """Point cloud loader
@@ -50,7 +50,78 @@ class PointCloudLoader:
       pview = PointCloudViewer()
       pview.vis_npy(points, intensity, truth_label)
       
-    return final_pcd
+    # LEAH
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(point_cloud[:,:3])
+    rawFeatures = np.hstack((intensity, truth_label, truth_label))
+    pcd.normals = o3d.utility.Vector3dVector(rawFeatures)
+    downpcd = pcd.voxel_down_sample(voxel_size=2) # downsample pcd
+    pc_points = np.asarray(downpcd.points) # convert pcd points to np array
+    pc_features = np.asarray(downpcd.normals) # convert pcd additional features to np array
+    pc = np.hstack((pc_points, pc_features)) # concatenate the 2 np arrays
+    print("Downsampled Point cloud size: ", pc.size)
+    print("0 is:", pc[0])
+    down_finalPCD = np.delete(pc, [4,5], 1) # remove info unneccessary for clustering from pcd
+    self.get_attributes(down_finalPCD, "final_pcd") 
+    print(down_finalPCD[0])
+
+    #
+
+    return down_finalPCD
+  
+  def load_point_cloud_npyPNET(self, vis):
+    """Method to load and visualise a point cloud stored as a .npy file
+
+    Args:
+        vis (bool): enable visualisation or now
+
+    Returns:
+        nparray: Point cloud as numpy array
+    """
+    print("\n****************** Loading Point Cloud *******************")
+    point_cloud = np.load(self.pcd_path)
+
+    self.get_attributes(point_cloud)   
+    # divide point_cloud into points and features 
+    print("original pcd[0]:",point_cloud[0])
+    points = point_cloud[:,:3]
+    print("points[0]",points[0])
+    features = point_cloud[:,3:]
+    print("intensity[0]",features[0])
+
+    print("points.size:", points.size, "features.size:", features.size)
+    print("points.shape:", np.shape(points), "features.shape:", np.shape(features))
+        
+    return points, features
+    
+    
+    print("\n****************** Final Point Cloud *******************")
+    final_pcd = np.hstack((points, intensity)) #without truth label
+    self.get_attributes(final_pcd, "final_pcd") 
+    print("hstacked pcd[0]:",final_pcd[0])
+    
+    if (vis):
+      pview = PointCloudViewer()
+      pview.vis_npy(points, intensity, truth_label)
+      
+    # LEAH
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(point_cloud[:,:3])
+    rawFeatures = np.hstack((intensity, truth_label, truth_label))
+    pcd.normals = o3d.utility.Vector3dVector(rawFeatures)
+    downpcd = pcd.voxel_down_sample(voxel_size=2) # downsample pcd
+    pc_points = np.asarray(downpcd.points) # convert pcd points to np array
+    pc_features = np.asarray(downpcd.normals) # convert pcd additional features to np array
+    pc = np.hstack((pc_points, pc_features)) # concatenate the 2 np arrays
+    print("Downsampled Point cloud size: ", pc.size)
+    print("0 is:", pc[0])
+    down_finalPCD = np.delete(pc, [4,5], 1) # remove info unneccessary for clustering from pcd
+    self.get_attributes(down_finalPCD, "final_pcd") 
+    print(down_finalPCD[0])
+
+    #
+
+    return down_finalPCD
 
   def load_point_cloud_las(self, vis):
       print("\n******************Loading Point Cloud with Cloud Compare Generated Features (x, y, z, intensity) *******************")
@@ -87,16 +158,8 @@ class PointCloudLoader:
       second_eigen = np.vstack(pcd['2nd eigenvalue (0.049006)'])
       third_eigen = np.vstack(pcd['3rd eigenvalue (0.049006)'])
       
-      
-      
       #########
-      print("nan planarity?:",np.isnan(planarity).any())
-      print("planarity size:", planarity.size)
-      print("num nans in planarity:", np.count_nonzero(np.isnan(planarity)))
-      print("planarity size:", planarity.size)
       planarity = np.nan_to_num(planarity)
-      print("nan planarity?:",np.isnan(planarity).any())
-
       intensity = np.nan_to_num(intensity)
       anisotropy = np.nan_to_num(anisotropy)
       linearity = np.nan_to_num(linearity)
@@ -111,8 +174,6 @@ class PointCloudLoader:
       first_eigen = np.nan_to_num(first_eigen)
       second_eigen = np.nan_to_num(second_eigen)
       third_eigen = np.nan_to_num(third_eigen)
-      
-      
       ######
 
       features = np.hstack((planarity, anisotropy, linearity, surfaceVariation, eigenentropy, intensity))
@@ -120,35 +181,10 @@ class PointCloudLoader:
       features2 = np.hstack((first_eigen, second_eigen, third_eigen))
    
       final_features = np.hstack((features, features1, features2))
-      
+      return points, final_features ### send to get downsampled
 
-      print("points:", points)
-      print("nan points?:",np.isnan(points).any())
-      print("features:", final_features)
-      print("nan features?:",np.isnan(final_features).any())
       finalPCD = np.hstack((points, final_features))
 
-      print("finalPCD 0:", finalPCD)
-      print("nan finalPCD?:",np.isnan(finalPCD).any())
-
-      # BELOW GIVES ARRAY NOT C-CONTIGUOUS ERROR 
-      # add extra features to point cloud numpy array
-      #count = 0
-      #cloudCompareFeatures = list(pcd.point_format.extra_dimension_names)
-      #for feature in cloudCompareFeatures:
-      #  print("Feature:", feature)
-      #  newFeature = np.vstack(pcd[feature])
-      #  print(newFeature)
-      #  newFeature = np.nan_to_num(newFeature)
-      #  if (count==0): 
-      #    finalPCD = np.hstack((points, newFeature))
-      #  else:
-      #    finalPCD = np.hstack((finalPCD, newFeature))
-      #  count += 1
-      #  #print("c-continguous:", finalPCD.flags['C_CONTIGUOUS'])
-      #  print("finalPCD[0]:", finalPCD[0])
-      #return finalPCD
-      
       if (vis): 
         # format using open3d
         pc = o3d.geometry.point_cloud()
@@ -162,12 +198,6 @@ class PointCloudLoader:
         # visualise point cloud
         downpcd = pc.voxel_down_sample(voxel_size=0.05) # downsample pc
         o3d.visualization.draw_geometries([downpcd])
-    
-        #pc_points = np.asarray(downpcd.points) # convert pc points to np array
-        #pc_features = np.asarray(downpcd.normals) # convert pc additional features to np array
-        #finalPCD = np.hstack((pc_points, pc_features)) # concatenate the 2 np arrays
-        #print("Downsampled Point cloud size: ", finalPCD.size)
-        #print("0 is:", finalPCD[0])
     
       return finalPCD
 
@@ -235,7 +265,7 @@ class PointCloudLoader:
       
     return pcd_npy
 
-  def loadPointCloud_pNet(vis):
+  def loadPointCloud_pNet(self, vis):
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     ROOT_DIR = BASE_DIR
     sys.path.append(os.path.join(ROOT_DIR, 'PointNet++'))
@@ -255,3 +285,4 @@ class PointCloudLoader:
     print("\t- Point cloud dim:", np.ndim(pcd))  
     print("\t- Point cloud shape:", np.shape(pcd))
     print("\t- Point cloud data type:", pcd.dtype,'\n')
+
