@@ -11,3 +11,5 @@ tqdm
 open3d
 pptk
 pyclustering
+scikit-learn-intelex
+scikit-learn-extra
