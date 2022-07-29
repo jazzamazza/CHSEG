@@ -1,3 +1,6 @@
+from sklearnex import patch_sklearn
+patch_sklearn()
+
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.cluster import KMeans
@@ -6,6 +9,8 @@ import matplotlib.cm as cm
 import faiss
 import pptk
 
+from sklearn_extra.cluster import KMedoids
+
 #jared methods
 from sklearn.cluster import Birch
 from pyclustering.cluster.cure import cure
@@ -13,6 +18,11 @@ from pyclustering.cluster.rock import rock
 
 from pyclustering.cluster import cluster_visualizer_multidim
 from pyclustering.utils import read_sample
+
+#jemma methods
+from sklearn.cluster import AffinityPropagation
+
+
 
 # Clustering class with various clustering methods
 class Clustering:
@@ -140,12 +150,16 @@ class Clustering:
           x = np.asarray(self.pcd)
           #x = read_sample(self.pcd)
           print("X shape",np.shape(x))
-          cure_cluster = cure(x,k)
+          cure_cluster = cure(x,k, ccore=True)
           print("process start")
           cure_cluster.process()
+          print("cluster enc", cure_cluster.get_cluster_encoding())
           clusters = cure_cluster.get_clusters()
-          print("clusters",clusters)
+          #print("clusters",clusters)
           print("shape clust",np.shape(clusters))
+          print(clusters[0][0])
+          print(clusters[1][0])
+          print(clusters[2][0])
           means = cure_cluster.get_means()
           print("means",means[0])
           print("shape means",np.shape(means))
@@ -170,15 +184,15 @@ class Clustering:
           # plt.show()
           # plt.savefig(imgName)
           
-          points = self.pcd[:,0:3]
-          intensity_1d = (self.pcd[:,3:4]).flatten()
+          #points = self.pcd[:,0:3]
+          #intensity_1d = (self.pcd[:,3:4]).flatten()
           #predlab = clusters[]
           
-          print("Visualising in PPTK")
+          #print("Visualising in PPTK")
           # intensity_1d = intensity.flatten()
           # truth_label_1d = truth_label.flatten()
           #view = pptk.viewer(points,intensity_1d, pred_lab)
-          print("PPTK Loaded")
+          #print("PPTK Loaded")
           
           # vis = cluster_visualizer_multidim()
           # vis.append_clusters(clusters,x,marker="o",markersize=5)
@@ -188,11 +202,141 @@ class Clustering:
           # vis.save("cure_clustering.png")
           #vis.show(pair_filter=[[1,2],[1,3],[27,28],[27,29]],max_row_size=2)
           
+     def kMediods_clustering(self, k):
+
+          print("\n------------------k mediods---------------------")
           
+          x = self.pcd
+          
+         
+
+          Kmedoids = KMedoids(n_clusters= 14,
+                         metric="euclidean",
+                         method="alternate",
+                         init="k-medoids++",
+                         max_iter=300,
+                         random_state=0) # number of clusters (k)
+          
+          y_km = Kmedoids.fit_predict(x) # apply k means to dataset
+          print("y_km", y_km[0])
+          print("x", x[0])
+
+          mediods1d = y_km
+
+          #print("shape", mediods1d.shape())
+          xyz = x[:,:3]
+          intensity1d = (x[:,3:4]).flatten()
+          print("shape", np.shape(mediods1d))
+          view = pptk.viewer(xyz, intensity1d, mediods1d)
+          print("pptk loaded")
+
+
+          
+          # Visualise K-Means
+          # y_km = Kmedoids.predict(x)
+          centroids = Kmedoids.cluster_centers_
+          unique_labels = np.unique(y_km)
+          for i in unique_labels:
+               plt.scatter(x[y_km == i , 0] , x[y_km == i , 1] , label = i, marker='o', picker=True)
+          plt.scatter(
+               centroids[:, 0], centroids[:, 1],
+               s=100, marker='*',
+               c='red', edgecolor='black',
+               label='centroids'
+          )
+          #plt.legend()
+          plt.title('2 clusters of data: K-mediods')
+          plt.savefig('k_mediods_clusters.png') 
+          plt.show()
+#To overcome the problem of sensitivity to outliers, instead of taking the mean value 
+# as the centroid, we can take actual data point to represent the cluster, this is what K-medoids does.
+
+# try visualize
+# then try change covariance to diag and spherical - important estimator
+          
+     def affinity_progpogation_clustering(self):
+          #the reason it crashes is due to size of point cloud - needs to be downsampled heavily 
+          
+          print("\n------------------ Affinity Propogation ---------------------")
+          
+          x = self.pcd
+          
+
+          # K = 10
+          # j = np.array(arr[0])
+          # print("first size", j.size)
+
+          # for k in range(1, K):
+          #      print(arr[k])
+          #      np.append(j, arr[k])
+          #      print("in loop size", j.size)
+               
+          # print("j[0]", j[0])
+          # print("size", j.size)
+          # x = np.reshape(j, (-1,2))
+          # print("x[0]", x[0])
+          # print("x size", x.size)
+          
+          #init = (-1)*(np.max(pdist(x))*np.max(pdist(x)))
+          #init = -1*np.max(pdist(x))
+          print("HI")
+          clustering = AffinityPropagation(damping = 0.5, random_state=5).fit(x) #crashes here 
+          print("HELLO")
+
+          cluster_centers_indices = clustering.cluster_centers_indices_
+          n_clusters_ = len(cluster_centers_indices)
+          print("Estimated number of clusters: %d" % n_clusters_)
+          
+          labels = clustering.labels_
+          print("labels", labels)
+          
+          x  = x.copy(order='C')
+          y_km = clustering.predict(x)
+
+          centroids = clustering.cluster_centers_
+          print("centroids:", centroids)
+
+
+
+          unique_labels = np.unique(y_km)
+          print("unique_labels:", unique_labels)
+
+          xyz = self.pcd[:,0:3]
+          intensity1d = (self.pcd[:,3:4]).flatten()
+          view = pptk.viewer(xyz, intensity1d, y_km)
+          print("pptk loaded")
+
+
+          for i in unique_labels:
+               plt.scatter(x[y_km == i , 0] , x[y_km == i , 1] , label = i, marker='o', picker=True)
+          plt.scatter(
+               centroids[:, 0], centroids[:, 1],
+               s=100, marker='*',
+               c='red', edgecolor='black',
+               label='centroids'
+          )
+          #gives 0.46 for sqeuclidean
+          print("Silhouette Coefficient: %0.3f" % metrics.silhouette_score(x, labels, metric="sqeuclidean"))
+          #gives 0.3 for  euclidean 
+          S = metrics.silhouette_score(x, labels, metric='euclidean', sample_size=None, random_state=None)
+          print("s", S)
+          
+          
+          # print("Homogeneity: %0.3f" % metrics.homogeneity_score(labels_true, labels))
+          # print("Completeness: %0.3f" % metrics.completeness_score(labels_true, labels))
+          # print("V-measure: %0.3f" % metrics.v_measure_score(labels_true, labels))
+          # print("Adjusted Rand Index: %0.3f" % metrics.adjusted_rand_score(labels_true, labels))
+          # print(
+          #      "Adjusted Mutual Information: %0.3f" % metrics.adjusted_mutual_info_score(labels_true, labels)
+          # )
+
+          plt.title('affinity propogation')
+          plt.savefig('affinity_propogation.png') 
+          plt.show()     
 
      def silhouette(self):
           x = self.pcd
-          K = range(2,10)
+          K = range(2, 70)
           for k in K:
                fig, (ax1, ax2) = plt.subplots(1, 2)
                fig.set_size_inches(18, 7)
@@ -207,7 +351,7 @@ class Clustering:
 
                # Initialize the clusterer with n_clusters value and a random generator
                # seed of 10 for reproducibility.
-               clusterer = KMeans(n_clusters= k, random_state=10)
+               clusterer = Birch(n_clusters= k)
                cluster_labels = clusterer.fit_predict(x)
 
                silhouette_avg = silhouette_score(x, cluster_labels)
@@ -252,24 +396,24 @@ class Clustering:
                ax2.scatter(x[:, 0], x[:, 1], marker=".", s=30, lw=0, alpha=0.7, c=colors, edgecolor="k")
 
                # Labeling the clusters
-               centers = clusterer.cluster_centers_
-               # Draw white circles at cluster centers
-               ax2.scatter(
-                    centers[:, 0],
-                    centers[:, 1],
-                    marker="o",
-                    c="white",
-                    alpha=1,
-                    s=200,
-                    edgecolor="k",
-               )
+               # centers = clusterer.
+               # # Draw white circles at cluster centers
+               # ax2.scatter(
+               #      centers[:, 0],
+               #      centers[:, 1],
+               #      marker="o",
+               #      c="white",
+               #      alpha=1,
+               #      s=200,
+               #      edgecolor="k",
+               # )
 
-               for i, c in enumerate(centers):
-                    ax2.scatter(c[0], c[1], marker="$%d$" % i, alpha=1, s=50, edgecolor="k")
+               # for i, c in enumerate(centers):
+               #      ax2.scatter(c[0], c[1], marker="$%d$" % i, alpha=1, s=50, edgecolor="k")
 
-               ax2.set_title("The visualization of the clustered data.")
-               ax2.set_xlabel("Feature space for the 1st feature")
-               ax2.set_ylabel("Feature space for the 2nd feature")
+               # ax2.set_title("The visualization of the clustered data.")
+               # ax2.set_xlabel("Feature space for the 1st feature")
+               # ax2.set_ylabel("Feature space for the 2nd feature")
 
                plt.suptitle(
                     "Silhouette analysis for KMeans clustering on sample data with n_clusters = %d"

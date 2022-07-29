@@ -42,6 +42,7 @@ def main_semseg():
         feat_list = [] 
         xyz_list = []
         for sbatch in range(s_batch_num):
+            print("sbatch progress =", ((sbatch/s_batch_num)*100),"%")
             start_idx = sbatch * BATCH_SIZE
             end_idx = min((sbatch + 1) * BATCH_SIZE, num_blocks)
             real_batch_size = end_idx - start_idx
@@ -57,14 +58,14 @@ def main_semseg():
             xyz_list.append(p)
             feat_list.append(f)
 
-        new_feat_list = np.vstack((feat_list))
-        new_xyz_list = np.vstack((xyz_list))
+        # new_feat_list = 
+        # new_xyz_list = 
 
-        print('new_feat_list shape:', new_feat_list.shape)
-        print('new_xyz_list shape:', new_xyz_list.shape)
+        # print('new_feat_list shape:', new_feat_list.shape)
+        # print('new_xyz_list shape:', new_xyz_list.shape)
 
-        final_feat_list = np.vstack((new_feat_list))
-        final_xyz_list = np.vstack((new_xyz_list))
+        final_feat_list = np.vstack((np.vstack((feat_list))))
+        final_xyz_list = np.vstack((np.vstack((xyz_list))))
         
         print('final_feat_list shape:', final_feat_list.shape)
         print('final_xyz_list shape:', final_xyz_list.shape)

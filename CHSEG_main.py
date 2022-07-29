@@ -1,6 +1,8 @@
 from Clustering import Clustering
 from PointCloudLoader import PointCloudLoader
+from PointCloudUtils import PointCloudUtils
 from tkinter import filedialog as fd
+import numpy as np
 
 def load(vis):
     file_types = [('Point Cloud Files','*.ply *.npy *.las *.xyz *.pcd')]
@@ -37,7 +39,7 @@ def load(vis):
 # Returns a PointCloud in a numpy array      
 def setup(option, vis):
     #SET PATH
-    file_path = "./Data/church_registered_pnet_0.075.npy"
+    file_path = "./Data/church_registered_pnet_raw.npy"
     #load(vis)
     pc_loader = PointCloudLoader(file_path)
     if (option == "1"): 
@@ -48,6 +50,10 @@ def setup(option, vis):
         pointCloud = load(vis)
     elif (option == "3"): 
         pointCloud = pc_loader.loadPointCloud_pNet() # setup point cloud with PointNet++ features
+        np.save(arr=pointCloud, file="./Data/church_registered_pnet_raw_wfeat.npy")
+        # putils = PointCloudUtils()
+        # putils.downsample_pcd("")
+        # print("dsample done")
         #pointCloud = load(vis)
     
     return pointCloud
@@ -81,16 +87,20 @@ def application():
                # cluster point cloud    
                userInput = input("\nChoose Clustering Method(s):"+
                               "\n 0 : K-Means Clustering" +
-                              "\n 1 : Clustering Method 1"+
+                              "\n 1 : sill"+
                               "\n 2 : Birch"+
                               "\n 3 : cure"+
+                              "\n 4 : aprop"+
+                              "\n 5 : kmed"+
                               "\n q : or quit the app"+
                               "\n r : Restart the Application\n")
                if (userInput == "q"): break
                elif (userInput == "0"): clustering.k_means_clustering_faiss(15, "")
-               elif (userInput == "1"): clustering.optics_clustering()
+               elif (userInput == "1"): clustering.silhouette()
                elif (userInput == "2"): clustering.birch(13)
-               elif (userInput == "3"): clustering.cure_clustering(13)
+               elif (userInput == "3"): clustering.cure_clustering(3)
+               elif (userInput == "4"): clustering.affinity_progpogation_clustering()
+               elif (userInput == "5"): clustering.kMediods_clustering(14)
             
 if __name__=="__main__":
     application()
