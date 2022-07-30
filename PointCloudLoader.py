@@ -7,7 +7,6 @@ import sys
 import importlib
 import os
 from PointCloudViewer import PointCloudViewer
- 
 
 class PointCloudLoader:
   """Point cloud loader
@@ -21,7 +20,7 @@ class PointCloudLoader:
     self.pcd_path = path
 
   # Method to load and visualise a point cloud in a .npy file using open3d
-  def load_point_cloud_npy(self, vis, downsample=False):
+  def load_point_cloud_npy(self, vis, downsample=False, ds_size=0):
     """Method to load and visualise a point cloud stored as a .npy file
 
     Args:
@@ -56,7 +55,7 @@ class PointCloudLoader:
         pcd.points = o3d.utility.Vector3dVector(point_cloud[:,:3])
         rawFeatures = np.hstack((intensity, truth_label, truth_label))
         pcd.normals = o3d.utility.Vector3dVector(rawFeatures)
-        downpcd = pcd.voxel_down_sample(voxel_size=2) # downsample pcd
+        downpcd = pcd.voxel_down_sample(voxel_size=ds_size) # downsample pcd
         pc_points = np.asarray(downpcd.points) # convert pcd points to np array
         pc_features = np.asarray(downpcd.normals) # convert pcd additional features to np array
         pc = np.hstack((pc_points, pc_features)) # concatenate the 2 np arrays
@@ -68,7 +67,7 @@ class PointCloudLoader:
 
     return final_pcd
   
-  def load_point_cloud_pNet_npy(self, vis, downsample=False):
+  def load_point_cloud_pNet_npy(self, vis, downsample=False, ds_size=0):
     """Method to load and visualise a point cloud stored as a .npy file
 
     Args:
@@ -95,14 +94,14 @@ class PointCloudLoader:
       pview.vis_npy(points)
     
     if downsample:
-        final_pcd = self.voxel_downsample(points, features, upperBound=126)
+        final_pcd = self.voxel_downsample(points, features, 126, ds_size)
     else:
         final_pcd = np.hstack((points, features))
     self.get_attributes(final_pcd, "final_pcd") 
     print("hstacked pcd[0]:",final_pcd[0])
     return final_pcd
 
-  def load_point_cloud_las(self, vis, downsample=False):
+  def load_point_cloud_las(self, vis, downsample=False, ds_size=0):
       print("\n******************Loading Point Cloud with Cloud Compare Generated Features (x, y, z, intensity) *******************")
     
       path = self.pcd_path
@@ -178,7 +177,7 @@ class PointCloudLoader:
       
 
       if downsample:
-            final_pcd = self.voxel_downsample(points, final_features, upperBound=18)
+            final_pcd = self.voxel_downsample(points, final_features, 12, ds_size)
       else:
             final_pcd = np.hstack((points, final_features))
 
@@ -193,7 +192,7 @@ class PointCloudLoader:
         print(pc)
 
         # visualise point cloud
-        downpcd = pc.voxel_down_sample(voxel_size=0.05) # downsample pc
+        downpcd = pc.voxel_down_sample(voxel_size=ds_size) # downsample pc
         o3d.visualization.draw_geometries([downpcd])
     
       return final_pcd
@@ -269,7 +268,7 @@ class PointCloudLoader:
     pnet = importlib.import_module('test_semseg')
     return pnet.main_semseg()
 
-  def voxel_downsample(points, features, upperBound):
+  def voxel_downsample(self, points, features, upperBound, ds_size):
         print("Features shape:", np.shape(features))
 
         ds_points = np.array([])
@@ -285,7 +284,7 @@ class PointCloudLoader:
             pc.normals = o3d.utility.Vector3dVector(features[:,y:y+3])
             pc.colors = o3d.utility.Vector3dVector(features[:,y+3:y+6])
 
-            downpcd = pc.voxel_down_sample(voxel_size=0.5)
+            downpcd = pc.voxel_down_sample(voxel_size=ds_size)
             ds_features = np.hstack((np.asarray(downpcd.normals), np.asarray(downpcd.colors)))
             ds_points = np.asarray(downpcd.points)
             print("ds_features.size:", ds_features.size, "ds_features shape:", np.shape(ds_features))
@@ -322,4 +321,3 @@ class PointCloudLoader:
     print("\t- Point cloud dim:", np.ndim(pcd))  
     print("\t- Point cloud shape:", np.shape(pcd))
     print("\t- Point cloud data type:", pcd.dtype,'\n')
-
