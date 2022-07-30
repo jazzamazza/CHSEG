@@ -68,7 +68,7 @@ class PointCloudLoader:
 
     return final_pcd
   
-  def load_point_cloud_npyPNET(self, vis, downsample=False):
+  def load_point_cloud_pNet_npy(self, vis, downsample=False):
     """Method to load and visualise a point cloud stored as a .npy file
 
     Args:
