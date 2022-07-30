@@ -1,4 +1,3 @@
-#### EDIT POINT CLOUD LOADER
 # point_cloudLoader
 from curses import has_colors
 import numpy as np
@@ -7,6 +6,7 @@ import laspy as lp
 import sys
 import importlib
 import os
+from PointCloudViewer import PointCloudViewer
  
 
 class PointCloudLoader:
@@ -95,7 +95,7 @@ class PointCloudLoader:
       pview.vis_npy(points)
     
     if downsample:
-        final_pcd = voxel_downsample(points, features, upperBound=126)
+        final_pcd = self.voxel_downsample(points, features, upperBound=126)
     else:
         final_pcd = np.hstack((points, features))
     self.get_attributes(final_pcd, "final_pcd") 
@@ -178,7 +178,7 @@ class PointCloudLoader:
       
 
       if downsample:
-            final_pcd = voxel_downsample(points, final_features, upperBound=18)
+            final_pcd = self.voxel_downsample(points, final_features, upperBound=18)
       else:
             final_pcd = np.hstack((points, final_features))
 
@@ -189,14 +189,14 @@ class PointCloudLoader:
         cloudCompareFeatures_1 = np.hstack((planarity, anisotropy, linearity))
         cloudCompareFeatures_2 = np.hstack((surfaceVariation, eigenentropy, intensity)) # form a 3D vector to add to o3d pcd
         pc.normals = o3d.utility.Vector3dVector(cloudCompareFeatures_1) # store additional features (intensity & planarity) in pc.normals
-        pc.colors = o3d.utility.Vector3dVector(cloudCompareFeatures_1) # store additional features (intensity & planarity) in pc.normals
+        pc.colors = o3d.utility.Vector3dVector(cloudCompareFeatures_2) # store additional features (intensity & planarity) in pc.normals
         print(pc)
 
         # visualise point cloud
         downpcd = pc.voxel_down_sample(voxel_size=0.05) # downsample pc
         o3d.visualization.draw_geometries([downpcd])
     
-      return finalPCD
+      return final_pcd
 
   def convert_pcd(self):
     
@@ -268,6 +268,46 @@ class PointCloudLoader:
     sys.path.append(os.path.join(ROOT_DIR, 'PointNet++'))
     pnet = importlib.import_module('test_semseg')
     return pnet.main_semseg()
+
+  def voxel_downsample(points, features, upperBound):
+        print("Features shape:", np.shape(features))
+
+        ds_points = np.array([])
+        x,y = 0,0
+
+        for i in range(0, upperBound):  
+            x += 1
+            print("===========================i:", y)
+            print("points.size:", points.size, "points.shape:", np.shape(points))
+
+            pc = o3d.geometry.PointCloud()
+            pc.points = o3d.utility.Vector3dVector(points)
+            pc.normals = o3d.utility.Vector3dVector(features[:,y:y+3])
+            pc.colors = o3d.utility.Vector3dVector(features[:,y+3:y+6])
+
+            downpcd = pc.voxel_down_sample(voxel_size=0.5)
+            ds_features = np.hstack((np.asarray(downpcd.normals), np.asarray(downpcd.colors)))
+            ds_points = np.asarray(downpcd.points)
+            print("ds_features.size:", ds_features.size, "ds_features shape:", np.shape(ds_features))
+            print("ds_points.size:", ds_points.size, "ds_points shape:", np.shape(ds_points))
+            
+            if x==1: 
+                old_ds_points = ds_points
+                total_ds_features = ds_features
+            else:
+                print("ds_point and old_ds_points EQUAL?",np.array_equal(old_ds_points, ds_points))
+                old_ds_points = ds_points
+                total_ds_features = np.hstack((total_ds_features, ds_features))
+                print("total_ds_features.size:", total_ds_features.size, "total_ds_features shape:", np.shape(total_ds_features))
+                
+            y = y + 6
+            if y>=upperBound: break
+
+        finalPCD = np.hstack((ds_points, total_ds_features))
+        print("finalPCD.size:", finalPCD.size, "finalPCD.shape():", np.shape(finalPCD))
+        print("finalPCD[0]:", finalPCD[0])
+
+        return finalPCD
 
   def get_attributes(self, pcd, arr_name="Point Cloud"):
     """Prints attributes of given numpy array to console
