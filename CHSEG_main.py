@@ -35,15 +35,17 @@ def load(vis):
 
 # Helper method to call method to load point cloud files  
 # Returns a PointCloud in a numpy array      
-def setup(option, vis):
+def setup(option, vis, ds, dsSize):
     #SET PATH
-    file_path = "./Data/church_registered.npy"
+    file_path = "/content/drive/Shareddrives/Thesis/Data/church_registered_pnet_0.075.npy"
     pc_loader = PointCloudLoader(file_path)
     if (option == "1"): 
-        pointCloud = pc_loader.load_point_cloud_npy(vis) # setup point cloud with raw features 
+        pointCloud = pc_loader.load_point_cloud_npy(vis, ds, dsSize) # setup point cloud with raw features 
     elif (option == "2"): 
-        pointCloud = pc_loader.load_point_cloud_las(vis) # setup point cloud with Cloud Compare features
-    elif (option == "3"): 
+        pointCloud = pc_loader.load_point_cloud_las(vis, ds, dsSize) # setup point cloud with Cloud Compare features
+    elif (option == "3"):
+        pointCloud = pc_loader.load_point_cloud_pNet_npy(vis, ds, dsSize)
+    elif (option == "4"): 
         pointCloud = pc_loader.loadPointCloud_pNet(vis) # setup point cloud with PointNet++ features
     
     return pointCloud
@@ -58,17 +60,29 @@ def application():
           userInput = input("\nChoose Point Cloud Input:"+
                          "\n 1 : Point Cloud with Raw Features"+
                          "\n 2 : Point Cloud with Cloud Compare Features"+
-                         "\n 3 : Point Cloud with PointNet++ Features\n")
+                         "\n 3 : Point Cloud with PointNet++ Features"+
+                         "\n 4 : Create Point Cloud with PointNet++ Features\n")
           if (userInput == "q"): break
           pcd_choice = userInput
+
+          vis, ds = False, False
+          dsSize = 0
           
           # Setup and visualise point cloud based on user input
           userInput = input("\nVisualise Point Cloud (y/n)?")
           if (userInput == "q"): break
-          if (userInput=="y"):
-               pointCloud = setup(pcd_choice,True)
-          else:
-               pointCloud = setup(pcd_choice,False)
+          elif (userInput=="y"): vis = True
+          
+          if (pcd_choice!="4"):
+            userInput = input("\nDownsample Point Cloud (y/n)?")
+            if (userInput == "q"): break
+            elif (userInput=="y"): 
+                ds = True
+                userInput = input("\nSpecify Downsample Size (0.5, 1, 2, etc.)?")
+                if (userInput == "q"): break
+                dsSize = float(userInput)
+
+          pointCloud = setup(pcd_choice,vis, ds, dsSize)
           clustering = Clustering(pointCloud, pcd_choice)
      
           while (userInput != "r"):
