@@ -37,10 +37,10 @@ def load(vis):
 # Returns a PointCloud in a numpy array      
 def setup(option, vis, ds, dsSize):
     #SET PATH
-    file_path = "/content/drive/Shareddrives/Thesis/Data/church_registered_pnet_0.075.npy"
+    file_path = "/content/drive/Shareddrives/Thesis/Data/church_registered.npy"
     pc_loader = PointCloudLoader(file_path)
     if (option == "1"): 
-        pointCloud = pc_loader.load_point_cloud_npy(vis, ds, dsSize) # setup point cloud with raw features 
+        pointCloud, pcd_with_truths = pc_loader.load_point_cloud_npy(vis, ds, dsSize) # setup point cloud with raw features 
     elif (option == "2"): 
         pointCloud = pc_loader.load_point_cloud_las(vis, ds, dsSize) # setup point cloud with Cloud Compare features
     elif (option == "3"):
@@ -48,7 +48,7 @@ def setup(option, vis, ds, dsSize):
     elif (option == "4"): 
         pointCloud = pc_loader.loadPointCloud_pNet(vis) # setup point cloud with PointNet++ features
     
-    return pointCloud
+    return pointCloud, pcd_with_truths
 
 # interactive application
 def application():
@@ -82,8 +82,8 @@ def application():
                 if (userInput == "q"): break
                 dsSize = float(userInput)
 
-          pointCloud = setup(pcd_choice,vis, ds, dsSize)
-          clustering = Clustering(pointCloud, pcd_choice)
+          pointCloud, pcd_with_truths = setup(pcd_choice,vis, ds, dsSize)
+          clustering = Clustering(pointCloud, pcd_with_truths , pcd_choice)
      
           while (userInput != "r"):
                # cluster point cloud    
@@ -95,7 +95,7 @@ def application():
                               "\n r : Restart the Application\n")
                if (userInput == "q"): break
                elif (userInput == "0"): clustering.k_means_clustering_faiss(15, "")
-               elif (userInput == "1"): clustering.optics_clustering()
+               elif (userInput == "1"): clustering.k_means_clustering(13)
             
 if __name__=="__main__":
     application()
