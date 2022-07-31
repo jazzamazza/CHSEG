@@ -43,6 +43,7 @@ class PointCloudLoader:
     
     print("\n****************** Final Point Cloud *******************")
     final_pcd = np.hstack((points, intensity)) #without truth label
+    final_pcd_all = np.hstack((points, intensity, truth_label))
     self.get_attributes(final_pcd, "final_pcd") 
     print("hstacked pcd[0]:",final_pcd[0])
     
@@ -61,11 +62,13 @@ class PointCloudLoader:
         pc = np.hstack((pc_points, pc_features)) # concatenate the 2 np arrays
         print("Downsampled Point cloud size: ", pc.size)
         down_finalPCD = np.delete(pc, [4,5], 1) # remove info unneccessary for clustering from pcd
+        final_pcd_all = pc
+        print("ground truth in pc:", final_pcd_all[:,4:5])
         self.get_attributes(down_finalPCD, "final_pcd") 
         print(down_finalPCD[0])
         final_pcd = down_finalPCD
 
-    return final_pcd
+    return final_pcd, final_pcd_all
   
   def load_point_cloud_pNet_npy(self, vis, downsample=False, ds_size=0):
     """Method to load and visualise a point cloud stored as a .npy file
@@ -311,4 +314,3 @@ class PointCloudLoader:
     print("\t- Point cloud dim:", np.ndim(pcd))  
     print("\t- Point cloud shape:", np.shape(pcd))
     print("\t- Point cloud data type:", pcd.dtype,'\n')
-
