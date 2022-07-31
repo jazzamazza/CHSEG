@@ -154,21 +154,7 @@ class Clustering:
           output_path = "./Data/church_registered_kmeans_"+str(0.05)
           np.save(output_path + ".npy", outpcloud)
           print(o3d.io.write_point_cloud(output_path+".ply", pcd, print_progress=True) )
-           
-          
-          # print("clust 0-35:",clusters[0:35])
-          # pcutils.get_attributes(clusters)
-          
-          # print("fitpred 0-35:",pred[0:35])
-          # pcutils.get_attributes(pred)
-          
-          # pcloud2 = np.hstack((pcloud, clusters))
-          
-          # print("p2 0-35:",pcloud2[0:35])
-          # pcutils.get_attributes(pcloud2)
-          
-          #np.save("./Data/church_registered_kclust_0.05.npy", pcloud2)
-          
+                 
           print("done")
           
      
