@@ -8,7 +8,7 @@ class PointCloudUtils:
         rootPath = "./Data/"
         inputPath = rootPath+"church_registered.npy"  #path to point cloud file
         self.downsample_amt = downsample_amt
-        self.npy_pnet(file_path=inputPath,downsample_amt= self.downsample_amt)
+        self.npy_raw(file_path=inputPath,downsample_amt= self.downsample_amt)
         
         #self.npy_raw(file_path=inputPath)
     
@@ -38,6 +38,7 @@ class PointCloudUtils:
         downpcd = pcd.voxel_down_sample(voxel_size=downsample_amt)
         #need to test line 38
         downpnetpcloud = np.hstack(((np.asarray(downpcd.points)), (np.asarray(downpcd.colors)[:,0:1]), (np.asarray(downpcd.normals)[:,0:1])))
+        self.get_attributes(downpnetpcloud, "downcloud")
         ndownpoints = np.shape(downpnetpcloud)[0]
         self.get_attributes(downpnetpcloud, "pnet pcloud dsampled")
         

@@ -59,7 +59,7 @@ def load():
 def test_dsample():
     f_path = load()
     putils = PointCloudUtils()
-    putils.downsample_pcd(file_path=f_path, downsample_amt=0.03)
+    putils.downsample_pcd(file_path=f_path, downsample_amt=0.5)
     
 
 def main():

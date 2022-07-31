@@ -15,9 +15,9 @@ def load(vis):
     #init PointCloudLoader    
     pc_loader = PointCloudLoader(file_path)
     
-    options = {0: "PLY", 1: "NPY", 2: "LAS"}
+    options = {0: "PLY", 1: "NPY", 2: "LAS", 3:"NPYR"}
     try:
-        user_input = int(input("\nMenu:\n0 - for PLY\n1 - for NPY\n2 - for LAS\nYour selection [0/1/2]: "))
+        user_input = int(input("\nMenu:\n0 - for PLY\n1 - for NPY\n2 - for LAS\n3 - for NPY RAW\nYour selection [0/1/2/3]: "))
         
         #Open3D Visualisation
         if (options.get(user_input)=="PLY"):
@@ -29,7 +29,10 @@ def load(vis):
             return pcd
         elif (options.get(user_input)=="LAS"):
             pcd = pc_loader.load_point_cloud_las(vis)
-            return pcd        
+            return pcd    
+        elif (options.get(user_input)=="NPYR"):
+            pcd = pc_loader.load_point_cloud_npy_raw(vis)
+            return pcd      
         else:
             print("Invalid option selected")
     except ValueError:
@@ -92,6 +95,7 @@ def application():
                               "\n 3 : cure"+
                               "\n 4 : aprop"+
                               "\n 5 : kmed"+
+                              "\n 6 : qual"+
                               "\n q : or quit the app"+
                               "\n r : Restart the Application\n")
                if (userInput == "q"): break
@@ -101,6 +105,7 @@ def application():
                elif (userInput == "3"): clustering.cure_clustering(3)
                elif (userInput == "4"): clustering.affinity_progpogation_clustering()
                elif (userInput == "5"): clustering.kMediods_clustering(14)
+               elif (userInput == "6"): clustering.find_quality()
             
 if __name__=="__main__":
     application()

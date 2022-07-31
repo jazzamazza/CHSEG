@@ -9,6 +9,7 @@ import matplotlib.cm as cm
 import faiss
 import pptk
 
+
 from sklearn_extra.cluster import KMedoids
 
 #jared methods
@@ -24,6 +25,8 @@ from pyclustering.cluster import cluster_visualizer
 from sklearn.cluster import AffinityPropagation
 
 from PointCloudUtils import PointCloudUtils
+
+import open3d as o3d
 
 
 
@@ -80,10 +83,12 @@ class Clustering:
           
           # Visualise K-Means
           y_km = kmeans.predict(x)
-          print("y_km:", y_km.shape())
+          fpred = kmeans.fit_predict(x)
+          print("y_km:", np.shape(y_km))
           centroids = kmeans.cluster_centers_
-          print("centroids:", centroids.shape())
+          print("centroids:", np.shape(centroids))
           
+          return y_km, fpred
           # intensity_1d = x[:,3:4].flatten()
           # points = x[:,:3]
           # print("Visualising in PPTK")
@@ -92,20 +97,80 @@ class Clustering:
           # view = pptk.viewer(points,intensity_1d, pred_lab)
           # print("PPTK Loaded")
           
-          unique_labels = np.unique(y_km)
-          print("unique_labels:", unique_labels)
-          for i in unique_labels:
-               plt.scatter(x[y_km == i , 0] , x[y_km == i , 1] , label = i, marker='o', picker=True)
-          plt.scatter(
-               centroids[:, 0], centroids[:, 1],
-               s=100, marker='*',
-               c='red', edgecolor='black',
-               label='centroids'
-          )
-          #plt.legend()
-          plt.title('K-Means Clustering')
-          plt.savefig('k_means_clusters.png') 
-          plt.show()
+          # unique_labels = np.unique(y_km)
+          # print("unique_labels:", unique_labels)
+          # for i in unique_labels:
+          #      plt.scatter(x[y_km == i , 0] , x[y_km == i , 1] , label = i, marker='o', picker=True)
+          # plt.scatter(
+          #      centroids[:, 0], centroids[:, 1],
+          #      s=100, marker='*',
+          #      c='red', edgecolor='black',
+          #      label='centroids'
+          # )
+          # #plt.legend()
+          # plt.title('K-Means Clustering')
+          # plt.savefig('k_means_clusters.png') 
+          # plt.show()
+          
+     def find_quality(self):
+          pcutils = PointCloudUtils()
+          pcloud = self.pcd
+          pcutils.get_attributes(pcloud, "pcloud")
+          pcloud_len = np.shape(pcloud)[0]
+          points = pcloud[:,:3]
+          intensity = pcloud[:,3:4] 
+          #gtruth = pcloud[:,4:5]
+          
+          # format using open3d
+          pcd = o3d.geometry.PointCloud()
+          pcd.points = o3d.utility.Vector3dVector(points) # add {x,y,z} points to pcd
+          intensity_to_rgb = np.hstack((intensity, np.zeros((pcloud_len,1)) , np.zeros((pcloud_len,1)))) # form a 3D vector to add to o3d pcd
+          pcutils.get_attributes(intensity_to_rgb, "intrgb")
+          pcd.colors = o3d.utility.Vector3dVector(intensity_to_rgb) # store intensity as every value in color vector
+          
+          clusters, pred = self.k_means_clustering(13)
+          clusters = np.reshape(clusters,(-1,1))
+          pred = np.reshape(pred,(-1,1))
+          
+          pcloud = np.load("./Data/church_registered_raw_0.5.npy")
+          gtruth = pcloud[:,4:5]
+          pcloud = np.load("./Data/ground_truth.npy")
+          print("56",pcloud[:,5:6])
+          keepdiscard = pcloud[:,5:6]
+          
+          pcutils.get_attributes(keepdiscard)
+          pcutils.get_attributes(gtruth, "gtruth")
+          pcutils.get_attributes(clusters, "clusters")
+          pcutils.get_attributes(pred, "pred")
+          
+          gtruth_clust_to_normal = np.hstack((gtruth, clusters, keepdiscard))
+          pcutils.get_attributes(gtruth_clust_to_normal, "gtclust")
+          pcd.normals = o3d.utility.Vector3dVector(gtruth_clust_to_normal) #store keep discard as 
+          
+          outpcloud = np.hstack(((np.asarray(pcd.points)), (np.asarray(pcd.colors)), (np.asarray(pcd.normals))))
+          pcutils.get_attributes(outpcloud, "outpcloud")
+          print(pcd)
+          
+          output_path = "./Data/church_registered_kmeans_"+str(0.05)
+          np.save(output_path + ".npy", outpcloud)
+          print(o3d.io.write_point_cloud(output_path+".ply", pcd, print_progress=True) )
+           
+          
+          # print("clust 0-35:",clusters[0:35])
+          # pcutils.get_attributes(clusters)
+          
+          # print("fitpred 0-35:",pred[0:35])
+          # pcutils.get_attributes(pred)
+          
+          # pcloud2 = np.hstack((pcloud, clusters))
+          
+          # print("p2 0-35:",pcloud2[0:35])
+          # pcutils.get_attributes(pcloud2)
+          
+          #np.save("./Data/church_registered_kclust_0.05.npy", pcloud2)
+          
+          print("done")
+          
      
      def birch(self, k):
           heading = "BIRCH Clustering"

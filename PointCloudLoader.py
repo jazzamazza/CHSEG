@@ -71,6 +71,40 @@ class PointCloudLoader:
       
     return final_pcd
   
+  def load_point_cloud_npy_raw(self, vis):
+    """Method to load and visualise a point cloud stored as a .npy file
+
+    Args:
+        vis (bool): enable visualisation or now
+
+    Returns:
+        nparray: Point cloud as numpy array
+    """
+    print("\n****************** Loading Point Cloud *******************")
+    point_cloud = np.load(self.pcd_path)
+    self.get_attributes(point_cloud, "original pc")   
+    # divide point_cloud into points and features 
+    print("original pcd[0]:",point_cloud[0])
+    points = point_cloud[:,:3]
+    print("points[0]",points[0])
+    intensity = point_cloud[:,3:4]
+    print("intensity[0]",intensity[0])
+    truth_label = point_cloud[:,4:5]
+    print("truth label[0]",truth_label[0]) 
+    
+    #testp, testi, testl = np.load(self.pcd_path)
+    
+    # print("\n****************** Final Point Cloud *******************")
+    # final_pcd = np.hstack((points, intensity, truth_label)) #without truth label
+    # self.get_attributes(final_pcd, "final_pcd") 
+    # print("hstacked pcd[0]:",final_pcd[0])
+    
+    if (vis):
+      pview = PointCloudViewer()
+      pview.vis_npy(points, intensity, truth_label)
+      
+    return point_cloud
+  
   # Method to load and visualise a point cloud in a .npy file using open3d
   def load_point_cloud_npy_pnet_final(self, vis):
     """Method to load and visualise a point cloud stored as a .npy file
