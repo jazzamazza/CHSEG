@@ -64,22 +64,22 @@ class PointCloudUtils:
         print(pcd)
         
         pnetpcloud = np.hstack(((np.asarray(pcd.points)), (np.asarray(pcd.colors))))
-        # npoints = np.shape(pnetpcloud)[0]
+        npoints = np.shape(pnetpcloud)[0]
         self.get_attributes(pnetpcloud, "pnet pcloud")
 
-        # downpcd = pcd.voxel_down_sample(voxel_size=downsample_amt)
+        downpcd = pcd.voxel_down_sample(voxel_size=downsample_amt)
         
-        # downpnetpcloud = np.hstack(((np.asarray(downpcd.points)), (np.asarray(downpcd.colors))))
-        # ndownpoints = np.shape(downpnetpcloud)[0]
-        # self.get_attributes(downpnetpcloud, "pnet pcloud dsampled")
+        downpnetpcloud = np.hstack(((np.asarray(downpcd.points)), (np.asarray(downpcd.colors))))
+        ndownpoints = np.shape(downpnetpcloud)[0]
+        self.get_attributes(downpnetpcloud, "pnet pcloud dsampled")
         
-        # print("Original Num Points:", npoints, "\nDownsampled Num Points:", ndownpoints, "\nNew is", (100-((ndownpoints/npoints)*100)), "% smaller")
+        print("Original Num Points:", npoints, "\nDownsampled Num Points:", ndownpoints, "\nNew is", (100-((ndownpoints/npoints)*100)), "% smaller")
         
-        # output_path = "./Data/church_registered_pnet_"+str(downsample_amt)
-        # np.save(output_path + ".npy", downpnetpcloud)
-        # o3d.io.write_point_cloud(output_path+".ply", downpcd)
+        output_path = "./Data/church_registered_pnet_"+str(downsample_amt)
+        np.save(output_path + ".npy", downpnetpcloud)
+        o3d.io.write_point_cloud(output_path+".ply", downpcd)
         
-        output_path = "./Data/church_registered_pnet_raw"
+        output_path = "./Data/church_registered_pnet_"+str(downsample_amt)
         np.save(output_path + ".npy", pnetpcloud)
         o3d.io.write_point_cloud(output_path+".ply", pcd)
     
@@ -96,6 +96,23 @@ class PointCloudUtils:
         print("\t- Point cloud dim:", np.ndim(pcd))  
         print("\t- Point cloud shape:", np.shape(pcd))
         print("\t- Point cloud size:", np.size(pcd))
-        print("\t- Point cloud[0]:", pcd[0])
-        print("\t- Point cloud data type:", pcd.dtype,'\n')
+        # print("\t- Point cloud[0] n points:", np.shape(pcd[0])[0])
+        # print("\t- Point cloud[0] dim:", np.ndim(pcd[0]))  
+        # print("\t- Point cloud[0] shape:", np.shape(pcd[0]))
+        # print("\t- Point cloud[0] size:", np.size(pcd[0]))
+        # print("\t- Point cloud[1] n points:", np.shape(pcd[1])[0])
+        # print("\t- Point cloud[1] dim:", np.ndim(pcd[1]))  
+        # print("\t- Point cloud[1] shape:", np.shape(pcd[0]))
+        # print("\t- Point cloud[1] size:", np.size(pcd[1]))
+        # print("\t- Point cloud[2] n points:", np.shape(pcd[2])[0])
+        # print("\t- Point cloud[2] dim:", np.ndim(pcd[2]))  
+        # print("\t- Point cloud[2] shape:", np.shape(pcd[2]))
+        # print("\t- Point cloud[2] size:", np.size(pcd[2]))
+        # print("\t- Point cloud[0]:", pcd[0])
+        # print("\t- Point cloud[0][0]:", pcd[0][0])
+        # print("\t- Point cloud[1]:", pcd[1])
+        # print("\t- Point cloud[1][0]:", pcd[1][0])
+        # print("\t- Point cloud[2]:", pcd[2])
+        # print("\t- Point cloud[2][0]:", pcd[2][0])
+        #print("\t- Point cloud data type:", pcd.dtype,'\n')
         

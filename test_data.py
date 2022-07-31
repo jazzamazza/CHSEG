@@ -2,7 +2,7 @@ from PointCloudLoader import PointCloudLoader
 from PointCloudUtils import PointCloudUtils
 from tkinter import filedialog as fd
 import tkinter as tk
-import cure_test as ct
+#import cure_test as ct
 
 
 def init_pcl(vis = True):
@@ -59,13 +59,13 @@ def load():
 def test_dsample():
     f_path = load()
     putils = PointCloudUtils()
-    putils.downsample_pcd(file_path=f_path, downsample_amt=0.25)
+    putils.downsample_pcd(file_path=f_path, downsample_amt=0.03)
     
 
 def main():
     print("Welcome")
     test_dsample()
-    ct.cluster_sample1()
+    #ct.cluster_sample1()
     
 
 if __name__=="__main__":
