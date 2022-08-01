@@ -32,8 +32,9 @@ import open3d as o3d
 
 # Clustering class with various clustering methods
 class Clustering:
-     def __init__(self, pointCloud, pcd_choice):
+     def __init__(self, pointCloud, pcd_choice, pcd_truth):
           self.pcd = pointCloud
+          self.pcd_truth = pcd_truth
           if (pcd_choice == "1"): self.type = "raw"
           elif (pcd_choice == "2"): self.type = "cldCmp"
           elif (pcd_choice == "3"): self.type = "pnet++"
@@ -76,6 +77,7 @@ class Clustering:
      # k means clustering method --> clusters a dataset into k (given) clusters
      def k_means_clustering(self, k):
           x = self.pcd
+          t = self.pcd_truth
           
           print("\n------------------k means---------------------")
           kmeans = KMeans(n_clusters=k, n_init=10) # number of clusters (k)
@@ -87,6 +89,74 @@ class Clustering:
           print("y_km:", np.shape(y_km))
           centroids = kmeans.cluster_centers_
           print("centroids:", np.shape(centroids))
+          unique_labels = np.unique(y_km)
+          print("unique_labels:", unique_labels)
+          
+          num_keep, num_discard = 0, 0
+    
+          ground_truths = np.array([])
+          print("ground_truth size:", ground_truths.size)
+          for i in unique_labels:
+              num_keep, num_discard = 0, 0
+              print("**** cluster ****\n->", i)
+              # for point, p in map(None, x[y_km == i], t[y_km == i]):
+              for point in t[y_km == i]:
+                print("p", point[4])
+                if (point[4] >= float(0.5)): 
+                    num_discard += 1
+                else: 
+                    num_keep += 1
+              print("num_keep:", num_keep)
+              print("num_discard:", num_discard)
+              if num_keep > num_discard: 
+                ground_truths = np.append(ground_truths, 1)
+              else: 
+                ground_truths = np.append(ground_truths, 0)
+
+          print("ground_truth:", ground_truths)
+          
+          # keep = np.asarray([])
+          # discard = np.asarray([])
+          for i in range(0, len(ground_truths)):   #i is each cluster - changing points in t
+            if ground_truths[i] == float(1):
+              for point in t[y_km == i]:
+                point[4] = float(1)
+            else:
+              for point in t[y_km == i]:
+                point[4] = float(0)
+          
+          for i in unique_labels:
+               #print((x[y_km == i , 0] , x[y_km == i , 1])) #how to access the pointd 
+               plt.scatter(x[y_km == i , 0] , x[y_km == i , 1] , label = i, marker='o', picker=True)
+          plt.scatter(
+               centroids[:, 0], centroids[:, 1],
+               s=100, marker='*',
+               c='red', edgecolor='black',
+               label='centroids'
+          )
+          #plt.legend()
+          plt.title('Two clusters of data')
+          plt.savefig('k_means_clusters.png') 
+          plt.show()
+
+          print("t", t)
+          print("y_km", y_km)
+
+          xyz = self.pcd[:,0:3]
+          intensity1d = (self.pcd[:,3:4]).flatten()
+          view = pptk.viewer(xyz, intensity1d, t[:,5:6].flatten())
+          print("pptk loaded")
+
+          # num_keep, num_discard = 0
+          # groundTruths = []
+          # for i in unique_labels: 
+          #      x[y_km == i , 0] , x[y_km == i , 1]          #prints out the points in each label/cluster 
+          #           index x,y,z values into the raw data set --> get the ground truth label
+          #      if groundTruths == 1: num_keep += 1
+          #      else: num_discard += 1
+          #      if num_keep > num_discard: 
+          #           groundTruths[i] = 1
+          #      else: groundTruths[i] = 0
           
           return y_km, fpred
           # intensity_1d = x[:,3:4].flatten()
@@ -153,10 +223,9 @@ class Clustering:
           
           output_path = "./Data/church_registered_kmeans_"+str(0.05)
           np.save(output_path + ".npy", outpcloud)
-          print(o3d.io.write_point_cloud(output_path+".ply", pcd, print_progress=True) )
-                 
+          print(o3d.io.write_point_cloud(output_path+".ply", pcd, print_progress=True))       
           print("done")
-          
+     
      
      def birch(self, k):
           heading = "BIRCH Clustering"
