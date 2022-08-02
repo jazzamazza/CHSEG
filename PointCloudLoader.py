@@ -1,5 +1,4 @@
 # point_cloudLoader
-from curses import has_colors
 import numpy as np
 import open3d as o3d
 import laspy as lp
@@ -32,6 +31,7 @@ class PointCloudLoader:
     print("\n****************** Loading Point Cloud *******************")
     point_cloud = np.load(self.pcd_path)
     self.get_attributes(point_cloud)   
+    
     # divide point_cloud into points and features 
     print("original pcd[0]:",point_cloud[0])
     points = point_cloud[:,:3]

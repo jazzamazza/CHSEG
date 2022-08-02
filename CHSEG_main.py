@@ -1,6 +1,7 @@
 from Clustering import Clustering
 from PointCloudLoader import PointCloudLoader
 from tkinter import filedialog as fd
+from LeahClustering import LeahClustering
 
 def load(vis):
     file_types = [('Point Cloud Files','*.ply *.npy *.las *.xyz *.pcd')]
@@ -37,7 +38,7 @@ def load(vis):
 # Returns a PointCloud in a numpy array      
 def setup(option, vis, ds, dsSize):
     #SET PATH
-    file_path = "/content/drive/Shareddrives/Thesis/Data/church_registered.npy"
+    file_path = "Data\church_registered.npy"
     pc_loader = PointCloudLoader(file_path)
     if (option == "1"): 
         pointCloud, pcd_with_truths = pc_loader.load_point_cloud_npy(vis, ds, dsSize) # setup point cloud with raw features 
@@ -84,6 +85,7 @@ def application():
 
           pointCloud, pcd_with_truths = setup(pcd_choice,vis, ds, dsSize)
           clustering = Clustering(pointCloud, pcd_with_truths , pcd_choice)
+          leah = LeahClustering(pointCloud, pcd_with_truths , pcd_choice)
      
           while (userInput != "r"):
                # cluster point cloud    
@@ -94,8 +96,11 @@ def application():
                               "\n 3 : Clustering Method 3"+
                               "\n r : Restart the Application\n")
                if (userInput == "q"): break
-               elif (userInput == "0"): clustering.k_means_clustering_faiss(15, "")
-               elif (userInput == "1"): clustering.k_means_clustering(13)
+               #elif (userInput == "0"): clustering.k_means_clustering_faiss(15, "")
+               elif (userInput == "0"): clustering.k_means_clustering(13)
+               elif (userInput == "1"): leah.dbscan_clustering()
+               elif (userInput == "2"): leah.optics_clustering()
+               elif (userInput == "2"): leah.mean_shift_clustering()
             
 if __name__=="__main__":
     application()
