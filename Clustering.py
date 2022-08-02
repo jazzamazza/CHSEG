@@ -74,8 +74,11 @@ class Clustering:
           unique_labels = np.unique(y_km)
           print("unique_labels:", unique_labels)
     
-          self.classification(unique_labels, y_km, t)
-               
+
+          self.classification(unique_labels, y_km, t, "k-means")
+          print("outside classification")
+
+          print("plotting graph")   
           for i in unique_labels:
                plt.scatter(x[y_km == i , 0] , x[y_km == i , 1] , label = i, marker='o', picker=True)
           plt.scatter(
@@ -115,7 +118,7 @@ class Clustering:
           print("ground truth in clustering:", t[:,4:5])
           unique_labels = np.unique(clust.labels_)
           print("unique_labels:", unique_labels)
-          self.classification(unique_labels, clust.labels_, t)
+          self.classification(unique_labels, clust.labels_, t, "OPTICS")
           #################
 
           # Reachability plot
@@ -154,10 +157,11 @@ class Clustering:
           print("starting dbscan_clustering")
           X = self.pcd
 
-          e = self.calculateElbow()
+          min_samples_ = 36 # for cloud compare with 15 features
+          min_samples_ = 8 # for raw point cloud
+          e = self.calculateElbow(min_samples_)
           print("e=",e)
-          min_samples_ = 30 # for cloud compare with 15 features
-          min_samples_ = 4 # for raw point cloud
+          
           db1 = DBSCAN(eps=e, min_samples=min_samples_)
           db = db1.fit(X)
           predict = db.fit_predict(X)
@@ -173,7 +177,7 @@ class Clustering:
           print("ground truth in clustering:", t[:,4:5])
           unique_labels = np.unique(db.labels_)
           print("unique_labels:", unique_labels)
-          self.classification(unique_labels, db.labels_, t)
+          self.classification(unique_labels, db.labels_, t, "DBSCAN")
           #################
 
           # visualise
@@ -190,10 +194,10 @@ class Clustering:
           
           print("finished dbscan_clustering")
 
-     def calculateElbow(self):
+     def calculateElbow(self, n2):
            # FIND OPTIMAL EPSILON VALUE: use elbow point detection method 
           df = self.pcd
-          nearest_neighbors = NearestNeighbors(n_neighbors=5)
+          nearest_neighbors = NearestNeighbors(n_neighbors=n)
           neighbors = nearest_neighbors.fit(df)
           distances, indices = neighbors.kneighbors(df)
           distances = np.sort(distances[:,4], axis=0)
@@ -231,7 +235,7 @@ class Clustering:
           print("ground truth in clustering:", t[:,4:5])
           unique_labels = np.unique(ms.labels_)
           print("unique_labels:", unique_labels)
-          self.classification(unique_labels, ms.labels_, t)
+          self.classification(unique_labels, ms.labels_, t, "mean-shift")
           #################
 
           # visualise 1
@@ -302,7 +306,7 @@ class Clustering:
           print("Silhouette Coefficient: %0.3f" % silhouette_score(X, labels))
 
      # Classification
-     def classification(self, unique_labels, y_km, t): # t = pcd with truth labels
+     def classification(self, unique_labels, y_km, t, fileName): # t = pcd with truth labels
         ground_truths = np.array([])
         print("ground_truth size:", ground_truths.size)
         for i in unique_labels:
@@ -328,5 +332,5 @@ class Clustering:
                     t[y_km == i, 4:5] = float(0)
         print("t shape", np.shape(t))
 
-        np.save('/content/drive/Shareddrives/Leah_Thesis/Data/ground_truth_new', t)
-            
+        print("would be saving")
+        np.save('/content/drive/Shareddrives/Leah_Thesis/Data/ground_truth_' + fileName, t)
