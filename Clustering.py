@@ -33,8 +33,10 @@ import open3d as o3d
 # Clustering class with various clustering methods
 class Clustering:
      def __init__(self, pointCloud, pcd_choice, pcd_truth):
+    # def __init__(self, pointCloud, pcd_with_truths, pcd_choice):
           self.pcd = pointCloud
           self.pcd_truth = pcd_truth
+          #self.pcd_truth = pcd_with_truths
           if (pcd_choice == "1"): self.type = "raw"
           elif (pcd_choice == "2"): self.type = "cldCmp"
           elif (pcd_choice == "3"): self.type = "pnet++"
@@ -42,6 +44,7 @@ class Clustering:
      # K-MEANS CLUSTERING USING FAISS LIBRARY - SPEEDS UP COMPUTATION
      def k_means_clustering_faiss(self, k, imageName):
       x = self.pcd
+      t = self.pcd_truth
       print("starting faiss_k_means")
       # train:
       n_init = 10
@@ -59,6 +62,7 @@ class Clustering:
       print("centroids:", centroids)
       unique_labels = np.unique(y_km)
       print("unique_labels:", unique_labels)
+      
       for i in unique_labels:
           plt.scatter(x[y_km == i , 0] , x[y_km == i , 1] , label = i, marker='o', picker=True)
           print("plotting", i)
@@ -73,7 +77,7 @@ class Clustering:
       print("saving figure")
       plt.savefig('k_means_clusters_' + self.type + imageName + '.png') 
       plt.show()
-  
+
      # k means clustering method --> clusters a dataset into k (given) clusters
      def k_means_clustering(self, k):
           x = self.pcd
@@ -82,11 +86,15 @@ class Clustering:
           print("\n------------------k means---------------------")
           kmeans = KMeans(n_clusters=k, n_init=10) # number of clusters (k)
           kmeans.fit(x) # apply k means to dataset
+
+          print("ground truth in clustering:", t[:,4:5])
           
           # Visualise K-Means
           y_km = kmeans.predict(x)
           fpred = kmeans.fit_predict(x)
           print("y_km:", np.shape(y_km))
+          # print("y_km:", y_km)
+          # print("arrays EQUAL?",np.array_equal(y_km, x))
           centroids = kmeans.cluster_centers_
           print("centroids:", np.shape(centroids))
           unique_labels = np.unique(y_km)
@@ -444,19 +452,45 @@ class Clustering:
           for k in K:
                fig, (ax1, ax2) = plt.subplots(1, 2)
                fig.set_size_inches(18, 7)
+     # Classification
+     def classification(self, unique_labels, y_km, pcd_with_truth):
+        t = pcd_with_truth
+        ground_truths = np.array([])
+        print("ground_truth size:", ground_truths.size)
+        for i in unique_labels:
+            num_keep, num_discard = 0, 0
+            print("cluster:", i)
+            for point in t[y_km == i]:
+                print("p", point[4])
+                if (point[4] >= float(0.5)): num_discard += 1
+                else: num_keep += 1
+            print("num_keep:", num_keep)
+            print("num_discard:", num_discard)
+            if num_keep > num_discard: 
+                ground_truths = np.append(ground_truths, 0)
+            else: 
+                ground_truths = np.append(ground_truths, 1)
+        print("ground_truth:", ground_truths)
 
-               # The 1st subplot is the silhouette plot
-               # The silhouette coefficient can range from -1, 1 but in this example all
-               # lie within [-0.1, 1]
-               ax1.set_xlim([-0.1, 1])
-               # The (n_clusters+1)*10 is for inserting blank space between silhouette
-               # plots of individual clusters, to demarcate them clearly.
-               ax1.set_ylim([0, len(x) + (k + 1) * 10])
+        g = np.asarray(t)
+        for i in range(0, len(ground_truths)):   #i is each cluster
+            if ground_truths[i] == float(1): # if cluster == keep
+                for point in t[y_km == i]: # set ground truth of each point to keep
+                    t[y_km == i, 4:5] = float(1)
+            else:
+                for point in t[y_km == i]:
+                    t[y_km == i, 4:5] = float(0)
+        print("t shape", np.shape(t))
+        print("t[0]", t[0])
 
-               # Initialize the clusterer with n_clusters value and a random generator
-               # seed of 10 for reproducibility.
-               clusterer = Birch(n_clusters= k)
-               cluster_labels = clusterer.fit_predict(x)
+        # Initialize the clusterer with n_clusters value and a random generator
+        # seed of 10 for reproducibility.
+        clusterer = Birch(n_clusters= k)
+        cluster_labels = clusterer.fit_predict(x)
+        for i in unique_labels:
+            print("cluster:", i)
+            for point in t[y_km == i]:
+               print("new point", t[y_km == i, 4:5])
 
                silhouette_avg = silhouette_score(x, cluster_labels)
                print("For n_clusters =", k, "The average silhouette_score is :", silhouette_avg)
@@ -526,7 +560,7 @@ class Clustering:
                     fontweight="bold",
                )
 
-          plt.show()
+               plt.show()
 
      #output
      # For n_clusters = 2 The average silhouette_score is : 0.3889045527426348

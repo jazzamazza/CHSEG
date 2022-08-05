@@ -37,7 +37,7 @@ class PointCloudLoader:
     return file_path
 
   # Method to load and visualise a point cloud in a .npy file using open3d
-  def load_point_cloud_npy(self, vis):
+  def load_point_cloud_npy(self, vis, downsample=False, ds_size=0):
     """Method to load and visualise a point cloud stored as a .npy file
 
     Args:
@@ -62,6 +62,7 @@ class PointCloudLoader:
     
     print("\n****************** Final Point Cloud *******************")
     final_pcd = np.hstack((points, intensity)) #without truth label
+    final_pcd_all = np.hstack((points, intensity, truth_label))
     self.get_attributes(final_pcd, "final_pcd") 
     print("hstacked pcd[0]:",final_pcd[0])
     
@@ -69,6 +70,57 @@ class PointCloudLoader:
       pview = PointCloudViewer()
       pview.vis_npy(points, intensity, truth_label)
       
+    if downsample:
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(point_cloud[:,:3])
+        rawFeatures = np.hstack((intensity, truth_label, truth_label))
+        pcd.normals = o3d.utility.Vector3dVector(rawFeatures)
+        downpcd = pcd.voxel_down_sample(voxel_size=ds_size) # downsample pcd
+        pc_points = np.asarray(downpcd.points) # convert pcd points to np array
+        pc_features = np.asarray(downpcd.normals) # convert pcd additional features to np array
+        pc = np.hstack((pc_points, pc_features)) # concatenate the 2 np arrays
+        print("Downsampled Point cloud size: ", pc.size)
+        down_finalPCD = np.delete(pc, [4,5], 1) # remove info unneccessary for clustering from pcd
+        final_pcd_all = pc
+        print("ground truth in pc:", final_pcd_all[:,4:5])
+        self.get_attributes(down_finalPCD, "final_pcd") 
+        print(down_finalPCD[0])
+        final_pcd = down_finalPCD
+
+    return final_pcd, final_pcd_all
+  
+  def load_point_cloud_pNet_npy(self, vis, downsample=False, ds_size=0):
+    """Method to load and visualise a point cloud stored as a .npy file
+
+    Args:
+        vis (bool): enable visualisation or now
+
+    Returns:
+        nparray: Point cloud as numpy array
+    """
+    print("\n****************** Loading Point Cloud *******************")
+    point_cloud = np.load(self.pcd_path)
+    self.get_attributes(point_cloud)   
+
+    # divide point_cloud into points and features 
+    points = point_cloud[:,:3]
+    features = point_cloud[:,3:]
+
+    print("points.size:", points.size, "features.size:", features.size)
+    print("points.shape:", np.shape(points), "features.shape:", np.shape(features))    
+    
+    print("\n****************** Final Point Cloud *******************")
+    
+    if (vis):
+      pview = PointCloudViewer()
+      pview.vis_npy(points)
+    
+    if downsample:
+        final_pcd = self.voxel_downsample(points, features, 126, ds_size)
+    else:
+        final_pcd = np.hstack((points, features))
+    self.get_attributes(final_pcd, "final_pcd") 
+    print("hstacked pcd[0]:",final_pcd[0])
     return final_pcd
   
   def load_point_cloud_npy_raw(self, vis):
@@ -170,7 +222,7 @@ class PointCloudLoader:
         
   #     return final_pcd
 
-  def load_point_cloud_las(self, vis):
+  def load_point_cloud_las(self, vis, downsample=False, ds_size=0):
       print("\n******************Loading Point Cloud with Cloud Compare Generated Features (x, y, z, intensity) *******************")
     
       path = self.pcd_path
@@ -182,91 +234,64 @@ class PointCloudLoader:
       pcd = lp.read(path)
 
       print("All features:", list(pcd.point_format.dimension_names))
-      points = np.vstack((pcd.x, pcd.y, pcd.z)).transpose()            #lists x, y, z cooridnates 
+      points = np.vstack((pcd.x, pcd.y, pcd.z)).transpose() #lists x, y, z cooridnates 
       print("points", points)
-      print("c-continguous:", points.flags['C_CONTIGUOUS'])
       
       cloudCompareFeatures = list(pcd.point_format.extra_dimension_names)
-    
       print("Cloud Compare Features:", cloudCompareFeatures)
-      planarity = np.vstack(pcd['Planarity (0.049006)'])
-      intensity = np.vstack(pcd['NormalX'])
-      anisotropy = np.vstack(pcd['Anisotropy (0.049006)'])
-      linearity = np.vstack(pcd['Linearity (0.049006)'])
-      surfaceVariation = np.vstack(pcd['Surface variation (0.049006)'])
-      eigenentropy = np.vstack(pcd['Eigenentropy (0.049006)'])
-      omnivariance = np.vstack(pcd['Omnivariance (0.049006)'])
-      eigenvalues_sum = np.vstack(pcd['Eigenvalues sum (0.049006)'])
-      pca1 = np.vstack(pcd['PCA1 (0.049006)'])
-      pca2 = np.vstack(pcd['PCA2 (0.049006)'])
-      sphericity = np.vstack(pcd['Sphericity (0.049006)'])
-      verticality = np.vstack(pcd['Verticality (0.049006)'])
-      first_eigen = np.vstack(pcd['1st eigenvalue (0.049006)'])
-      second_eigen = np.vstack(pcd['2nd eigenvalue (0.049006)'])
-      third_eigen = np.vstack(pcd['3rd eigenvalue (0.049006)'])
-      
-      
-      
-      #########
-      print("nan planarity?:",np.isnan(planarity).any())
-      print("planarity size:", planarity.size)
-      print("num nans in planarity:", np.count_nonzero(np.isnan(planarity)))
-      print("planarity size:", planarity.size)
-      planarity = np.nan_to_num(planarity)
-      print("nan planarity?:",np.isnan(planarity).any())
 
-      intensity = np.nan_to_num(intensity)
-      anisotropy = np.nan_to_num(anisotropy)
-      linearity = np.nan_to_num(linearity)
-      surfaceVariation = np.nan_to_num(surfaceVariation)
-      eigenentropy = np.nan_to_num(eigenentropy)
-      omnivariance = np.nan_to_num(omnivariance)
-      eigenvalues_sum= np.nan_to_num(eigenvalues_sum)
-      pca1 = np.nan_to_num(pca1)
-      pca2 = np.nan_to_num(pca2)
-      sphericity = np.nan_to_num(sphericity)
-      verticality = np.nan_to_num(verticality)
-      first_eigen = np.nan_to_num(first_eigen)
-      second_eigen = np.nan_to_num(second_eigen)
-      third_eigen = np.nan_to_num(third_eigen)
+      planarity = np.nan_to_num(np.vstack(pcd['Planarity (0.049006)']))
+      print("Planarity done")
+      intensity = np.nan_to_num(np.vstack(pcd['NormalX']))
+      print("Intensity done")
+      anisotropy = np.nan_to_num(np.vstack(pcd['Anisotropy (0.049006)']))
+      print("Anisotropy done")
+      linearity = np.nan_to_num(np.vstack(pcd['Linearity (0.049006)']))
+      print("Linearity done")
+      surfaceVariation = np.nan_to_num(np.vstack(pcd['Surface variation (0.049006)']))
+      print("Surface Variation done")
+      eigenentropy = np.nan_to_num(np.vstack(pcd['Eigenentropy (0.049006)']))
+      print("Eigenentropy done")
+      omnivariance = np.nan_to_num(np.vstack(pcd['Omnivariance (0.049006)']))
+      print("Omnivariance done")
+      eigenvalues_sum= np.nan_to_num(np.vstack(pcd['Eigenvalues sum (0.049006)']))
+      print("Eigenvalues done")
+      pca1 = np.nan_to_num(np.vstack(pcd['PCA1 (0.049006)']))
+      print("PCA1 done")
+      pca2 = np.nan_to_num(np.vstack(pcd['PCA2 (0.049006)']))
+      print("PCA2 done")
+      sphericity = np.nan_to_num(np.vstack(pcd['Sphericity (0.049006)']))
+      print("Sphericity done")
+      verticality = np.nan_to_num(np.vstack(pcd['Verticality (0.049006)']))
+      print("Verticality done")
+      first_eigen = np.nan_to_num(np.vstack(pcd['1st eigenvalue (0.049006)']))
+      print("eigenvalue 1 done")
+      second_eigen = np.nan_to_num(np.vstack(pcd['2nd eigenvalue (0.049006)']))
+      print("eigenvalue 2 done")
+      third_eigen = np.nan_to_num(np.vstack(pcd['3rd eigenvalue (0.049006)']))
+      print("eigenvalue 3 done")
+      roughness = np.nan_to_num(np.vstack(pcd['Roughness (0.049006)']))
+      print("Roughness done")
+      mean_curvature = np.nan_to_num(np.vstack(pcd['Mean curvature (0.049006)']))
+      print("Mean curvature done")
+      gaussian_curvature = np.nan_to_num(np.vstack(pcd['Gaussian curvature (0.049006)']))
+      print("Gaussian curvature done")
+      normal_change_rate = np.nan_to_num(np.vstack(pcd['Normal change rate (0.049006)']))
+      print("Normal change rate done")
+      num_neighbours = np.nan_to_num(np.vstack(pcd['Number of neighbors (r_0.049006)']))
+      print("Number of neighbors done")
+      surface_density = np.nan_to_num(np.vstack(pcd['Surface density (r_0.049006)']))
+      print("Surface density done")
+      volume_density = np.nan_to_num(np.vstack(pcd['Volume density (r_0.049006)']))
+      print("Volume density done")
       
+      final_features = np.hstack((planarity, anisotropy, linearity, surfaceVariation, eigenentropy, intensity, omnivariance, eigenvalues_sum, pca1, pca2, sphericity, verticality, first_eigen, second_eigen, third_eigen, roughness, mean_curvature, gaussian_curvature, normal_change_rate, num_neighbours, surface_density, volume_density))
       
-      ######
+      if downsample:
+            final_pcd = self.voxel_downsample(points, final_features, 18, ds_size)
+      else:
+            final_pcd = np.hstack((points, final_features))
 
-      features = np.hstack((planarity, anisotropy, linearity, surfaceVariation, eigenentropy, intensity))
-      features1 = np.hstack((omnivariance, eigenvalues_sum, pca1, pca2, sphericity, verticality))
-      features2 = np.hstack((first_eigen, second_eigen, third_eigen))
-   
-      final_features = np.hstack((features, features1, features2))
-      
-
-      print("points:", points)
-      print("nan points?:",np.isnan(points).any())
-      print("features:", final_features)
-      print("nan features?:",np.isnan(final_features).any())
-      finalPCD = np.hstack((points, final_features))
-
-      print("finalPCD 0:", finalPCD)
-      print("nan finalPCD?:",np.isnan(finalPCD).any())
-
-      # BELOW GIVES ARRAY NOT C-CONTIGUOUS ERROR 
-      # add extra features to point cloud numpy array
-      #count = 0
-      #cloudCompareFeatures = list(pcd.point_format.extra_dimension_names)
-      #for feature in cloudCompareFeatures:
-      #  print("Feature:", feature)
-      #  newFeature = np.vstack(pcd[feature])
-      #  print(newFeature)
-      #  newFeature = np.nan_to_num(newFeature)
-      #  if (count==0): 
-      #    finalPCD = np.hstack((points, newFeature))
-      #  else:
-      #    finalPCD = np.hstack((finalPCD, newFeature))
-      #  count += 1
-      #  #print("c-continguous:", finalPCD.flags['C_CONTIGUOUS'])
-      #  print("finalPCD[0]:", finalPCD[0])
-      #return finalPCD
-      
       if (vis): 
         # format using open3d
         pc = o3d.geometry.point_cloud()
@@ -274,20 +299,14 @@ class PointCloudLoader:
         cloudCompareFeatures_1 = np.hstack((planarity, anisotropy, linearity))
         cloudCompareFeatures_2 = np.hstack((surfaceVariation, eigenentropy, intensity)) # form a 3D vector to add to o3d pcd
         pc.normals = o3d.utility.Vector3dVector(cloudCompareFeatures_1) # store additional features (intensity & planarity) in pc.normals
-        pc.colors = o3d.utility.Vector3dVector(cloudCompareFeatures_1) # store additional features (intensity & planarity) in pc.normals
+        pc.colors = o3d.utility.Vector3dVector(cloudCompareFeatures_2) # store additional features (intensity & planarity) in pc.normals
         print(pc)
 
         # visualise point cloud
-        downpcd = pc.voxel_down_sample(voxel_size=0.05) # downsample pc
+        downpcd = pc.voxel_down_sample(voxel_size=ds_size) # downsample pc
         o3d.visualization.draw_geometries([downpcd])
     
-        #pc_points = np.asarray(downpcd.points) # convert pc points to np array
-        #pc_features = np.asarray(downpcd.normals) # convert pc additional features to np array
-        #finalPCD = np.hstack((pc_points, pc_features)) # concatenate the 2 np arrays
-        #print("Downsampled Point cloud size: ", finalPCD.size)
-        #print("0 is:", finalPCD[0])
-    
-      return finalPCD
+      return final_pcd
 
   def convert_pcd(self):
     
@@ -400,12 +419,52 @@ class PointCloudLoader:
       
     return pcd_npy
 
-  def loadPointCloud_pNet(vis):
+  def loadPointCloud_pNet(self, vis):
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     ROOT_DIR = BASE_DIR
     sys.path.append(os.path.join(ROOT_DIR, 'PointNet++'))
     pnet = importlib.import_module('test_semseg')
     return pnet.main_semseg()
+
+  def voxel_downsample(self, points, features, upperBound, ds_size):
+        print("Features shape:", np.shape(features))
+
+        ds_points = np.array([])
+        x,y = 0,0
+
+        for i in range(0, upperBound):  
+            x += 1
+            print("===========================i:", y)
+            print("points.size:", points.size, "points.shape:", np.shape(points))
+
+            pc = o3d.geometry.PointCloud()
+            pc.points = o3d.utility.Vector3dVector(points)
+            pc.normals = o3d.utility.Vector3dVector(features[:,y:y+3])
+            pc.colors = o3d.utility.Vector3dVector(features[:,y+3:y+6])
+
+            downpcd = pc.voxel_down_sample(voxel_size=ds_size)
+            ds_features = np.hstack((np.asarray(downpcd.normals), np.asarray(downpcd.colors)))
+            ds_points = np.asarray(downpcd.points)
+            print("ds_features.size:", ds_features.size, "ds_features shape:", np.shape(ds_features))
+            print("ds_points.size:", ds_points.size, "ds_points shape:", np.shape(ds_points))
+            
+            if x==1: 
+                old_ds_points = ds_points
+                total_ds_features = ds_features
+            else:
+                print("ds_point and old_ds_points EQUAL?",np.array_equal(old_ds_points, ds_points))
+                old_ds_points = ds_points
+                total_ds_features = np.hstack((total_ds_features, ds_features))
+                print("total_ds_features.size:", total_ds_features.size, "total_ds_features shape:", np.shape(total_ds_features))
+                
+            y = y + 6
+            if y>=upperBound: break
+
+        finalPCD = np.hstack((ds_points, total_ds_features))
+        print("finalPCD.size:", finalPCD.size, "finalPCD.shape():", np.shape(finalPCD))
+        print("finalPCD[0]:", finalPCD[0])
+
+        return finalPCD
 
   def get_attributes(self, pcd, arr_name="Point Cloud"):
     """Prints attributes of given numpy array to console

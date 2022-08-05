@@ -1,44 +1,12 @@
-from curses import raw
-from operator import truth
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.cluster import KMeans, dbscan
-import open3d as o3d
-from mpl_toolkits import mplot3d
-from datetime import datetime
-from yaml import load
-import laspy as lp
-from scipy.spatial.distance import cdist
-from sklearn.metrics import silhouette_samples, silhouette_score
+from sklearn.cluster import KMeans
+from sklearn.metrics import *
 import matplotlib.cm as cm
-from sklearn.cluster import DBSCAN
-import faiss
-from sklearn_extra.cluster import KMedoids #pip install https://github.com/scikit-learn-contrib/scikit-learn-extra/archive/master.zip
-#from sklearn_extra.cluster import KMedians
-import sklearn_extensions as ske
-from sklearn.metrics.pairwise import (
-    pairwise_distances,
-    pairwise_distances_argmin,
-)
-from sklearn.mixture import GaussianMixture
-from pyclustering.cluster.clarans import clarans;
-from pyclustering.utils import timedcall;
-from pyclustering.cluster import cluster_visualizer_multidim
-from pyclustering.cluster.kmedians import kmedians
-from pyclustering.cluster import cluster_visualizer
-from pyclustering.cluster.kmeans import kmeans, kmeans_visualizer
-from pyclustering.cluster.center_initializer import kmeans_plusplus_initializer
-from sklearn.cluster import AffinityPropagation
-from sklearn import metrics
-from pyclustering.cluster.silhouette import silhouette
-from sklearn.metrics import davies_bouldin_score
 
 class Testing:
-     def __init__(self, pointCloud, pcd_choice):
+     def __init__(self, pointCloud):
           self.pcd = pointCloud
-        #   if (pcd_choice == "1"): self.type = "raw"
-        #   elif (pcd_choice == "2"): self.type = "cldCmp"
-        #   elif (pcd_choice == "3"): self.type = "pnet++"
 
      def silhouette_kmeans(self):
     
@@ -159,3 +127,41 @@ class Testing:
           plt.ylabel("Davies-Boulding Index")
           plt.show()
      
+     def evaluate(self, metric_choice):
+        if metric_choice == 0:
+            # f1 score 
+            score = f1_score(self.y_true, self.y_predict)
+        elif metric_choice == 1:
+            # IOU score
+            score = jaccard_score(self.y_true, self.y_predict)
+        elif metric_choice == 2:
+            # precision
+            score = precision_score(self.y_true, self.y_predict)
+        elif metric_choice == 3:
+            # recall
+            score = recall_score(self.y_true, self.y_predict)
+        elif metric_choice == 4:
+            # error rate 
+            score = max_error(self.y_true, self.y_predict)
+        return score
+
+     def classification_metrics(self, actual_ground_truths=[0,1,1,0,0,1], predicted_ground_truths=[0,0,1,1,0,1]):
+        # data
+        self.y_true = actual_ground_truths 
+        self.y_predict = predicted_ground_truths
+        score, userInput = "", ""
+        while (userInput != "q"):
+            userInput = input("\nChoose Classification Metric to Evaluate with:"+
+                                    "\n 0 : F1 Score" +
+                                    "\n 1 : Intersection Over Union Score"+
+                                    "\n 2 : Precision"+
+                                    "\n 3 : Recall"+
+                                    "\n 3 : Error Rate"+
+                                    "\n q : Quit\n")
+            if (userInput == "q"): break
+            score = self.evaluate(int(userInput))
+            print(score)
+
+if __name__ == "__main__":
+    t = Testing()
+    t.classification_metrics()
