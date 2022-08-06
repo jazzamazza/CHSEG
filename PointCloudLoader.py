@@ -1,5 +1,4 @@
 # point_cloudLoader
-from curses import has_colors
 import numpy as np
 import open3d as o3d
 import laspy as lp
@@ -8,33 +7,77 @@ import importlib
 import os
 from PointCloudViewer import PointCloudViewer 
 from tkinter import filedialog as fd
+from tkinter import *
 
 class PointCloudLoader:
   """Point cloud loader
   """
-  def __init__(self, path):
+  def __init__(self, path="", file_ext='' ):
     """Constructor
 
     Args:
         path (file): file path
     """
     if path=="":
-      self.path = self.load()
+      self.pcd_path = self.load_file()
     else:
       self.pcd_path = path
-    
-  def load(self):
-    file_types = [('Point Cloud Files','*.ply *.npy *.las *.xyz *.pcd')]
-    file_name = fd.askopenfilename(title="Open a point cloud file", initialdir="./Data", filetypes=file_types)
-    print("Selected File:",file_name)
+      
+    self.filetype = file_ext
+  
+  def load_file(self):
+    print("###### POINT CLOUD LOADER ######")
+    root = Tk()
+    file_types = (('point cloud files','*.ply *.npy *.las *.xyz *.pcd'),("all files","*.*"))
+    root.filename = fd.askopenfilename(title="Select a point cloud file", initialdir="./Data", filetypes=file_types)
+    file_name = root.filename
     
     if file_name == '':
-        file_path = "./Data/church_registered.ply"
+        print("default file selected")
+        return "./Data/church_registered.ply"
+        
     else:
-        file_path = file_name
-        print("file ext:", file_name[-4:])
+        file_ext = file_name[-4:]
+        print("selected file:", file_name)
+        print("file ext:", file_ext)
+        return file_name
+        
     
-    return file_path
+    # if (file_ext == ".ply"):
+    #     pcd = self.load_point_cloud_ply()
+    #     return pcd
+    # elif (file_ext == ".npy"):
+    #     pcd = self.load_point_cloud_npy()
+    #     return pcd
+    # elif (file_ext == ".las"):
+    #     pcd = self.load_point_cloud_las()
+    #     return pcd
+    # else:
+    #     print("invalid file")
+    #     exit(1)
+    
+    # options = {0: "PLY", 1: "NPY", 2: "LAS", 3:"NPYR"}
+    # try:
+    #     user_input = int(input("\nMenu:\n0 - for PLY\n1 - for NPY\n2 - for LAS\n3 - for NPY RAW\nYour selection [0/1/2/3]: "))
+        
+    #     #Open3D Visualisation
+    #     if (options.get(user_input)=="PLY"):
+    #         pcd = pc_loader.load_point_cloud_ply(vis)
+    #         return pcd
+    #     #PPTK Visualisation
+    #     elif (options.get(user_input)=="NPY"):
+    #         pcd = pc_loader.load_point_cloud_npy(vis)
+    #         return pcd
+    #     elif (options.get(user_input)=="LAS"):
+    #         pcd = pc_loader.load_point_cloud_las(vis)
+    #         return pcd    
+    #     elif (options.get(user_input)=="NPYR"):
+    #         pcd = pc_loader.load_point_cloud_npy_raw(vis)
+    #         return pcd      
+    #     else:
+    #         print("Invalid option selected")
+    # except ValueError:
+    #     print("Invalid Input. Please Enter a number.")
 
   # Method to load and visualise a point cloud in a .npy file using open3d
   def load_point_cloud_npy(self, vis, downsample=False, ds_size=0):
@@ -46,25 +89,24 @@ class PointCloudLoader:
     Returns:
         nparray: Point cloud as numpy array
     """
-    print("\n****************** Loading Point Cloud *******************")
+    print("\n****************** Loading Point Cloud from .npy *******************")
     point_cloud = np.load(self.pcd_path)
-    self.get_attributes(point_cloud, "original pc")   
-    # divide point_cloud into points and features 
-    print("original pcd[0]:",point_cloud[0])
+    self.filetype='.npy'
+    self.get_attributes(point_cloud, "Original Point Cloud")   
+    # divide point_cloud into points and features
     points = point_cloud[:,:3]
-    print("points[0]",points[0])
+    print("points [0]",points[0])
     intensity = point_cloud[:,3:4]
-    print("intensity[0]",intensity[0])
+    print("intensity [0]",intensity[0])
     truth_label = point_cloud[:,4:5]
-    print("truth label[0]",truth_label[0]) 
+    print("truth label [0]",truth_label[0]) 
     
-    #testp, testi, testl = np.load(self.pcd_path)
-    
-    print("\n****************** Final Point Cloud *******************")
+    print("\n****************** Creating Final Point Cloud w/o GTruth *******************")
     final_pcd = np.hstack((points, intensity)) #without truth label
+    self.get_attributes(final_pcd, "Point Cloud w/o GTruth") 
+    print("\n****************** Creating Final Point Cloud w/ GTruth *******************")
     final_pcd_all = np.hstack((points, intensity, truth_label))
-    self.get_attributes(final_pcd, "final_pcd") 
-    print("hstacked pcd[0]:",final_pcd[0])
+    self.get_attributes(final_pcd_all, "Point Cloud w/ GTruth") 
     
     if (vis):
       pview = PointCloudViewer()
@@ -100,6 +142,7 @@ class PointCloudLoader:
     """
     print("\n****************** Loading Point Cloud *******************")
     point_cloud = np.load(self.pcd_path)
+    self.filetype='.npy'
     self.get_attributes(point_cloud)   
 
     # divide point_cloud into points and features 
@@ -134,6 +177,7 @@ class PointCloudLoader:
     """
     print("\n****************** Loading Point Cloud *******************")
     point_cloud = np.load(self.pcd_path)
+    self.filetype='.npy'
     self.get_attributes(point_cloud, "original pc")   
     # divide point_cloud into points and features 
     print("original pcd[0]:",point_cloud[0])
@@ -169,6 +213,7 @@ class PointCloudLoader:
     """
     print("\n****************** Loading Point Cloud *******************")
     point_cloud = np.load(self.pcd_path)
+    self.filetype='.npy'
     self.get_attributes(point_cloud, "original pc")   
     # divide point_cloud into points and features 
     print("original pcd[0]:",point_cloud[0])
@@ -226,85 +271,45 @@ class PointCloudLoader:
       print("\n******************Loading Point Cloud with Cloud Compare Generated Features (x, y, z, intensity) *******************")
     
       path = self.pcd_path
+      self.filetype='.las'
       
       #understand las header data
       with lp.open(path) as pcd_f:
-        print(pcd_f.header)
+        print("Header:",pcd_f.header)
+        point_count = pcd_f.header.point_count
+        print("Points:", point_count)
       
+      print("***READING LAS****")  
       pcd = lp.read(path)
-
-      print("All features:", list(pcd.point_format.dimension_names))
-      points = np.vstack((pcd.x, pcd.y, pcd.z)).transpose() #lists x, y, z cooridnates 
+      #print('Points from Header:', fh.header.point_count)
+      print("Std features:", list(pcd.point_format.standard_dimension_names)) 
+      print("Cloud Compare Features:", list(pcd.point_format.extra_dimension_names))
+      geofeat_count = len(list(pcd.point_format.extra_dimension_names))
+      print("Extra feat count:", geofeat_count)
+      
+      points = np.transpose(np.vstack((pcd.x, pcd.y, pcd.z)))
       print("points", points)
       
-      cloudCompareFeatures = list(pcd.point_format.extra_dimension_names)
-      print("Cloud Compare Features:", cloudCompareFeatures)
-
-      planarity = np.nan_to_num(np.vstack(pcd['Planarity (0.049006)']))
-      print("Planarity done")
-      intensity = np.nan_to_num(np.vstack(pcd['NormalX']))
-      print("Intensity done")
-      anisotropy = np.nan_to_num(np.vstack(pcd['Anisotropy (0.049006)']))
-      print("Anisotropy done")
-      linearity = np.nan_to_num(np.vstack(pcd['Linearity (0.049006)']))
-      print("Linearity done")
-      surfaceVariation = np.nan_to_num(np.vstack(pcd['Surface variation (0.049006)']))
-      print("Surface Variation done")
-      eigenentropy = np.nan_to_num(np.vstack(pcd['Eigenentropy (0.049006)']))
-      print("Eigenentropy done")
-      omnivariance = np.nan_to_num(np.vstack(pcd['Omnivariance (0.049006)']))
-      print("Omnivariance done")
-      eigenvalues_sum= np.nan_to_num(np.vstack(pcd['Eigenvalues sum (0.049006)']))
-      print("Eigenvalues done")
-      pca1 = np.nan_to_num(np.vstack(pcd['PCA1 (0.049006)']))
-      print("PCA1 done")
-      pca2 = np.nan_to_num(np.vstack(pcd['PCA2 (0.049006)']))
-      print("PCA2 done")
-      sphericity = np.nan_to_num(np.vstack(pcd['Sphericity (0.049006)']))
-      print("Sphericity done")
-      verticality = np.nan_to_num(np.vstack(pcd['Verticality (0.049006)']))
-      print("Verticality done")
-      first_eigen = np.nan_to_num(np.vstack(pcd['1st eigenvalue (0.049006)']))
-      print("eigenvalue 1 done")
-      second_eigen = np.nan_to_num(np.vstack(pcd['2nd eigenvalue (0.049006)']))
-      print("eigenvalue 2 done")
-      third_eigen = np.nan_to_num(np.vstack(pcd['3rd eigenvalue (0.049006)']))
-      print("eigenvalue 3 done")
-      roughness = np.nan_to_num(np.vstack(pcd['Roughness (0.049006)']))
-      print("Roughness done")
-      mean_curvature = np.nan_to_num(np.vstack(pcd['Mean curvature (0.049006)']))
-      print("Mean curvature done")
-      gaussian_curvature = np.nan_to_num(np.vstack(pcd['Gaussian curvature (0.049006)']))
-      print("Gaussian curvature done")
-      normal_change_rate = np.nan_to_num(np.vstack(pcd['Normal change rate (0.049006)']))
-      print("Normal change rate done")
-      num_neighbours = np.nan_to_num(np.vstack(pcd['Number of neighbors (r_0.049006)']))
-      print("Number of neighbors done")
-      surface_density = np.nan_to_num(np.vstack(pcd['Surface density (r_0.049006)']))
-      print("Surface density done")
-      volume_density = np.nan_to_num(np.vstack(pcd['Volume density (r_0.049006)']))
-      print("Volume density done")
+      for dim in pcd.point_format.extra_dimension_names:
+        points = np.hstack((points, np.nan_to_num(np.vstack((pcd[dim])))))
       
-      final_features = np.hstack((planarity, anisotropy, linearity, surfaceVariation, eigenentropy, intensity, omnivariance, eigenvalues_sum, pca1, pca2, sphericity, verticality, first_eigen, second_eigen, third_eigen, roughness, mean_curvature, gaussian_curvature, normal_change_rate, num_neighbours, surface_density, volume_density))
+      final_features = points[:,3:]
+      self.get_attributes(points, "points pcd")
+      print('points pcd', points)
+    
+      self.get_attributes(final_features, "final extra array")
+      print('final extras', final_features)
+      
+      if vis:
+        print("vis")
       
       if downsample:
             final_pcd = self.voxel_downsample(points, final_features, 18, ds_size)
       else:
-            final_pcd = np.hstack((points, final_features))
-
-      if (vis): 
-        # format using open3d
-        pc = o3d.geometry.point_cloud()
-        pc.points = o3d.utility.Vector3dVector(points)
-        cloudCompareFeatures_1 = np.hstack((planarity, anisotropy, linearity))
-        cloudCompareFeatures_2 = np.hstack((surfaceVariation, eigenentropy, intensity)) # form a 3D vector to add to o3d pcd
-        pc.normals = o3d.utility.Vector3dVector(cloudCompareFeatures_1) # store additional features (intensity & planarity) in pc.normals
-        pc.colors = o3d.utility.Vector3dVector(cloudCompareFeatures_2) # store additional features (intensity & planarity) in pc.normals
-        print(pc)
-
-        # visualise point cloud
-        downpcd = pc.voxel_down_sample(voxel_size=ds_size) # downsample pc
-        o3d.visualization.draw_geometries([downpcd])
+            final_pcd = points
+            #print("should get shape:",3,"+",geofeat_count, "=", (3+geofeat_count) )
+            #self.get_attributes(final_pcd, "final pcd")
+            print('final pcd', final_pcd)
     
       return final_pcd
 
@@ -344,6 +349,7 @@ class PointCloudLoader:
     #load point cloud .ply file
     path = self.pcd_path
     pcd = o3d.io.read_point_cloud(path, print_progress=True)
+    self.filetype='.ply'
     print("Point Cloud Loaded:", pcd)
     
     has_points = pcd.has_points()
@@ -367,10 +373,15 @@ class PointCloudLoader:
       print(np.asarray(pcd.covariances))
       
     pcd_points = np.asarray(pcd.points)
-    pcd_intensity = np.asarray(pcd.colors)[:,0:3]
+    # this for pnet
+    #pcd_intensity = np.asarray(pcd.colors)[:,0:3]
+    #pcd_truth = np.asarray(pcd.colors)[:,0:1]
+    pcd_intensity = np.asarray(pcd.normals)[:,0:1]
     pcd_truth = np.asarray(pcd.colors)[:,0:1]
     pcd_npy = np.hstack((pcd_points, pcd_intensity, pcd_truth))
     print(pcd_npy)
+    print("*#*#*#**#*#* NOT VALID FOR PNET++ #*#*#**#*#")
+    self.get_attributes(pcd_npy, "ply")
     pcd_npy = np.copy(pcd_points)
     
     if (vis):
@@ -385,6 +396,7 @@ class PointCloudLoader:
     #load point cloud .ply file
     path = self.pcd_path
     pcd = o3d.io.read_point_cloud(path, print_progress=True)
+    self.filetype='.ply'
     print("Point Cloud Loaded:", pcd)
     
     has_points = pcd.has_points()
@@ -475,6 +487,7 @@ class PointCloudLoader:
     heading_label = arr_name+" Attributes:"
     heading_label += ('\n') + (len(heading_label)*'*')
     print("\n" + heading_label)
+    
     print("\t- Point cloud size:", np.size(pcd))
     print("\t- Point cloud dim:", np.ndim(pcd))  
     print("\t- Point cloud shape:", np.shape(pcd))

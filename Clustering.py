@@ -32,9 +32,8 @@ import open3d as o3d
 
 # Clustering class with various clustering methods
 class Clustering:
-     def __init__(self, pointCloud, pcd_choice, pcd_truth):
-    # def __init__(self, pointCloud, pcd_with_truths, pcd_choice):
-          self.pcd = pointCloud
+     def __init__(self, point_cloud, pcd_truth, pcd_choice):
+          self.pcd = point_cloud
           self.pcd_truth = pcd_truth
           #self.pcd_truth = pcd_with_truths
           if (pcd_choice == "1"): self.type = "raw"

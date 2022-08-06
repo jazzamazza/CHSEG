@@ -2,8 +2,21 @@ import open3d as o3d
 import numpy as np
 
 class PointCloudUtils:
+    
+    # def __init__(self, path="", file_ext='' ):
+    # """Constructor
 
-    def downsample_pcd(self, file_path ,input_file_format="npy", pnet=True, downsample_amt=0.8):
+    # Args:
+    #     path (file): file path
+    # """
+    # if path=="":
+    #   self.pcd_path = self.load_file()
+    # else:
+    #   self.pcd_path = path
+      
+    # self.filetype = file_ext
+
+    def downsample_pcd(self, file_path="" ,input_file_format=".npy", pnet=True, downsample_amt=0.8):
         print("dpcd")
         rootPath = "./Data/"
         inputPath = rootPath+"church_registered.npy"  #path to point cloud file
@@ -11,10 +24,54 @@ class PointCloudUtils:
         self.npy_raw(file_path=inputPath,downsample_amt= self.downsample_amt)
         
         #self.npy_raw(file_path=inputPath)
+    def npy_raw_alt(self, file_path, downsample_amt=0.05):
+        point_cloud = np.load(file_path)
+        self.get_attributes(point_cloud,"PreDS .npy raw")
+        pcloud_shape = np.shape(point_cloud)[0]
+            
+        # divide pointCloud into points and features 
+        points = point_cloud[:,:3]
+        intensity = point_cloud[:,3:4] 
+        truth_label = point_cloud[:,4:5]
+
+        # format using open3d
+        pcd_alt = o3d.geometry.PointCloud()
+        pcd_alt.points = o3d.utility.Vector3dVector(points) # add {x,y,z} points to pcd
+        rgb = np.hstack((truth_label, np.zeros((pcloud_shape,1)), np.zeros((pcloud_shape,1)))) # form a 3D vector to add to o3d pcd
+        normals = np.hstack((intensity, np.zeros((pcloud_shape,1)), np.zeros((pcloud_shape,1)))) # form a 3D vector to add to o3d pcd
+        
+        pcd_alt.colors = o3d.utility.Vector3dVector(rgb)
+        pcd_alt.normals = o3d.utility.Vector3dVector(normals)
+        print(pcd_alt)
+        
+        np_pcloud = np.hstack(((np.asarray(pcd_alt.points)), (np.asarray(pcd_alt.colors)), (np.asarray(pcd_alt.normals)) ))
+        npoints = np.shape(np_pcloud)[0]
+        # self.get_attributes(np_pcloud, "numpy array original for o3d")
+        
+        print("*******Downsample start**********")
+        downpcd = pcd_alt.voxel_down_sample(voxel_size=downsample_amt)
+        print("*******Downsample end**********")
+        
+        down_np_pcloud = np.hstack(((np.asarray(downpcd.points)), (np.asarray(downpcd.normals)[:,:1]), (np.asarray(downpcd.colors)[:,:1])))
+        #self.get_attributes(down_np_pcloud, "downcloud")
+        ndownpoints = np.shape(down_np_pcloud)[0]
+        self.get_attributes(down_np_pcloud, "numpy array pcloud dsampled")
+        
+        print("Original Num Points:", npoints, 
+              "\nDownsampled Num Points:", ndownpoints, 
+              "\nNew is", (100-((ndownpoints/npoints)*100)), "% smaller")
+        
+        output_path = "./Data/church_registered_alt_dsample_"+str(downsample_amt)
+        out_pth_npy = output_path + ".npy"
+        out_pth_ply = output_path+".ply"
+        print("saving pclouds")
+        np.save(out_pth_npy, down_np_pcloud)
+        o3d.io.write_point_cloud(out_pth_ply, downpcd)
+        return out_pth_npy, out_pth_ply
     
     def npy_raw(self, file_path, downsample_amt=0.05):
         point_cloud = np.load(file_path)
-        self.get_attributes(point_cloud,"npy pre raw")
+        self.get_attributes(point_cloud,"PreDS .npy raw")
         pcloud_shape = np.shape(point_cloud)[0]
             
         # divide pointCloud into points and features 
@@ -30,6 +87,18 @@ class PointCloudUtils:
         truth_to_normal = np.hstack((truth_label, np.zeros((pcloud_shape,1)), np.zeros((pcloud_shape,1))))
         pcd.normals = o3d.utility.Vector3dVector(truth_to_normal) #store keep discard as 
         print(pcd)
+        
+        pcd_alt = o3d.geometry.PointCloud()
+        pcd_alt.points = o3d.utility.Vector3dVector(points) # add {x,y,z} points to pcd
+        intensity_to_rgb = np.hstack((intensity, truth_label, np.zeros((pcloud_shape,1)))) # form a 3D vector to add to o3d pcd
+        pcd_alt.colors = o3d.utility.Vector3dVector(intensity_to_rgb) # store intensity as every value in color vector
+        #truth_to_normal = np.hstack((truth_label, np.zeros((pcloud_shape,1)), np.zeros((pcloud_shape,1))))
+        #pcd.normals = o3d.utility.Vector3dVector(truth_to_normal) #store keep discard as 
+        print(pcd_alt)
+        
+        pnetpcloud = np.hstack(((np.asarray(pcd.points)), (np.asarray(pcd.colors)), (np.asarray(pcd.normals))))
+        npoints = np.shape(pnetpcloud)[0]
+        self.get_attributes(pnetpcloud, "raw pcloud for o3d")
         
         pnetpcloud = np.hstack(((np.asarray(pcd.points)), (np.asarray(pcd.colors)), (np.asarray(pcd.normals))))
         npoints = np.shape(pnetpcloud)[0]

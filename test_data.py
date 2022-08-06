@@ -2,8 +2,6 @@ from PointCloudLoader import PointCloudLoader
 from PointCloudUtils import PointCloudUtils
 from tkinter import filedialog as fd
 import tkinter as tk
-#import cure_test as ct
-
 
 def init_pcl(vis = True):
     #init PointCloudLoader    

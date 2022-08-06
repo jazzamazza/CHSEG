@@ -3,110 +3,131 @@ from PointCloudLoader import PointCloudLoader
 from PointCloudUtils import PointCloudUtils
 from tkinter import filedialog as fd
 import numpy as np
+from tkinter import *
+      
+def setup(pnet):
+    """Helper method to call method to load point cloud files. Returns a PointCloud in a numpy array.
 
-def load(vis):
-    file_types = [('Point Cloud Files','*.ply *.npy *.las *.xyz *.pcd')]
-    file_name = fd.askopenfilename(title="Open a point cloud file", initialdir="./Data", filetypes=file_types)
-    print("Selected File:",file_name)
-    if file_name == '':
-        file_path = "./Data/church_registered_downsampled_0.05.ply"
+    Args:
+        pnet (bool): pnet option
+
+    Returns:
+        ndarray: PointCloud in a numpy array
+    """
+    print("###### POINT CLOUD SETUP ######")
+    
+    gui_choice = input("Select file from GUI:\n Would you like to use a GUI to select the Point Cloud file? [y/n]\n->")
+    if gui_choice == 'y':
+        gui = True
     else:
-        file_path = file_name
-    #init PointCloudLoader    
-    pc_loader = PointCloudLoader(file_path)
+        gui = False
     
-    options = {0: "PLY", 1: "NPY", 2: "LAS", 3:"NPYR"}
-    try:
-        user_input = int(input("\nMenu:\n0 - for PLY\n1 - for NPY\n2 - for LAS\n3 - for NPY RAW\nYour selection [0/1/2/3]: "))
+    vis_choice = input("Visualisation:\n Would you like to visualise the selected Point Cloud? [y/n]\n->")
+    if vis_choice == 'y':
+        vis = True
+    else:
+        vis = False
         
-        #Open3D Visualisation
-        if (options.get(user_input)=="PLY"):
-            pcd = pc_loader.load_point_cloud_ply(vis)
-            return pcd
-        #PPTK Visualisation
-        elif (options.get(user_input)=="NPY"):
-            pcd = pc_loader.load_point_cloud_npy(vis)
-            return pcd
-        elif (options.get(user_input)=="LAS"):
-            pcd = pc_loader.load_point_cloud_las(vis)
-            return pcd    
-        elif (options.get(user_input)=="NPYR"):
-            pcd = pc_loader.load_point_cloud_npy_raw(vis)
-            return pcd      
-        else:
-            print("Invalid option selected")
-    except ValueError:
-        print("Invalid Input. Please Enter a number.")
-
-# Helper method to call method to load point cloud files  
-# Returns a PointCloud in a numpy array      
-def setup(option, vis, ds, dsSize):
-    #SET PATH
-    file_path = "./Data/church_registered_pnet_raw.npy"
-    #load(vis)
-    pc_loader = PointCloudLoader(file_path)
-    if (option == "1"): 
-        pointCloud = load(vis)
-        #pointCloud = pc_loader.load_point_cloud_npy(vis) # setup point cloud with raw features 
-        #pointCloud, pcd_with_truths = pc_loader.load_point_cloud_npy(vis, ds, dsSize) # setup point cloud with raw features 
-    elif (option == "2"): 
-        #pointCloud = pc_loader.load_point_cloud_las(vis) # setup point cloud with Cloud Compare features
-        pointCloud = load(vis)
-    elif (option == "3"): 
-        pointCloud = pc_loader.loadPointCloud_pNet() # setup point cloud with PointNet++ features
-        np.save(arr=pointCloud, file="./Data/church_registered_pnet_raw_wfeat.npy")
-        # putils = PointCloudUtils()
-        # putils.downsample_pcd("")
-        # print("dsample done")
-        #pointCloud = load(vis)
-       # pointCloud = pc_loader.load_point_cloud_las(vis, ds, dsSize) # setup point cloud with Cloud Compare features
-    #elif (option == "3"):
-    #    pointCloud = pc_loader.load_point_cloud_pNet_npy(vis, ds, dsSize)
-    elif (option == "4"): 
-        pointCloud = pc_loader.loadPointCloud_pNet(vis) # setup point cloud with PointNet++ features
+    ds_choice = input("Downsampling:\n Would you like to downsample the selected Point Cloud? [y/n]\n->")
+    if ds_choice == 'y':
+        ds = True
+        ds_amt = float(input("Downsampling:\n Enter the downsample amount.\n->"))
+        print ("ds amnt =", ds_amt)
+    else:
+        ds = False  
     
-    return pointCloud, pcd_with_truths
+    if(gui):
+        print("###### POINT CLOUD LOADER ######")
+        root = Tk()
+        file_types = (('point cloud files','*.ply *.npy *.las *.xyz *.pcd'),("all files","*.*"))
+        root.filename = fd.askopenfilename(title="Select a point cloud file", initialdir="./Data", filetypes=file_types)
+        root.withdraw()
+        file_name = root.filename
+        
+        if file_name == '':
+            file_path = "./Data/church_registered.npy"
+            print("default file selected:", file_path)
+        else:
+            file_path = file_name
+            file_ext = file_name[-4:]
+            print("selected file:",file_name)
+            print("file ext:", file_ext)
+    else:
+        #HARD CODE PATH
+        file_path = "./Data/church_registered_alt_dsample_0.05.las" #C:\Users\Jared\Code\Thesis\CHSEG\Data\church_registered_alt_dsample_0.05.las
+        file_ext = file_path[-4:]
+        print("selected file:",file_path)
+        print("file ext:", file_ext)
+        
+    pc_loader = PointCloudLoader(file_path, file_ext)
+     
+    if(ds):
+        pcutils = PointCloudUtils()        
+        if file_ext == '.npy':
+            ##not normal tp chnage
+            ds_path_npy, ds_path_ply = pcutils.npy_raw_alt(file_path, ds_amt) 
+            pc_loader = PointCloudLoader(ds_path_npy, file_ext)
+        
+         
+    if(pnet):
+        point_cloud = pc_loader.loadPointCloud_pNet(vis) # setup point cloud with PointNet++ features
+        np.save(arr=point_cloud, file="./Data/church_registered_pnet.npy")
+        return point_cloud, False
+        
+    elif (file_ext == ".ply"):
+        pcd = pc_loader.load_point_cloud_ply(vis)
+        return pcd, False
+    
+    elif (file_ext == ".npy"):
+        pcd, pcd_all = pc_loader.load_point_cloud_npy(vis)
+       
+        truth_choice = input("Include truth label:\n Would you like to include the truth labels in the selected Point Cloud? [y/n]\n->")
+        if truth_choice == 'y':
+            truth = True
+        else:
+            truth = False
+            
+        if(truth):
+            return pcd, False
+        else:
+            return pcd_all, True
+        
+    elif (file_ext == ".las"):
+        pcd = pc_loader.load_point_cloud_las(vis)
+        return pcd, False
+    
+    else:
+        print("invalid file")
+        exit(1)
 
 # interactive application
 def application():
-     userInput = ""
-     while (userInput != "q"):
+     user_input = ""
+     while (user_input != "q"):
           print("--------------Welcome---------------")
-          print("Type q to quit the application")
-          # Choose Point Cloud
-          userInput = input("\nChoose Point Cloud Input:"+
-                         "\n 1 : Point Cloud with Raw Features"+
-                         "\n 2 : Point Cloud with Cloud Compare Features"+
-                         "\n 3 : Point Cloud with PointNet++ Features"+
+          print("Type q to quit the application.")
+          print("Choose Loaded Point Cloud Type:")
+          user_input = input(" 1 : Load Point Cloud"+
+                         "\n 2 : Load Point Cloud PointNet++"+
                          "\n q : or quit the app\n")
-          if (userInput == "q"): break
-          pcd_choice = userInput
-
-          vis, ds = False, False
-          dsSize = 0
+          if (user_input == "q"): break
+          elif (user_input == '1'):
+              point_cloud, truth = setup(False)
+          elif (user_input == '2'):
+              point_cloud, truth = setup(True)
+              
+          pcd_choice = user_input
           
-          # Setup and visualise point cloud based on user input
-          userInput = input("\ny/n : Visualise Point Cloud (y/n)?"+
-                            "\nq   : or quit the app\n")
-          if (userInput == "q"): break
-          elif (userInput=="y"): vis = True
-          
-          if (pcd_choice!="4"):
-            userInput = input("\nDownsample Point Cloud (y/n)?")
-            if (userInput == "q"): break
-            elif (userInput=="y"): 
-                ds = True
-                userInput = input("\nSpecify Downsample Size (0.5, 1, 2, etc.)?")
-                if (userInput == "q"): break
-                dsSize = float(userInput)
-
-          pointCloud, pcd_with_truths = setup(pcd_choice,vis, ds, dsSize)
-          clustering = Clustering(pointCloud, pcd_with_truths , pcd_choice)
-     
+          if truth:
+            #clustering = Clustering(point_cloud, pcd_with_truths, pcd_choice)
+            clustering = Clustering(point_cloud, point_cloud, pcd_choice)
+          else:
+            clustering = Clustering(point_cloud, point_cloud, pcd_choice) 
+          userInput=""
           while (userInput != "r"):
                # cluster point cloud    
                userInput = input("\nChoose Clustering Method(s):"+
-                              "\n 0 : K-Means Clustering" +
+                              "\n 0 : K-Means Clustering fais" +
                               "\n 1 : sill"+
                               "\n 2 : Birch"+
                               "\n 3 : cure"+
@@ -123,7 +144,6 @@ def application():
                elif (userInput == "4"): clustering.affinity_progpogation_clustering()
                elif (userInput == "5"): clustering.kMediods_clustering(14)
                elif (userInput == "6"): clustering.find_quality()
-               #elif (userInput == "1"): clustering.k_means_clustering(13)
             
 if __name__=="__main__":
     application()
