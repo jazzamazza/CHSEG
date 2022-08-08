@@ -12,25 +12,36 @@ class DataLoader():
         self.scene_points_list = []
         self.semantic_labels_list = []
         
-        path = '/content/drive/Shareddrives/CHSEG/data/church_registered_updated.ply'
+        path = '/content/drive/Shareddrives/CHSEG/data/church_registered_ds_pointnet.ply'
         pcd = o3d.io.read_point_cloud(path)
-        data = np.hstack((np.asarray(pcd.points), np.asarray(pcd.colors)))
+        ground_truth = np.asarray(pcd.normals)
+        print("ground_truth", ground_truth)
+        data = np.hstack((np.asarray(pcd.points), np.asarray(pcd.colors), np.asarray(pcd.normals)))
+        print("shape", data.shape)
         print(data)
 
         points = data[:, :3]
+        # ground_truth = ground_truth[:,0]
         print(points)
         self.scene_points_list.append(data[:, :6])
-        self.semantic_labels_list.append(data[:, :6])
+        print("=======================")
+        print("data[:, :6]", data[:, :6])
+        print("=======================")
+        # index_ground_truth =  ground_truth[:,0]
+        index_ground_truth =  ground_truth[:,0:1]
+        self.semantic_labels_list.append(index_ground_truth)
         coord_min, coord_max = np.amin(points, axis=0)[:3], np.amax(points, axis=0)[:3]
         assert len(self.scene_points_list) == len(self.semantic_labels_list)
 
     def __getitem__(self, index):
         point_set_ini = self.scene_points_list[index]
         points = point_set_ini[:,:6]
+        labels = self.semantic_labels_list[index]
         coord_min, coord_max = np.amin(points, axis=0)[:3], np.amax(points, axis=0)[:3]
         grid_x = int(np.ceil(float(coord_max[0] - coord_min[0] - self.block_size) / self.stride) + 1)
         grid_y = int(np.ceil(float(coord_max[1] - coord_min[1] - self.block_size) / self.stride) + 1)
         data_room = np.array([])
+        label_room = np.array([])
         print("grid_x:", grid_x, ", grid_y:", grid_y)
         for index_y in range(0, grid_y):
             print("index_y:", index_y)
@@ -59,10 +70,16 @@ class DataLoader():
                 # normlized_xyz[:, 2] = data_batch[:, 2] / coord_max[2]
                 # data_batch[:, 0] = data_batch[:, 0] - (s_x + self.block_size / 2.0)
                 # data_batch[:, 1] = data_batch[:, 1] - (s_y + self.block_size / 2.0)
+                label_batch = labels[point_idxs].astype(int)
                 data_batch = np.concatenate((data_batch, normlized_xyz), axis=1)    
                 data_room = np.vstack([data_room, data_batch]) if data_room.size else data_batch  #normalized - if just take point indexes - also return orginal points - FIRST THREE COLUMNS OF DATA BATCH BEFORE NORMALIZED  
+                label_room = np.hstack([label_room, label_batch]) if label_room.size else label_batch
         data_room = data_room.reshape((-1, self.block_points, data_room.shape[1]))
-        return data_room 
+        label_room = label_room.reshape((-1, self.block_points))
+        print("data_room shape", data_room.shape)
+        print("label_room shape", label_room.shape)
+        return data_room, label_room
+        # , data[:,6:7]
 
     def __len__(self):
         return len(self.scene_points_list)
