@@ -72,37 +72,44 @@ class PointCloudLoader:
   
   def load_point_cloud_pNet_npy(self, vis, downsample=False, ds_size=0):
     """Method to load and visualise a point cloud stored as a .npy file
-
     Args:
         vis (bool): enable visualisation or now
-
     Returns:
         nparray: Point cloud as numpy array
     """
-    print("\n****************** Loading Point Cloud *******************")
+    print("\n** Loading Point Cloud **")
     point_cloud = np.load(self.pcd_path)
-    self.get_attributes(point_cloud)   
+    self.get_attributes(point_cloud)
 
     # divide point_cloud into points and features 
     points = point_cloud[:,:3]
-    features = point_cloud[:,3:]
+    labels = point_cloud[:,3:4]
+    features = point_cloud[:,4:] #doesnt include labels
 
     print("points.size:", points.size, "features.size:", features.size)
-    print("points.shape:", np.shape(points), "features.shape:", np.shape(features))    
-    
-    print("\n****************** Final Point Cloud *******************")
-    
+    print("points.shape:", np.shape(points), "features.shape:", np.shape(features))
+
+    print("\n** Final Point Cloud **")
+
     if (vis):
       pview = PointCloudViewer()
       pview.vis_npy(points)
-    
+
     if downsample:
         final_pcd = self.voxel_downsample(points, features, 126, ds_size)
+        final_pcd_all = self.voxel_downsample(points, point_cloud[:,3:], 126, ds_size) #features[:,3:] includes labels
     else:
         final_pcd = np.hstack((points, features))
+        final_pcd_all = np.hstack((points, labels, features))
+
+    print("point size", points.size)
+    print("final_truth",final_pcd_all[0] )
+
     self.get_attributes(final_pcd, "final_pcd") 
+    self.get_attributes(final_pcd_all, "final_pcd_all")
     print("hstacked pcd[0]:",final_pcd[0])
-    return final_pcd
+
+    return final_pcd, final_pcd_all
 
   def load_point_cloud_las(self, vis, downsample=False, ds_size=0):
       print("\n******************Loading Point Cloud with Cloud Compare Generated Features (x, y, z, intensity) *******************")
