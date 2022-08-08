@@ -3,7 +3,7 @@ from PointCloudLoader import PointCloudLoader
 from PointCloudUtils import PointCloudUtils
 from tkinter import filedialog as fd
 import numpy as np
-from tkinter import *
+from tkinter import Tk
 
 
 def setup(pnet):
@@ -72,13 +72,6 @@ def setup(pnet):
 
     pc_loader = PointCloudLoader(file_path, file_ext)
 
-    if ds:
-        pcutils = PointCloudUtils()
-        if file_ext == ".npy":
-            ##not normal tp chnage
-            ds_path_npy, ds_path_ply = pcutils.npy_raw_alt(file_path, ds_amt)
-            pc_loader = PointCloudLoader(ds_path_npy, file_ext)
-
     if pnet:
         point_cloud = pc_loader.loadPointCloud_pNet(
             vis
@@ -91,10 +84,16 @@ def setup(pnet):
         return pcd, False
 
     elif file_ext == ".npy":
+        if ds:
+            pcutils = PointCloudUtils()
+            ##not normal tp chnage
+            ds_path_npy, ds_path_ply = pcutils.npy_raw_alt(file_path, ds_amt)
+            pc_loader = PointCloudLoader(ds_path_npy, file_ext)
+
         pcd, pcd_all = pc_loader.load_point_cloud_npy(vis)
 
         truth_choice = input(
-            "Include truth label:\n Would you like to include the truth labels in the selected Point Cloud? [y/n]\n->"
+            "Include truth label:\n Would you like truth label in the selected Point Cloud? [y/n]\n->"
         )
         if truth_choice == "y":
             truth = True
@@ -102,13 +101,28 @@ def setup(pnet):
             truth = False
 
         if truth:
-            return pcd, False
+            return pcd, True, pcd_all
         else:
-            return pcd_all, True
+            return pcd, False
 
     elif file_ext == ".las":
         pcd = pc_loader.load_point_cloud_las(vis)
-        return pcd, False
+        
+        truth_choice = input(
+            "Include truth label:\n Would you like truth label in the selected Point Cloud? [y/n]\n->"
+        )
+        if truth_choice == "y":
+            truth = True
+        else:
+            truth = False
+            
+        if truth:
+            truth = np.load("./Data/church_registered_alt_dsample_0.05.npy")
+            truth = truth[:,4:5]
+            pcd_all = np.hstack((pcd, truth))
+            return pcd, True, pcd_all
+        else:
+            return pcd, False
 
     else:
         print("invalid file")
@@ -130,21 +144,20 @@ def application():
         if user_input == "q":
             break
         elif user_input == "1":
-            point_cloud, truth = setup(False)
+            point_cloud, truth, pcd_truth = setup(False)
         elif user_input == "2":
             point_cloud, truth = setup(True)
 
         pcd_choice = user_input
 
         if truth:
-            # clustering = Clustering(point_cloud, pcd_with_truths, pcd_choice)
-            clustering = Clustering(point_cloud, point_cloud, pcd_choice)
+            clustering = Clustering(point_cloud, pcd_truth, pcd_choice)
         else:
             clustering = Clustering(point_cloud, point_cloud, pcd_choice)
-        userInput = ""
-        while userInput != "r":
+
+        while user_input != "r":
             # cluster point cloud
-            userInput = input(
+            user_input = input(
                 "\nChoose Clustering Method(s):"
                 + "\n 0 : K-Means Clustering fais"
                 + "\n 1 : sill"
@@ -156,21 +169,21 @@ def application():
                 + "\n q : or quit the app"
                 + "\n r : Restart the Application\n"
             )
-            if userInput == "q":
+            if user_input == "q":
                 break
-            elif userInput == "0":
-                clustering.k_means_clustering_faiss(15, "")
-            elif userInput == "1":
+            elif user_input == "0":
+                clustering.k_means_clustering(15)
+            elif user_input == "1":
                 clustering.silhouette()
-            elif userInput == "2":
+            elif user_input == "2":
                 clustering.birch(13)
-            elif userInput == "3":
+            elif user_input == "3":
                 clustering.cure_clustering(3)
-            elif userInput == "4":
+            elif user_input == "4":
                 clustering.affinity_progpogation_clustering()
-            elif userInput == "5":
+            elif user_input == "5":
                 clustering.kMediods_clustering(14)
-            elif userInput == "6":
+            elif user_input == "6":
                 clustering.find_quality()
 
 

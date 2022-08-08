@@ -6,8 +6,9 @@ import sys
 import importlib
 import os
 from PointCloudViewer import PointCloudViewer
+from PointCloudUtils import PointCloudUtils
 from tkinter import filedialog as fd
-from tkinter import *
+from tkinter import Tk
 
 
 class PointCloudLoader:
@@ -48,7 +49,7 @@ class PointCloudLoader:
             return file_name, file_ext
 
     # Method to load and visualise a point cloud in a .npy file using open3d
-    def load_point_cloud_npy(self, vis, downsample=False, ds_size=0):
+    def load_point_cloud_npy(self, vis, downsample, ds_size):
         """Method to load and visualise a point cloud stored as a .npy file
 
         Args:
@@ -58,9 +59,20 @@ class PointCloudLoader:
             nparray: Point cloud as numpy array
         """
         print("\n****************** Loading Point Cloud from .npy *******************")
-        point_cloud = np.load(self.pcd_path)
-        self.filetype = ".npy"
-        self.get_attributes(point_cloud, "Original Point Cloud")
+        if downsample:
+            print("Downsampling Active @", ds_size)
+            pcutils = PointCloudUtils()
+            ##not normal tp chnage
+            ds_path_npy, _ = pcutils.npy_raw_alt(point_cloud, ds_size)
+            self.pcd_path = ds_path_npy
+            point_cloud = np.load(self.pcd_path)
+            self.filetype = ".npy"
+            self.get_attributes(point_cloud, "DS Point Cloud")
+        else:
+            point_cloud = np.load(self.pcd_path)
+            self.filetype = ".npy"
+            self.get_attributes(point_cloud, "Original Point Cloud")
+
         # divide point_cloud into points and features
         points = point_cloud[:, :3]
         print("points [0]", points[0])
@@ -77,33 +89,12 @@ class PointCloudLoader:
         print(
             "\n****************** Creating Final Point Cloud w/ GTruth *******************"
         )
-        final_pcd_all = np.hstack((points, intensity, truth_label))
-        self.get_attributes(final_pcd_all, "Point Cloud w/ GTruth")
+        final_pcd_wtruth = np.hstack((points, intensity, truth_label))
+        self.get_attributes(final_pcd_wtruth, "Point Cloud w/ GTruth")
 
         if vis:
             pview = PointCloudViewer()
             pview.vis_npy(points, intensity, truth_label)
-
-        if downsample:
-            pcd = o3d.geometry.PointCloud()
-            pcd.points = o3d.utility.Vector3dVector(point_cloud[:, :3])
-            rawFeatures = np.hstack((intensity, truth_label, truth_label))
-            pcd.normals = o3d.utility.Vector3dVector(rawFeatures)
-            downpcd = pcd.voxel_down_sample(voxel_size=ds_size)  # downsample pcd
-            pc_points = np.asarray(downpcd.points)  # convert pcd points to np array
-            pc_features = np.asarray(
-                downpcd.normals
-            )  # convert pcd additional features to np array
-            pc = np.hstack((pc_points, pc_features))  # concatenate the 2 np arrays
-            print("Downsampled Point cloud size: ", pc.size)
-            down_finalPCD = np.delete(
-                pc, [4, 5], 1
-            )  # remove info unneccessary for clustering from pcd
-            final_pcd_all = pc
-            print("ground truth in pc:", final_pcd_all[:, 4:5])
-            self.get_attributes(down_finalPCD, "final_pcd")
-            print(down_finalPCD[0])
-            final_pcd = down_finalPCD
 
         return final_pcd, final_pcd_all
 
@@ -323,7 +314,7 @@ class PointCloudLoader:
         o3d.io.write_point_cloud("./Data/church_registered_updated.ply", downpcd)
 
     # Method to load and visualise a point cloud in a .ply file using open3d
-    def load_point_cloud_ply(self, vis):
+    def load_point_cloud_ply(self, vis, downsample, down_size):
         print(
             "\n******************Loading Point Cloud (.ply) with Raw Features (x, y, z, intensity) *******************"
         )
