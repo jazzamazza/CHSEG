@@ -62,8 +62,6 @@ class Clustering:
           print("\n------------------k means---------------------")
           kmeans = KMeans(n_clusters=k, n_init=10) # number of clusters (k)
           kmeans.fit(x) # apply k means to dataset
-
-        #   print("ground truth in clustering:", t[:,4:5])
           
           # Visualise K-Means
           y_km = kmeans.predict(x)
@@ -71,12 +69,14 @@ class Clustering:
           print("arrays EQUAL?",np.array_equal(y_km, x))
           centroids = kmeans.cluster_centers_
           print("centroids:", centroids)
+          
+          ################# CLASSIFICATION:
+          t = self.pcd_truth
+          print("ground truth in clustering:", t[:,4:5])
           unique_labels = np.unique(y_km)
           print("unique_labels:", unique_labels)
-    
-
-          self.classification(unique_labels, y_km, t, "k-means")
-          print("outside classification")
+          # classification done in CHSEG_main
+          #################
 
           print("plotting graph")   
           for i in unique_labels:
@@ -91,6 +91,8 @@ class Clustering:
           plt.title('K-Means Clustering')
           plt.savefig('k_means_clusters.png') 
           plt.show()
+
+          return unique_labels, y_km, t, "_kmeans"
 
       # OPTIC
      def optics_clustering(self):
@@ -111,15 +113,9 @@ class Clustering:
           labels = clust.labels_#[clust.ordering_]
           print('labels2:', labels)
 
-          self.get_information(labels, X)
-
-          ################# CLASSIFICATION:
           t = self.pcd_truth
-          print("ground truth in clustering:", t[:,4:5])
           unique_labels = np.unique(clust.labels_)
-          print("unique_labels:", unique_labels)
-          self.classification(unique_labels, clust.labels_, t, "OPTICS")
-          #################
+          self.get_information(labels, X, unique_labels, t)
 
           # Reachability plot
           colors = ["g.", "r.", "b.", "y.", "c."]
@@ -150,6 +146,8 @@ class Clustering:
           # visualise
           imgName = 'Optics_clusters_' + self.type + '.png'
           self.visualiseClusters("Optics Clustering", X, labels, imgName)
+
+          return unique_labels, clust.labels_, t, "_OPTICS"
           
      # DBSCAN 
      def dbscan_clustering(self):
@@ -169,16 +167,10 @@ class Clustering:
           
           core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
           core_samples_mask[db.core_sample_indices_] = True
-
-          self.get_information(db.labels_, X)
-
-          ################# CLASSIFICATION:
+          
           t = self.pcd_truth
-          print("ground truth in clustering:", t[:,4:5])
           unique_labels = np.unique(db.labels_)
-          print("unique_labels:", unique_labels)
-          self.classification(unique_labels, db.labels_, t, "DBSCAN")
-          #################
+          self.get_information(db.labels_, X, unique_labels, t)
 
           # visualise
           imgName = 'DBSCAN_clusters_' + self.type + '.png'
@@ -194,7 +186,9 @@ class Clustering:
           
           print("finished dbscan_clustering")
 
-     def calculateElbow(self, n2):
+          return unique_labels, db.labels_, t, "_DBSCAN"
+
+     def calculateElbow(self, n):
            # FIND OPTIMAL EPSILON VALUE: use elbow point detection method 
           df = self.pcd
           nearest_neighbors = NearestNeighbors(n_neighbors=n)
@@ -228,15 +222,9 @@ class Clustering:
           ms = MeanShift(bandwidth=bandwidth, bin_seeding=True)
           ms.fit(X)
 
-          self.get_information(ms.labels_, X)
-
-          ################# CLASSIFICATION:
           t = self.pcd_truth
-          print("ground truth in clustering:", t[:,4:5])
           unique_labels = np.unique(ms.labels_)
-          print("unique_labels:", unique_labels)
-          self.classification(unique_labels, ms.labels_, t, "mean-shift")
-          #################
+          self.get_information(ms.labels_, X, unique_labels, t)
 
           # visualise 1
           imgName = 'Mean-Shift_clusters1_' + self.type + '.png'
@@ -251,6 +239,8 @@ class Clustering:
           imgName = "Mean-Shift_clusters3_" + self.type + ".png"
           self.visualiseClusters3("Mean-Shift Clustering3", X, ms.labels_, imgName, ms.cluster_centers_)
           
+          return unique_labels, ms.labels_, t, "_meanshift"
+
      def visualiseClusters(self, title, X, labels, imgName):
           plt.scatter(X[:, 0], X[:,1], c = labels, cmap= "plasma") # plotting the clusters
           plt.title(title)
@@ -298,39 +288,12 @@ class Clustering:
           plt.savefig(imgName)
           plt.show()
           
-     def get_information(self, labels, X):
+     def get_information(self, labels, X, unique_labels, t):
           no_clusters = len(np.unique(labels))
           no_noise = np.sum(np.array(labels) == -1, axis=0)
           print('Estimated no. of clusters: %d' % no_clusters)
           print('Estimated no. of noise points: %d' % no_noise)
           print("Silhouette Coefficient: %0.3f" % silhouette_score(X, labels))
 
-     # Classification
-     def classification(self, unique_labels, y_km, t, fileName): # t = pcd with truth labels
-        ground_truths = np.array([])
-        print("ground_truth size:", ground_truths.size)
-        for i in unique_labels:
-            num_keep, num_discard = 0, 0
-            print("cluster:", i)
-            for point in t[y_km == i]:
-                if (point[4] >= float(0.5)): num_discard += 1
-                else: num_keep += 1
-            print("num_keep:", num_keep)
-            print("num_discard:", num_discard)
-            if num_keep > num_discard: 
-                ground_truths = np.append(ground_truths, 0)
-            else: 
-                ground_truths = np.append(ground_truths, 1)
-        #print("ground_truth:", ground_truths)
-
-        for i in range(0, len(ground_truths)):   #i is each cluster
-            if ground_truths[i] == float(1): # if cluster == keep
-                for point in t[y_km == i]: # set ground truth of each point to keep
-                    t[y_km == i, 4:5] = float(1)
-            else:
-                for point in t[y_km == i]:
-                    t[y_km == i, 4:5] = float(0)
-        print("t shape", np.shape(t))
-
-        print("would be saving")
-        np.save('/content/drive/Shareddrives/Leah_Thesis/Data/ground_truth_' + fileName, t)
+          print("Ground Truth:", t[:,4:5])
+          print("Unique Labels:", unique_labels)

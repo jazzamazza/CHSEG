@@ -145,7 +145,7 @@ class Testing:
             score = max_error(self.y_true, self.y_predict)
         return score
 
-     def classification_metrics(self, actual_ground_truths=[0,1,1,0,0,1], predicted_ground_truths=[0,0,1,1,0,1]):
+     def classification_metrics(self, actual_ground_truths, predicted_ground_truths):
         # data
         self.y_true = actual_ground_truths 
         self.y_predict = predicted_ground_truths
@@ -156,7 +156,7 @@ class Testing:
                                     "\n 1 : Intersection Over Union Score"+
                                     "\n 2 : Precision"+
                                     "\n 3 : Recall"+
-                                    "\n 3 : Error Rate"+
+                                    "\n 4 : Error Rate"+
                                     "\n q : Quit\n")
             if (userInput == "q"): break
             score = self.evaluate(int(userInput))
