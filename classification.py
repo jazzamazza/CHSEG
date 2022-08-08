@@ -212,7 +212,6 @@ class Classification:
           # np.save('/content/drive/Shareddrives/CHSEG/data/truth_post_classification', t)
           print("t[:,4:5].flatten()", t[:,4:5].flatten())
           xyz = self.pcd[:,0:3]
-          intensity1d = (self.pcd[:,3:4]).flatten()
-          view = pptk.viewer(xyz, intensity1d)
-          view = pptk.viewer(xyz, intensity1d, t[:,4:5].flatten())  #t[:,5:6].flatten()
+          truth = (self.pcd[:,3:4]).flatten()
+          view = pptk.viewer(xyz, truth)  #t[:,5:6].flatten()
           print("pptk loaded")
