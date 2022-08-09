@@ -38,9 +38,9 @@ class CHSEG_main:
         if (option == "1"): 
             self.pointCloud, self.pcd_with_truths = pc_loader.load_point_cloud_npy(self.vis, self.ds, self.dsSize) # setup point cloud with raw features 
         elif (option == "2"): 
-            self.pointCloud = pc_loader.load_point_cloud_las(self.vis, self.ds, self.dsSize) # setup point cloud with Cloud Compare features
+            self.pointCloud, self.pcd_with_truths = pc_loader.load_point_cloud_las(self.vis, self.ds, self.dsSize) # setup point cloud with Cloud Compare features
         elif (option == "3"):
-            self.pointCloud = pc_loader.load_point_cloud_pNet_npy(self.vis, self.ds, self.dsSize)
+            self.pointCloud, self.pcd_with_truths = pc_loader.load_point_cloud_pNet_npy(self.vis, self.ds, self.dsSize)
         elif (option == "4"): 
             self.pointCloud = pc_loader.loadPointCloud_pNet(self.vis) # setup point cloud with PointNet++ features
         
@@ -49,8 +49,8 @@ class CHSEG_main:
 
     def set_truth_label_idx(self, pcd_choice):
         if pcd_choice == "1": self.index = 4 # raw point cloud
-        if pcd_choice == "2": self.index = 4 # cloud compare point cloud
-        if pcd_choice == "3": self.index = 4 # PointNet++ point cloud
+        if pcd_choice == "2": self.index = 3 # cloud compare point cloud
+        if pcd_choice == "3": self.index = 3 # PointNet++ point cloud
 
     # interactive application
     def application(self):
@@ -108,8 +108,8 @@ class CHSEG_main:
             
 if __name__=="__main__":
     # Raw data
-    # pcd_file_path = "Data\church_registered.npy"
-    # classified_pcd_path = "Output_Data\church_registered"
+    pcd_file_path = "Data\church_registered.npy"
+    classified_pcd_path = "Output_Data\church_registered"
 
     # Cloud Compare data
     pcd_file_path = "Data\church_registered_cc_raw.las"

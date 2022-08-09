@@ -113,43 +113,54 @@ class PointCloudLoader:
     return final_pcd, final_pcd_all
 
   def load_point_cloud_las(self, vis, downsample=False, ds_size=0):
-        print("\n******************Loading Point Cloud with Cloud Compare Generated Features (x, y, z, intensity) *******************")
+        print(
+            "\n******************Loading Point Cloud with Cloud Compare Generated Features (x, y, z, intensity) *******************"
+        )
 
         path = self.pcd_path
+        self.filetype = ".las"
 
         # understand las header data
         with lp.open(path) as pcd_f:
             print("Header:", pcd_f.header)
-            print("Points:", pcd_f.header.point_count)
+            point_count = pcd_f.header.point_count
+            print("Points:", point_count)
 
         print("***READING LAS****")
         pcd = lp.read(path)
-        print("Standard features:", list(pcd.point_format.standard_dimension_names))
+        # print('Points from Header:', fh.header.point_count)
+        print("Std features:", list(pcd.point_format.standard_dimension_names))
         print("Cloud Compare Features:", list(pcd.point_format.extra_dimension_names))
         geofeat_count = len(list(pcd.point_format.extra_dimension_names))
         print("Extra feat count:", geofeat_count)
 
         points = np.transpose(np.vstack((pcd.x, pcd.y, pcd.z)))
         print("points", points)
-        final_pcd = points
 
         for dim in pcd.point_format.extra_dimension_names:
-            final_pcd = np.hstack((final_pcd, np.nan_to_num(np.vstack((pcd[dim])))))
-        
-        final_features = final_pcd[:, 3:]
+            if dim != "truth":
+              points = np.hstack((points, np.nan_to_num(np.vstack((pcd[dim])))))
+            else:
+                  truth_label = np.nan_to_num(np.vstack((pcd[dim])))
+        final_features = points[:, 3:]
+        label_and_final_features = np.hstack((truth_label, final_features))
 
-        self.get_attributes(points, "Points pcd")
-        print("Points pcd", points)
-        self.get_attributes(final_features, "Final extra array")
-        print("Final extras", final_features)
+        self.get_attributes(points, "points pcd")
+        print("points pcd", points)
+        self.get_attributes(final_features, "final extra array")
+        print("final extras", final_features)
 
         if vis:
             print("vis")
 
         if downsample:
-            final_pcd = self.voxel_downsample(points, final_features, 18, ds_size)
+            final_pcd = self.voxel_downsample(points[:, :3], final_features, 12, ds_size)
+            final_pcd_all = self.voxel_downsample(points[:, :3], label_and_final_features, 12, ds_size)
+        else:
+            final_pcd = points
+            final_pcd_all = np.hstack((truth_label, points))
 
-        return final_pcd
+        return final_pcd, final_pcd_all
 
   def convert_pcd(self):
     
@@ -230,6 +241,7 @@ class PointCloudLoader:
             x += 1
             print("===========================i:", y)
             print("points.size:", points.size, "points.shape:", np.shape(points))
+            print("features.size:", features.size, "features.shape:", np.shape(features))
 
             pc = o3d.geometry.PointCloud()
             pc.points = o3d.utility.Vector3dVector(points)
@@ -239,18 +251,11 @@ class PointCloudLoader:
             downpcd = pc.voxel_down_sample(voxel_size=ds_size)
             ds_features = np.hstack((np.asarray(downpcd.normals), np.asarray(downpcd.colors)))
             ds_points = np.asarray(downpcd.points)
-            print("ds_features.size:", ds_features.size, "ds_features shape:", np.shape(ds_features))
             print("ds_points.size:", ds_points.size, "ds_points shape:", np.shape(ds_points))
+            print("ds_features.size:", ds_features.size, "ds_features shape:", np.shape(ds_features))
             
-            if x==1: 
-                old_ds_points = ds_points
-                total_ds_features = ds_features
-            else:
-                print("ds_point and old_ds_points EQUAL?",np.array_equal(old_ds_points, ds_points))
-                old_ds_points = ds_points
-                total_ds_features = np.hstack((total_ds_features, ds_features))
-                print("total_ds_features.size:", total_ds_features.size, "total_ds_features shape:", np.shape(total_ds_features))
-                
+            if x==1: total_ds_features = ds_features
+            else: total_ds_features = np.hstack((total_ds_features, ds_features))   
             y = y + 6
             if y>=upperBound: break
 

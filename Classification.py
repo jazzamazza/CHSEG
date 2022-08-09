@@ -13,10 +13,11 @@ class Classification:
     # for cloud compare: index = 4 --> x, y, z, intensity, ground_truth, ...
     # for pointnet: index = 3 --> x, y, z, ground_truth, ...
     def classify(self, unique_labels, y_km, t, index, file_path, file_name):
+          print("\n******************Classification*******************")
+
           self.true_labels = t[:,index:index+1] # ground truth before processing
           ground_truths = np.array([])
           print("t[0]", t[0])
-          print("ground_truth size:", ground_truths.size)
           
           for i in unique_labels:
               # count the number of keep and discard ground truth labels in each cluster
