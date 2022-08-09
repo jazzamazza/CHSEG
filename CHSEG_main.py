@@ -71,10 +71,11 @@ def setup(pnet):
         print("file ext:", file_ext)
 
     pc_loader = PointCloudLoader(file_path, file_ext)
-
+    
     if pnet:
+        #pc_loader = PointCloudLoader('./Data/church_registered_pnet_wtruth_0.05.ply', '.ply')
         point_cloud = pc_loader.loadPointCloud_pNet(
-            vis
+            vis, ds
         )  # setup point cloud with PointNet++ features
         np.save(arr=point_cloud, file="./Data/church_registered_pnet.npy")
         return point_cloud, False

@@ -406,7 +406,11 @@ class PointCloudLoader:
 
         return pcd_npy
 
-    def loadPointCloud_pNet(self, vis):
+    def loadPointCloud_pNet(self, vis=False, downsample=False, ds_size=0):
+        if downsample:
+            pcutils = PointCloudUtils()
+            pcutils.ds_npy_pnet(self.pcd_path, ds_size)
+            
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         ROOT_DIR = BASE_DIR
         sys.path.append(os.path.join(ROOT_DIR, "PointNet++"))

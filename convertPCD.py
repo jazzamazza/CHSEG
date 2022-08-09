@@ -19,6 +19,8 @@ pcd = o3d.geometry.PointCloud()
 pcd.points = o3d.utility.Vector3dVector(points) # add {x,y,z} points to pcd
 intensity_to_RGB = np.hstack((intensity, intensity, intensity)) # form a 3D vector to add to o3d pcd
 pcd.colors = o3d.utility.Vector3dVector(intensity_to_RGB) # store intensity as every value in color vector
+ground_truth = np.hstack((truthLabel, truthLabel, truthLabel))
+pcd.normals = o3d.utility.Vector3dVector(ground_truth)
 print(pcd)
 
 downsample_size = 0.05

@@ -101,34 +101,41 @@ class PointCloudUtils:
         # divide pointCloud into points and features 
         points = point_cloud[:,:3]
         intensity = point_cloud[:,3:4] 
-        #truthLabel = pointCloud[:,4:5] not used
+        truth_label = point_cloud[:,4:5]
 
         # format using open3d
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(points) # add {x,y,z} points to pcd
         intensity_to_rgb = np.hstack((intensity, intensity, intensity)) # form a 3D vector to add to o3d pcd
         pcd.colors = o3d.utility.Vector3dVector(intensity_to_rgb) # store intensity as every value in color vector
+        user_in = input("add truth [y/n]")
+        
+        if user_in == "y":
+            truth = np.hstack((truth_label, truth_label, truth_label))
+            pcd.normals = o3d.utility.Vector3dVector(truth)
         print(pcd)
         
-        pnetpcloud = np.hstack(((np.asarray(pcd.points)), (np.asarray(pcd.colors))))
-        npoints = np.shape(pnetpcloud)[0]
-        self.get_attributes(pnetpcloud, "pnet pcloud")
+        # pnetpcloud = np.hstack(((np.asarray(pcd.points)), (np.asarray(pcd.colors))))
+        # npoints = np.shape(pnetpcloud)[0]
+        # self.get_attributes(pnetpcloud, "pnet pcloud")
 
         downpcd = pcd.voxel_down_sample(voxel_size=downsample_amt)
         
-        downpnetpcloud = np.hstack(((np.asarray(downpcd.points)), (np.asarray(downpcd.colors))))
-        ndownpoints = np.shape(downpnetpcloud)[0]
-        self.get_attributes(downpnetpcloud, "pnet pcloud dsampled")
+        # downpnetpcloud = np.hstack(((np.asarray(downpcd.points)), (np.asarray(downpcd.colors))))
+        # ndownpoints = np.shape(downpnetpcloud)[0]
+        # self.get_attributes(downpnetpcloud, "pnet pcloud dsampled")
         
-        print("Original Num Points:", npoints, "\nDownsampled Num Points:", ndownpoints, "\nNew is", (100-((ndownpoints/npoints)*100)), "% smaller")
-        
-        output_path = "./Data/church_registered_pnet_"+str(downsample_amt)
-        np.save(output_path + ".npy", downpnetpcloud)
-        o3d.io.write_point_cloud(output_path+".ply", downpcd)
-        
-        output_path = "./Data/church_registered_pnet_"+str(downsample_amt)
-        np.save(output_path + ".npy", pnetpcloud)
-        o3d.io.write_point_cloud(output_path+".ply", pcd)
+        # print("Original Num Points:", npoints, "\nDownsampled Num Points:", ndownpoints, "\nNew is", (100-((ndownpoints/npoints)*100)), "% smaller")
+        if user_in == "y":    
+            output_path = "./Data/church_registered_pnet_wtruth_"+str(downsample_amt)
+            o3d.io.write_point_cloud(output_path+".ply", downpcd)
+        else:
+            output_path = "./Data/church_registered_pnet_"+str(downsample_amt)
+            o3d.io.write_point_cloud(output_path+".ply", downpcd)
+            
+        # output_path = "./Data/church_registered_pnet_"+str(downsample_amt)
+        # np.save(output_path + ".npy", pnetpcloud)
+        # o3d.io.write_point_cloud(output_path+".ply", pcd)
     
     def get_attributes(self, pcd, arr_name="Point Cloud"):
         """Prints attributes of given numpy array to console
