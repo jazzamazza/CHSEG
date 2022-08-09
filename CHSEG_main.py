@@ -107,7 +107,17 @@ class CHSEG_main:
                     if x==0: break
             
 if __name__=="__main__":
-    pcd_file_path = "Data\church_registered.npy"
-    classified_pcd_path = "Data\church_registered"
+    # Raw data
+    # pcd_file_path = "Data\church_registered.npy"
+    # classified_pcd_path = "Output_Data\church_registered"
+
+    # Cloud Compare data
+    pcd_file_path = "Data\church_registered_cc_raw.las"
+    classified_pcd_path = "Output_Data\cldCmp"
+
+    # PointNet++ data
+    # pcd_file_path = "Data\church_registered_pnet_wtruth_0.05.ply"
+    # classified_pcd_path = "Output_Data\pnet"
+
     main = CHSEG_main(pcd_file_path, classified_pcd_path)
     main.application()
