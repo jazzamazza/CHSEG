@@ -74,10 +74,11 @@ def setup(pnet):
     
     if pnet:
         #pc_loader = PointCloudLoader('./Data/church_registered_pnet_wtruth_0.05.ply', '.ply')
-        point_cloud = pc_loader.loadPointCloud_pNet(
+        point_cloud, point_cloud_all = pc_loader.loadPointCloud_pNet(
             vis, ds
         )  # setup point cloud with PointNet++ features
-        np.save(arr=point_cloud, file="./Data/church_registered_pnet.npy")
+        np.save("./Data/church_registered_pnet_0.075.npy", point_cloud)
+        np.save("./Data/church_registered_pnet_0.075_all.npy", point_cloud_all)
         return point_cloud, False
 
     elif file_ext == ".ply":

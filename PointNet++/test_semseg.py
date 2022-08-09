@@ -191,6 +191,10 @@ def main_semseg():
         #now we use this test_semseg_pnet_DS2.npy file for the rest
         print("finalPCD shape:", finalPCD.shape)
         print("*********************************")
+        
+        np.save("./Data/pnetfinalpcd.npy", finalPCD)
+        np.save("./Data/pnetfinalpcdall.npy", finalPCD_all)
+        
 
         return finalPCD, finalPCD_all
         #clustering = Clustering(finalPCD, "3")
