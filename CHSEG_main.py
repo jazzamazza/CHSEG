@@ -42,6 +42,7 @@ def setup(pnet):
         print("ds amnt =", ds_amt)
     else:
         ds = False
+        ds_amt = float(0)
 
     if gui:
         print("###### POINT CLOUD LOADER ######")
@@ -82,7 +83,7 @@ def setup(pnet):
         return point_cloud, False
 
     elif file_ext == ".ply":
-        pcd = pc_loader.load_point_cloud_ply(vis)
+        pcd = pc_loader.load_point_cloud_ply(vis, ds, ds_amt)
         return pcd, False
 
     elif file_ext == ".npy":

@@ -49,7 +49,7 @@ class PointCloudLoader:
             return file_name, file_ext
 
     # Method to load and visualise a point cloud in a .npy file using open3d
-    def load_point_cloud_npy(self, vis, downsample, ds_size):
+    def load_point_cloud_npy(self, vis, downsample=False, ds_size=0.0):
         """Method to load and visualise a point cloud stored as a .npy file
 
         Args:
@@ -406,7 +406,7 @@ class PointCloudLoader:
 
         return pcd_npy
 
-    def loadPointCloud_pNet(self, vis=False, downsample=False, ds_size=0):
+    def loadPointCloud_pNet(self, vis=False, downsample=False, ds_size=0.0):
         if downsample:
             pcutils = PointCloudUtils()
             pcutils.ds_npy_pnet(self.pcd_path, ds_size)
