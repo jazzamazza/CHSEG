@@ -1,4 +1,5 @@
 # point_cloudLoader
+from typing_extensions import final
 import numpy as np
 import open3d as o3d
 import laspy as lp
@@ -10,13 +11,41 @@ from PointCloudViewer import PointCloudViewer
 class PointCloudLoader:
   """Point cloud loader
   """
-  def __init__(self, path):
+  def __init__(self, path=""):
     """Constructor
 
     Args:
         path (file): file path
     """
     self.pcd_path = path
+
+  def load_point_cloud_npy_from_file(self, path1, path2):
+        print("\n** Loading Point Cloud FINAL-PCD_raw_0.085**")
+        final_pcd = np.load(path1)
+        self.get_attributes(final_pcd)   
+        
+        # divide point_cloud into points and features 
+        points = final_pcd[:,:3]
+        intensity = final_pcd[:,3:4]
+        print("final_pcd points:", points)
+        print("final_pcd intensity:", intensity)
+        print("final_pcd[0]:", final_pcd[0])
+
+        print("\n** Loading Point Cloud FINAL-PCD-ALL_raw_0.085**")
+        final_pcd_all = np.load(path2)
+        self.get_attributes(final_pcd_all)   
+        
+        # divide point_cloud into points and features 
+        points = final_pcd_all[:,:3]
+        intensity = final_pcd_all[:,3:4]
+        truth_label = final_pcd_all[:,4:5]
+        print("final_pcd_all points:", points)
+        print("final_pcd_all intensity:", intensity)
+        print("final_pcd_all truth_label:", truth_label)
+        print("final_pcd_all[0]:", final_pcd_all[0])
+        
+        return final_pcd, final_pcd_all
+        
 
   # Method to load and visualise a point cloud in a .npy file using open3d
   def load_point_cloud_npy(self, vis, downsample=False, ds_size=0):
@@ -63,10 +92,17 @@ class PointCloudLoader:
         print("Downsampled Point cloud size: ", pc.size)
         down_finalPCD = np.delete(pc, [4,5], 1) # remove info unneccessary for clustering from pcd
         final_pcd_all = pc
+        print("final_pcd_all[0]: ", final_pcd_all[0])
+        final_pcd_all = np.delete(final_pcd_all, [5], 1)
+        print("final_pcd_all[0]: ", final_pcd_all[0])
         print("ground truth in pc:", final_pcd_all[:,4:5])
         self.get_attributes(down_finalPCD, "final_pcd") 
         print(down_finalPCD[0])
         final_pcd = down_finalPCD
+      
+      
+    np.save("FINAL-PCD_raw_0.085.npy", final_pcd)
+    np.save("FINAL-PCD-ALL_raw_0.085.npy", final_pcd_all)
 
     return final_pcd, final_pcd_all
   
@@ -89,6 +125,8 @@ class PointCloudLoader:
 
     print("points.size:", points.size, "features.size:", features.size)
     print("points.shape:", np.shape(points), "features.shape:", np.shape(features))
+    print("labels:", labels)
+    print("labels_and_features:", labels_and_features)
 
     print("\n** Final Point Cloud **")
 
@@ -104,7 +142,7 @@ class PointCloudLoader:
         final_pcd_all = np.hstack((points, labels, features))
 
     print("point size", points.size)
-    print("final_truth",final_pcd_all[0] )
+    print("final_pcd_all[0]",final_pcd_all[0] )
 
     self.get_attributes(final_pcd, "final_pcd") 
     self.get_attributes(final_pcd_all, "final_pcd_all")

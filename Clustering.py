@@ -7,7 +7,7 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics import *
 from kneed import KneeLocator
 from itertools import cycle
-from Outputting import write_results_to_file
+from Outputting import write_results_to_file, img_path
 # from CHSEG_main import write_results_to_file
 
 # Clustering class with various clustering methods
@@ -90,7 +90,7 @@ class Clustering:
           )
           #plt.legend()
           plt.title('K-Means Clustering')
-          plt.savefig('Output\k_means_clusters.png') 
+          plt.savefig(img_path + 'k_means_clusters.png') 
           plt.show()
 
           return unique_labels, y_km, t, "_kmeans"
@@ -135,7 +135,7 @@ class Clustering:
                plt.plot(space, np.full_like(space, 0.5, dtype=float), "k-.", alpha=0.5)
                plt.title("Reachability (epsilon distance)")
                plt.ylabel("Reachability Plot")
-          plt.savefig("Output\OPTICS_reachability.png")
+          plt.savefig(img_path + "OPTICS_reachability.png")
           plt.show()
           
           # OPTICS
@@ -147,11 +147,11 @@ class Clustering:
                plt.plot(X[labels == -1, 0], X[labels == -1, 1], "k+", alpha=0.1)
                plt.title("Automatic Clustering\nOPTICS")
           plt.tight_layout()
-          plt.savefig("Output\Optics_clusters1_" + self.type + '.png')
+          plt.savefig(img_path + "Optics_clusters1_" + self.type + '.png')
           plt.show()
 
           # visualise
-          imgName = 'Output\Optics_clusters_' + self.type + '.png'
+          imgName = img_path + 'Optics_clusters_' + self.type + '.png'
           self.visualiseClusters("Optics Clustering", X, labels, imgName)
 
           return unique_labels, clust.labels_, t, "_OPTICS"
@@ -184,15 +184,15 @@ class Clustering:
           self.get_information(db.labels_, X, unique_labels, t)
 
           # visualise
-          imgName = 'Output\DBSCAN_clusters_' + self.type + '.png'
+          imgName = img_path + 'DBSCAN_clusters_' + self.type + '.png'
           self.visualiseClusters("DBSCAN-Shift Clustering", X, db.labels_, imgName)
           
           # visualise 2
-          imgName = 'Output\DBSCAN_clusters2_' + self.type + '.png'
+          imgName = img_path + 'DBSCAN_clusters2_' + self.type + '.png'
           self.visualiseClusters2("DBSCAN-Shift Clustering2", X, db.labels_, imgName, predict)
           
            # visualise 4
-          imgName = "Output\DBSCAN_clusters1_" + self.type + '.png'
+          imgName = img_path + "DBSCAN_clusters1_" + self.type + '.png'
           self.visualiseClusters4("DBSCAN Clustering 4", X, db.labels_, imgName, core_samples_mask)
           
           print("finished dbscan_clustering")
@@ -209,7 +209,7 @@ class Clustering:
           plt.plot(distances)
           plt.xlabel("Points")
           plt.ylabel("Distance")
-          plt.savefig('Output\DBSCAN_Eps.png')
+          plt.savefig(img_path + 'DBSCAN_Eps.png')
           plt.show()
           
           # IDENTIFY ELBOW POINT:
@@ -220,7 +220,7 @@ class Clustering:
           plt.xlabel("Points")
           plt.ylabel("Distance")
           plt.show()
-          plt.savefig('Output\DBSCAN_elbow.png')
+          plt.savefig(img_path + 'DBSCAN_elbow.png')
           eps = distances[knee.knee]
           return eps
 
@@ -242,16 +242,16 @@ class Clustering:
           self.get_information(ms.labels_, X, unique_labels, t)
 
           # visualise 1
-          imgName = 'Output\Mean-Shift_clusters1_' + self.type + '.png'
+          imgName = img_path + 'Mean-Shift_clusters1_' + self.type + '.png'
           self.visualiseClusters("Mean-Shift Clustering1", X, ms.labels_, imgName)
 
            # visualise 2
-          imgName = 'Output\Mean-Shift_clusters2_' + self.type + '.png'
+          imgName = img_path + 'Mean-Shift_clusters2_' + self.type + '.png'
           predict = ms.predict(X)
           self.visualiseClusters2("Mean-Shift Clustering2", X, ms.labels_, imgName, predict)
 
            # visualise 3
-          imgName = "Output\Mean-Shift_clusters3_" + self.type + ".png"
+          imgName = img_path + "Mean-Shift_clusters3_" + self.type + ".png"
           self.visualiseClusters3("Mean-Shift Clustering3", X, ms.labels_, imgName, ms.cluster_centers_)
           
           return unique_labels, ms.labels_, t, "_meanshift"
