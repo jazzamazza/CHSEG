@@ -113,12 +113,9 @@ class PointCloudLoader:
     return final_pcd, final_pcd_all
 
   def load_point_cloud_las(self, vis, downsample=False, ds_size=0):
-        print(
-            "\n******************Loading Point Cloud with Cloud Compare Generated Features (x, y, z, intensity) *******************"
-        )
+        print("\n******************Loading Point Cloud with Cloud Compare Generated Features (x, y, z, intensity) *******************")
 
         path = self.pcd_path
-        self.filetype = ".las"
 
         # understand las header data
         with lp.open(path) as pcd_f:
@@ -128,7 +125,6 @@ class PointCloudLoader:
 
         print("***READING LAS****")
         pcd = lp.read(path)
-        # print('Points from Header:', fh.header.point_count)
         print("Std features:", list(pcd.point_format.standard_dimension_names))
         print("Cloud Compare Features:", list(pcd.point_format.extra_dimension_names))
         geofeat_count = len(list(pcd.point_format.extra_dimension_names))
@@ -143,7 +139,11 @@ class PointCloudLoader:
             else:
                   truth_label = np.nan_to_num(np.vstack((pcd[dim])))
         final_features = points[:, 3:]
+        xyz_points = points[:, :3]
         label_and_final_features = np.hstack((truth_label, final_features))
+
+        print("TRUTH LABEL:", truth_label)
+        print("label_and_final_features[0]:", label_and_final_features[0])
 
         self.get_attributes(points, "points pcd")
         print("points pcd", points)
@@ -154,11 +154,13 @@ class PointCloudLoader:
             print("vis")
 
         if downsample:
-            final_pcd = self.voxel_downsample(points[:, :3], final_features, 12, ds_size)
-            final_pcd_all = self.voxel_downsample(points[:, :3], label_and_final_features, 12, ds_size)
+            final_pcd = self.voxel_downsample(xyz_points, final_features, 12, ds_size)
+            final_pcd_all = self.voxel_downsample(xyz_points, label_and_final_features, 12, ds_size)
         else:
             final_pcd = points
             final_pcd_all = np.hstack((truth_label, points))
+            print("final_pcd_all[0]", final_pcd_all[0])
+            print("final_pcd_all[:,3]", final_pcd[:,3])
 
         return final_pcd, final_pcd_all
 

@@ -112,8 +112,8 @@ if __name__=="__main__":
     classified_pcd_path = "Output_Data\church_registered"
 
     # Cloud Compare data
-    pcd_file_path = "Data\church_registered_cc_raw.las"
-    classified_pcd_path = "Output_Data\cldCmp"
+    # pcd_file_path = "Data\church_registered_cc_raw.las"
+    # classified_pcd_path = "Output_Data\cldCmp"
 
     # PointNet++ data
     # pcd_file_path = "Data\church_registered_pnet_wtruth_0.05.ply"
