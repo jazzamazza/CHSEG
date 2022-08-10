@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.metrics import *
 import matplotlib.cm as cm
+from Outputting import write_results_to_file
 
 class Testing:
      def __init__(self, pointCloud):
@@ -131,21 +132,53 @@ class Testing:
         if metric_choice == 0:
             # f1 score 
             score = f1_score(self.y_true, self.y_predict, pos_label=0)
+            write_results_to_file("F1 Score:" + str(score))
         elif metric_choice == 1:
             # IOU score
             score = jaccard_score(self.y_true, self.y_predict, pos_label=0)
+            write_results_to_file("IOU Score:" + str(score))
         elif metric_choice == 2:
             # precision
             score = precision_score(self.y_true, self.y_predict, pos_label=0)
+            write_results_to_file("Precision:" + str(score))
         elif metric_choice == 3:
             # recall
             score = recall_score(self.y_true, self.y_predict, pos_label=0)
+            write_results_to_file("Recall:" + str(score))
         elif metric_choice == 4:
-            # error rate 
-            score = max_error(self.y_true, self.y_predict)
+            # mean absolute error 
+            score = mean_absolute_error(self.y_true, self.y_predict)
+            write_results_to_file("Mean Absolute Error:" + str(score))
+        elif metric_choice == 5:
+            # mean squared error 
+            score = mean_squared_error(self.y_true, self.y_predict)
+            write_results_to_file("Mean Squared Error:" + str(score))
+        elif metric_choice == 6:
+            # all metrics
+            f = f1_score(self.y_true, self.y_predict, pos_label=0)
+            j = jaccard_score(self.y_true, self.y_predict, pos_label=0)
+            p = precision_score(self.y_true, self.y_predict, pos_label=0)
+            r = recall_score(self.y_true, self.y_predict, pos_label=0)
+            a = mean_absolute_error(self.y_true, self.y_predict)
+            s = mean_squared_error(self.y_true, self.y_predict)
+            print("F1 Score:", f, 
+                  "\nIOU Score:", j, 
+                  "\nPrecision:", p, 
+                  "\nRecall:", r, 
+                  "\nMean Absolute Error:", a,
+                  "\nMean Squared Error:", s)
+            score = ""
+
+            write_results_to_file("F1 Score:" + str(f))
+            write_results_to_file("IOU Score:" + str(j))
+            write_results_to_file("Precision:" + str(p))
+            write_results_to_file("Recall:" + str(r))
+            write_results_to_file("Mean Absolute Error:" + str(s))
+            write_results_to_file("Mean Squared Error:" + str(s))
         return score
 
      def classification_metrics(self, actual_ground_truths, predicted_ground_truths):
+        write_results_to_file("*************Classification Metrics*************")
         # data
         self.y_true = actual_ground_truths 
         self.y_predict = predicted_ground_truths
@@ -162,7 +195,9 @@ class Testing:
                                     "\n 1 : Intersection Over Union Score"+
                                     "\n 2 : Precision"+
                                     "\n 3 : Recall"+
-                                    "\n 4 : Error Rate"+
+                                    "\n 4 : Mean Absolute Error"+
+                                    "\n 5 : Mean Squared Error"+
+                                    "\n 6 : All of the Above"+
                                     "\n q : Quit\n")
             if (userInput == "q"): break
             score = self.evaluate(int(userInput))

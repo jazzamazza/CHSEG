@@ -7,6 +7,8 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics import *
 from kneed import KneeLocator
 from itertools import cycle
+from Outputting import write_results_to_file
+# from CHSEG_main import write_results_to_file
 
 # Clustering class with various clustering methods
 class Clustering:
@@ -62,21 +64,20 @@ class Clustering:
           print("\n------------------k means---------------------")
           kmeans = KMeans(n_clusters=k, n_init=10) # number of clusters (k)
           kmeans.fit(x) # apply k means to dataset
+
+          write_results_to_file("*************K-MEANS Parameters*************")
+          write_results_to_file("K:" + str(k))
+          write_results_to_file("n_init: 10")
           
           # Visualise K-Means
           y_km = kmeans.predict(x)
           print("y_km:", y_km)
-          print("arrays EQUAL?",np.array_equal(y_km, x))
           centroids = kmeans.cluster_centers_
           print("centroids:", centroids)
           
-          ################# CLASSIFICATION:
           t = self.pcd_truth
-          print("ground truth in clustering:", t[:,4:5])
           unique_labels = np.unique(y_km)
-          print("unique_labels:", unique_labels)
-          # classification done in CHSEG_main
-          #################
+          self.get_information(y_km, x, unique_labels, t)
 
           print("plotting graph")   
           for i in unique_labels:
@@ -105,6 +106,12 @@ class Clustering:
           print("starting optics method")
           clust = OPTICS(min_samples=4, xi=0.05, min_cluster_size=0.05).fit(X)
           print("finished optics method")
+
+          write_results_to_file("*************OPTICS Parameters*************")
+          write_results_to_file("min_samples: 4")
+          write_results_to_file("min_cluster_size: 0.05")
+          write_results_to_file("xi: 0.05")
+
           # Run the fit
           #clust = clust.fit(X)
           #print('labels:', labels)
@@ -159,6 +166,10 @@ class Clustering:
           min_samples_ = 8 # for raw point cloud
           e = self.calculateElbow(min_samples_)
           print("e=",e)
+
+          write_results_to_file("*************DBSCAN Parameters*************")
+          write_results_to_file("min_samples:" + str(min_samples))
+          write_results_to_file("e:" + str(e))
           
           db1 = DBSCAN(eps=e, min_samples=min_samples_)
           db = db1.fit(X)
@@ -220,6 +231,11 @@ class Clustering:
           bandwidth = estimate_bandwidth(X, quantile=0.2, n_samples=500)
           ms = MeanShift(bandwidth=bandwidth, bin_seeding=True)
           ms.fit(X)
+
+          write_results_to_file("*************MEAN-SHIFT Parameters*************")
+          write_results_to_file("quantile: 0.2")
+          write_results_to_file("n_samples: 500")
+          write_results_to_file("bin_seeding: True")
 
           t = self.pcd_truth
           unique_labels = np.unique(ms.labels_)
@@ -292,7 +308,15 @@ class Clustering:
           no_noise = np.sum(np.array(labels) == -1, axis=0)
           print('Estimated no. of clusters: %d' % no_clusters)
           print('Estimated no. of noise points: %d' % no_noise)
-          print("Silhouette Coefficient: %0.3f" % silhouette_score(X, labels))
+          sil_score = silhouette_score(X, labels)
+          db_index = davies_bouldin_score(X, labels)
+          print("Silhouette Coefficient: %0.3f" % sil_score)
+          print("Davies Bouldin Score: %0.3f" % db_index)
 
-          print("Ground Truth:", t[:,4:5])
+          # print("Ground Truth:", t[:,4:5]) # raw
+          print("Ground Truth:", t[:,3:4]) # cloud compare
           print("Unique Labels:", unique_labels)
+
+          write_results_to_file("*************Clustering Metrics*************")
+          write_results_to_file("Silhouette Score:" + str(sil_score))
+          write_results_to_file("Davies Bouldin Index:" + str(db_index))

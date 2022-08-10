@@ -2,6 +2,7 @@ from Clustering import Clustering
 from PointCloudLoader import PointCloudLoader
 from Classification import Classification
 from Metrics import Testing
+from Outputting import write_results_to_file
 
 class CHSEG_main:
     def __init__(self, pcd_path, classified_pcd_path):
@@ -36,21 +37,25 @@ class CHSEG_main:
     def setup(self, option):
         pc_loader = PointCloudLoader(self.pcd_file_path)
         if (option == "1"): 
+            write_results_to_file("*************Raw Point Cloud*************")
             self.pointCloud, self.pcd_with_truths = pc_loader.load_point_cloud_npy(self.vis, self.ds, self.dsSize) # setup point cloud with raw features 
         elif (option == "2"): 
+            write_results_to_file("*************Point Cloud with Cloud Compare Features*************")
             self.pointCloud, self.pcd_with_truths = pc_loader.load_point_cloud_las(self.vis, self.ds, self.dsSize) # setup point cloud with Cloud Compare features
         elif (option == "3"):
+            write_results_to_file("*************Point Cloud with PointNet++ Features*************")
             self.pointCloud, self.pcd_with_truths = pc_loader.load_point_cloud_pNet_npy(self.vis, self.ds, self.dsSize)
         elif (option == "4"): 
             self.pointCloud = pc_loader.loadPointCloud_pNet(self.vis) # setup point cloud with PointNet++ features
-        
         self.set_truth_label_idx(option)
         self.testing = Testing(self.pointCloud)
+        write_results_to_file("Downsample Size:" + str(self.dsSize))
 
     def set_truth_label_idx(self, pcd_choice):
         if pcd_choice == "1": self.index = 4 # raw point cloud
         if pcd_choice == "2": self.index = 3 # cloud compare point cloud
         if pcd_choice == "3": self.index = 3 # PointNet++ point cloud
+        write_results_to_file("Ground Truth Index:" + str(self.index))
 
     # interactive application
     def application(self):
@@ -85,6 +90,7 @@ class CHSEG_main:
             clustering = Clustering(self.pointCloud, self.pcd_with_truths , pcd_choice)
             
             while (userInput != "r" and userInput != "q"):
+                write_results_to_file("--------------------------------------------------------")
                 # cluster point cloud    
                 userInput = input("\nChoose Clustering Method(s):"+
                                 "\n 0 : K-Means Clustering" +
@@ -93,7 +99,7 @@ class CHSEG_main:
                                 "\n 3 : Mean-Shift Clustering"+
                                 "\n r : Restart the Application\n")
                 if (userInput == "q"): break
-
+                
                 elif (userInput == "0"): u_lbl, lbl, t, f_name = clustering.k_means_clustering(13)
                 elif (userInput == "1"): u_lbl, lbl, t, f_name = clustering.dbscan_clustering()
                 elif (userInput == "2"): u_lbl, lbl, t, f_name = clustering.optics_clustering()
@@ -109,7 +115,7 @@ class CHSEG_main:
 if __name__=="__main__":
     # Raw data
     pcd_file_path = "Data\church_registered.npy"
-    classified_pcd_path = "Output_Data\church_registered"
+    classified_pcd_path = "Output_Data\\raw" 
 
     # Cloud Compare data
     # pcd_file_path = "Data\church_registered_cc_raw.las"

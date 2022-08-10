@@ -1,4 +1,5 @@
 import numpy as np
+from Outputting import write_results_to_file
 # import pptk
 
 class Classification:
@@ -62,6 +63,7 @@ class Classification:
       print("================", title, "\n:", arr)
       print("Length:", len(arr))
       print("Shape:", np.shape(arr))
+      # write_results_to_file(title + arr)
 
 #     def visualise_classification(self, pcd):
 #       print("self.predicted_labels.flatten()", self.predicted_labels.flatten())
@@ -70,6 +72,3 @@ class Classification:
 #       view = pptk.viewer(xyz, intensity1d)
 #       # view = pptk.viewer(xyz, intensity1d, t[:,index:index+1].flatten()) 
 #       print("pptk loaded")
-
-
-      
