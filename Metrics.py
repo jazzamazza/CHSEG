@@ -130,16 +130,16 @@ class Testing:
      def evaluate(self, metric_choice):
         if metric_choice == 0:
             # f1 score 
-            score = f1_score(self.y_true, self.y_predict)
+            score = f1_score(self.y_true, self.y_predict, pos_label=0)
         elif metric_choice == 1:
             # IOU score
-            score = jaccard_score(self.y_true, self.y_predict)
+            score = jaccard_score(self.y_true, self.y_predict, pos_label=0)
         elif metric_choice == 2:
             # precision
-            score = precision_score(self.y_true, self.y_predict)
+            score = precision_score(self.y_true, self.y_predict, pos_label=0)
         elif metric_choice == 3:
             # recall
-            score = recall_score(self.y_true, self.y_predict)
+            score = recall_score(self.y_true, self.y_predict, pos_label=0)
         elif metric_choice == 4:
             # error rate 
             score = max_error(self.y_true, self.y_predict)
@@ -149,6 +149,12 @@ class Testing:
         # data
         self.y_true = actual_ground_truths 
         self.y_predict = predicted_ground_truths
+        print("**********************INSIDE METRICS****************")
+        print("---------------------self.y_true:", self.y_true)
+        print("shape:", np.shape(self.y_true), "len:", len(self.y_true))
+        print("---------------------self.y_predict:", self.y_predict)
+        print("shape:", np.shape(self.y_predict), "len:", len(self.y_predict))
+
         score, userInput = "", ""
         while (userInput != "q"):
             userInput = input("\nChoose Classification Metric to Evaluate with:"+
