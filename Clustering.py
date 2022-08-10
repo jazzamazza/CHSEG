@@ -8,7 +8,6 @@ from sklearn.metrics import *
 from kneed import KneeLocator
 from itertools import cycle
 from Outputting import write_results_to_file, img_path
-# from CHSEG_main import write_results_to_file
 
 # Clustering class with various clustering methods
 class Clustering:
@@ -168,7 +167,7 @@ class Clustering:
           print("e=",e)
 
           write_results_to_file("*************DBSCAN Parameters*************")
-          write_results_to_file("min_samples:" + str(min_samples))
+          write_results_to_file("min_samples:" + str(min_samples_))
           write_results_to_file("e:" + str(e))
           
           db1 = DBSCAN(eps=e, min_samples=min_samples_)

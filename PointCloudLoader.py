@@ -17,35 +17,7 @@ class PointCloudLoader:
     Args:
         path (file): file path
     """
-    self.pcd_path = path
-
-  def load_point_cloud_npy_from_file(self, path1, path2):
-        print("\n** Loading Point Cloud FINAL-PCD_raw_0.085**")
-        final_pcd = np.load(path1)
-        self.get_attributes(final_pcd)   
-        
-        # divide point_cloud into points and features 
-        points = final_pcd[:,:3]
-        intensity = final_pcd[:,3:4]
-        print("final_pcd points:", points)
-        print("final_pcd intensity:", intensity)
-        print("final_pcd[0]:", final_pcd[0])
-
-        print("\n** Loading Point Cloud FINAL-PCD-ALL_raw_0.085**")
-        final_pcd_all = np.load(path2)
-        self.get_attributes(final_pcd_all)   
-        
-        # divide point_cloud into points and features 
-        points = final_pcd_all[:,:3]
-        intensity = final_pcd_all[:,3:4]
-        truth_label = final_pcd_all[:,4:5]
-        print("final_pcd_all points:", points)
-        print("final_pcd_all intensity:", intensity)
-        print("final_pcd_all truth_label:", truth_label)
-        print("final_pcd_all[0]:", final_pcd_all[0])
-        
-        return final_pcd, final_pcd_all
-        
+    self.pcd_path = path        
 
   # Method to load and visualise a point cloud in a .npy file using open3d
   def load_point_cloud_npy(self, vis, downsample=False, ds_size=0):
@@ -148,6 +120,9 @@ class PointCloudLoader:
     self.get_attributes(final_pcd_all, "final_pcd_all")
     print("hstacked pcd[0]:",final_pcd[0])
 
+    np.save("FINAL-PCD_pointnet_0.05.npy", final_pcd)
+    np.save("FINAL-PCD-ALL_PCD_pointnet_0.05.npy", final_pcd_all)
+
     return final_pcd, final_pcd_all
 
   def load_point_cloud_las(self, vis, downsample=False, ds_size=0):
@@ -199,6 +174,9 @@ class PointCloudLoader:
             final_pcd_all = np.hstack((truth_label, points))
             print("final_pcd_all[0]", final_pcd_all[0])
             print("final_pcd_all[:,3]", final_pcd[:,3])
+        
+        # np.save("FINAL-PCD_cloudCompare_0.085.npy", final_pcd)
+        # np.save("FINAL-PCD-ALL_PCD_cloudCompare_0.085.npy", final_pcd_all)
 
         return final_pcd, final_pcd_all
 
