@@ -15,101 +15,16 @@ class Testing:
      
           K = range(2, 20)
           for k in K:
-               fig, (ax1, ax2) = plt.subplots(1, 2)
-               fig.set_size_inches(18, 7)
 
-               # The 1st subplot is the silhouette plot
-               # The silhouette coefficient can range from -1, 1 but in this example all
-               # lie within [-0.1, 1]
-               ax1.set_xlim([-0.1, 1])
-               # The (n_clusters+1)*10 is for inserting blank space between silhouette
-               # plots of individual clusters, to demarcate them clearly.
-               ax1.set_ylim([0, len(x) + (k + 1) * 10])
-
-               # Initialize the clusterer with n_clusters value and a random generator
-               # seed of 10 for reproducibility.
-               clusterer = KMeans(n_clusters= k)      #for k-means and k-medoids
-               
+               clusterer = KMeans(n_clusters= k)              
                cluster_labels = clusterer.fit_predict(x)
 
                silhouette_avg = silhouette_score(x, cluster_labels)
                print(
-                    "For n_clusters =",
-                         k,
+                    "For n_clusters =", k,
                     "The average silhouette_score is :",
                          silhouette_avg,
                )
-               sample_silhouette_values = silhouette_samples(x, cluster_labels)
-     
-               y_lower = 10
-               for i in range(k):
-                    # Aggregate the silhouette scores for samples belonging to
-                    # cluster i, and sort them
-                    ith_cluster_silhouette_values = sample_silhouette_values[cluster_labels == i]
-
-                    ith_cluster_silhouette_values.sort()
-
-                    size_cluster_i = ith_cluster_silhouette_values.shape[0]
-                    y_upper = y_lower + size_cluster_i
-
-                    color = cm.nipy_spectral(float(i) / k)
-                    ax1.fill_betweenx(
-                         np.arange(y_lower, y_upper),
-                         0,
-                         ith_cluster_silhouette_values,
-                         facecolor=color,
-                         edgecolor=color,
-                         alpha=0.7,
-                    )
-
-                    ax1.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i))
-
-                    # Compute the new y_lower for next plot
-                    y_lower = y_upper + 10  # 10 for the 0 samples
-
-               ax1.set_title("The silhouette plot for the various clusters.")
-               ax1.set_xlabel("The silhouette coefficient values")
-               ax1.set_ylabel("Cluster label")
-
-               ax1.axvline(x=silhouette_avg, color="red", linestyle="--")
-
-               ax1.set_yticks([])  # Clear the yaxis labels / ticks
-               ax1.set_xticks([-0.1, 0, 0.2, 0.4, 0.6, 0.8, 1])
-
-               # 2nd Plot showing the actual clusters formed
-               colors = cm.nipy_spectral(cluster_labels.astype(float) / k)
-               ax2.scatter(
-                    x[:, 0], x[:, 1], marker=".", s=30, lw=0, alpha=0.7, c=colors, edgecolor="k"
-               )
-
-               # Labeling the clusters
-               centers = clusterer.cluster_centers_
-               # Draw white circles at cluster centers
-               ax2.scatter(
-                    centers[:, 0],
-                    centers[:, 1],
-                    marker="o",
-                    c="white",
-                    alpha=1,
-                    s=200,
-                    edgecolor="k",
-               )
-
-               for i, c in enumerate(centers):
-                    ax2.scatter(c[0], c[1], marker="$%d$" % i, alpha=1, s=50, edgecolor="k")
-
-               ax2.set_title("The visualization of the clustered data.")
-               ax2.set_xlabel("Feature space for the 1st feature")
-               ax2.set_ylabel("Feature space for the 2nd feature")
-
-               plt.suptitle(
-                    "Silhouette analysis for KMeans clustering on sample data with n_clusters = %d"
-                    % k,
-                    fontsize=14,
-                    fontweight="bold",
-               )
-
-          plt.show()
 
      def db_index(self):
           x = self.pcd
@@ -131,53 +46,82 @@ class Testing:
      def evaluate(self, metric_choice):
         if metric_choice == 0:
             # f1 score 
-            score = f1_score(self.y_true, self.y_predict, pos_label=0)
-            write_results_to_file("F1 Score:" + str(score))
+            score1 = f1_score(self.y_true, self.y_predict, pos_label=0)
+            write_results_to_file("F1 Score (Binary):" + str(score1))
+            score2 = f1_score(self.y_true, self.y_predict, average='macro')
+            write_results_to_file("F1 Score (Macro):" + str(score2))
         elif metric_choice == 1:
             # IOU score
-            score = jaccard_score(self.y_true, self.y_predict, pos_label=0)
-            write_results_to_file("IOU Score:" + str(score))
+            score1 = jaccard_score(self.y_true, self.y_predict, pos_label=0)
+            write_results_to_file("IOU Score (Binary):" + str(score1))
+            score2 = jaccard_score(self.y_true, self.y_predict, average='macro')
+            write_results_to_file("IOU Score (Macro):" + str(score2))
         elif metric_choice == 2:
             # precision
             score = precision_score(self.y_true, self.y_predict, pos_label=0)
-            write_results_to_file("Precision:" + str(score))
+            write_results_to_file("Precision (Binary):" + str(score1))
+            score2 = precision_score(self.y_true, self.y_predict, average='macro')
+            write_results_to_file("Precision (Macro):" + str(score2))
         elif metric_choice == 3:
             # recall
-            score = recall_score(self.y_true, self.y_predict, pos_label=0)
-            write_results_to_file("Recall:" + str(score))
+            score1 = recall_score(self.y_true, self.y_predict, pos_label=0)
+            write_results_to_file("Recall (Binary):" + str(score1))
+            score2 = recall_score(self.y_true, self.y_predict, average='macro')
+            write_results_to_file("Recall (Macro):" + str(score2))
         elif metric_choice == 4:
             # mean absolute error 
-            score = mean_absolute_error(self.y_true, self.y_predict)
-            write_results_to_file("Mean Absolute Error:" + str(score))
+            score1 = mean_absolute_error(self.y_true, self.y_predict)
+            write_results_to_file("Mean Absolute Error:" + str(score1))
+            score2 = ""
         elif metric_choice == 5:
             # mean squared error 
-            score = mean_squared_error(self.y_true, self.y_predict)
-            write_results_to_file("Mean Squared Error:" + str(score))
+            score1 = mean_squared_error(self.y_true, self.y_predict)
+            write_results_to_file("Mean Squared Error:" + str(score1))
+            score2 = ""
         elif metric_choice == 6:
             # all metrics
+
+            # binary results
             f = f1_score(self.y_true, self.y_predict, pos_label=0)
             j = jaccard_score(self.y_true, self.y_predict, pos_label=0)
             p = precision_score(self.y_true, self.y_predict, pos_label=0)
             r = recall_score(self.y_true, self.y_predict, pos_label=0)
             a = mean_absolute_error(self.y_true, self.y_predict)
             s = mean_squared_error(self.y_true, self.y_predict)
-            print("F1 Score:", f, 
-                  "\nIOU Score:", j, 
-                  "\nPrecision:", p, 
-                  "\nRecall:", r, 
+            print("F1 Score (Binary):", f, 
+                  "\nIOU Score (Binary):", j, 
+                  "\nPrecision (Binary):", p, 
+                  "\nRecall (Binary):", r, 
                   "\nMean Absolute Error:", a,
                   "\nMean Squared Error:", s)
-            score = ""
 
-            write_results_to_file("F1 Score:" + str(f))
-            write_results_to_file("IOU Score:" + str(j))
-            write_results_to_file("Precision:" + str(p))
-            write_results_to_file("Recall:" + str(r))
-            write_results_to_file("Mean Absolute Error:" + str(s))
-            write_results_to_file("Mean Squared Error:" + str(s))
-        return score
+            write_results_to_file("F1 Score (Binary):" + str(f))
+            write_results_to_file("IOU Score (Binary):" + str(j))
+            write_results_to_file("Precision (Binary):" + str(p))
+            write_results_to_file("Recall (Binary):" + str(r))
+            write_results_to_file("Mean Absolute Error (Binary):" + str(s))
+            write_results_to_file("Mean Squared Error (Binary):" + str(s))
+
+            # macro results
+            f2 = f1_score(self.y_true, self.y_predict, average='macro')
+            j2 = jaccard_score(self.y_true, self.y_predict,  average='macro')
+            p2 = precision_score(self.y_true, self.y_predict,  average='macro')
+            r2 = recall_score(self.y_true, self.y_predict,  average='macro')
+            print("F1 Score (Macro):", f2, 
+                  "\nIOU Score (Macro):", j2, 
+                  "\nPrecision (Macro):", p2, 
+                  "\nRecall (Macro):", r2)
+            score1 = ""
+            score2 = ""
+
+            write_results_to_file("F1 Score (Macro):" + str(f2))
+            write_results_to_file("IOU Score (Macro):" + str(j2))
+            write_results_to_file("Precision (Macro):" + str(p2))
+            write_results_to_file("Recall (Macro):" + str(r2))
+        return score1, score2
 
      def classification_metrics(self, actual_ground_truths, predicted_ground_truths):
+        print("hi")
         write_results_to_file("*************Classification Metrics*************")
         # data
         self.y_true = actual_ground_truths 
@@ -188,7 +132,7 @@ class Testing:
         print("---------------------self.y_predict:", self.y_predict)
         print("shape:", np.shape(self.y_predict), "len:", len(self.y_predict))
 
-        score, userInput = "", ""
+        userInput = "", ""
         while (userInput != "q"):
             userInput = input("\nChoose Classification Metric to Evaluate with:"+
                                     "\n 0 : F1 Score" +
@@ -200,8 +144,9 @@ class Testing:
                                     "\n 6 : All of the Above"+
                                     "\n q : Quit\n")
             if (userInput == "q"): break
-            score = self.evaluate(int(userInput))
-            print(score)
+            score1, score2 = self.evaluate(int(userInput))
+            print(score1)
+            print(score2)
 
 if __name__ == "__main__":
     t = Testing()

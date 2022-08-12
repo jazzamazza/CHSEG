@@ -78,34 +78,70 @@ class CHSEG_main:
         
         return final_pcd, final_pcd_all
     
+    def load_cloudCompare_from_file(self, path1, path2):
+        print("\n** Loading Point Cloud FINAL-PCD_cloudcompare_0.**")
+        loader = PointCloudLoader()
+        final_pcd = np.load(path1)
+        loader.get_attributes(final_pcd)   
+        
+        # divide point_cloud into points and features 
+        points = final_pcd[:,:3]
+        features = final_pcd[:,3:]
+        print("final_pcd points:", points)
+        print("final_pcd features:", features)
+        print("final_pcd[0]:", final_pcd[0])
+
+        print("\n** Loading Point Cloud FINAL-PCD-ALL_cloudcompare_0.**")
+        final_pcd_all = np.load(path2)
+        loader.get_attributes(final_pcd_all)   
+        
+        # divide point_cloud into points and features 
+        points = final_pcd_all[:,:3]
+        truth_label = final_pcd_all[:,3:4]
+        features = final_pcd_all[:,4:]
+        print("final_pcd_all points:", points)
+        print("final_pcd_all truth_label:", truth_label)
+        print("final_pcd_all features:", features)
+        print("final_pcd_all[0]:", final_pcd_all[0])
+        
+        return final_pcd, final_pcd_all
+
+    def classify_test(self, u_lbl, lbl, t, f_name):
+        # classify point cloud and evaluate classification
+        userInput = input("\nClassify Clustering Result (y/n)?")
+        if (userInput == "q"): return 0
+        elif (userInput=="y"): 
+            x = self.class_and_eval(u_lbl, lbl, t, f_name)
+            if x==0: return 0
+        return 1
     ################################################################################################
 
-    def class_and_eval(self, unique_labels, y_km, t, file_name):
+    def class_and_eval(self, unique_labels, y_km, file_name):
         # Classification
+        t = self.pcd_with_truths
         self.classifier.classify(unique_labels, y_km, t, self.index, self.class_pcd_file_path, file_name)
         true_labels, predicted_labels = self.classifier.get_ground_truth()
-        # visualise classification in PPTK
-        # self.classifier.visualise_classification(self.pointCloud)
 
         # Evaluation
         userInput = input("\nEvaluate Results (y/n)?")
         if (userInput == "q"): return 0
         elif (userInput=="y"): 
+            print("here true labels:", true_labels)
+            print("here predicted_labels:", predicted_labels)
             self.testing.classification_metrics(true_labels, predicted_labels)
 
     # Helper method to call method to load point cloud files  
     # Returns a PointCloud in a numpy array      
     def setup(self, option):
-        pc_loader = PointCloudLoader(self.pcd_file_path)
         if (option == "1"): 
             write_results_to_file("*************Raw Point Cloud*************")
             self.pointCloud, self.pcd_with_truths = self.load_raw_from_file("Data\FINAL-PCD_raw_0.085.npy", "Data\FINAL-PCD-ALL_raw_0.085.npy") # setup point cloud with raw features 
-        elif (option == "2"): 
-            write_results_to_file("*************Point Cloud with Cloud Compare Features*************")
-            self.pointCloud, self.pcd_with_truths = pc_loader.load_point_cloud_npy_from_file("Data\FINAL-PCD_raw_0.085.npy", "Data\FINAL-PCD-ALL_raw_0.085.npy")
-        elif (option == "3"):
-            write_results_to_file("*************Point Cloud with PointNet++ Features*************")
-            self.pointCloud, self.pcd_with_truths = self.load_pointnet_from_file("Data\FINAL-PCD_pointnet_0.05.npy", "Data\FINAL-PCD-ALL_PCD_pointnet_0.05.npy")
+        # elif (option == "2"): 
+        #     write_results_to_file("*************Point Cloud with Cloud Compare Features*************")
+        #     self.pointCloud, self.pcd_with_truths = pc_loader.load_point_cloud_npy_from_file("Data\FINAL-PCD_raw_0.085.npy", "Data\FINAL-PCD-ALL_raw_0.085.npy")
+        # elif (option == "3"):
+        #     write_results_to_file("*************Point Cloud with PointNet++ Features*************")
+        #     self.pointCloud, self.pcd_with_truths = self.load_pointnet_from_file("Data\FINAL-PCD_pointnet_0.05.npy", "Data\FINAL-PCD-ALL_PCD_pointnet_0.05.npy")
 
         self.set_truth_label_idx(option)
         self.testing = Testing(self.pointCloud)
@@ -132,7 +168,7 @@ class CHSEG_main:
             pcd_choice = userInput
 
             self.setup(pcd_choice)
-            clustering = Clustering(self.pointCloud, self.pcd_with_truths , pcd_choice)
+            clustering = Clustering(self.pointCloud, pcd_choice)
             
             while (userInput != "r" and userInput != "q"):
                 write_results_to_file("--------------------------------------------------------")
@@ -142,19 +178,34 @@ class CHSEG_main:
                                 "\n 1 : DBSCAN Clustering"+
                                 "\n 2 : OPTICS Clustering"+
                                 "\n 3 : Mean-Shift Clustering"+
+                                "\n 4 : All Clusterings"+
                                 "\n r : Restart the Application\n")
                 if (userInput == "q"): break
                 
-                elif (userInput == "0"): u_lbl, lbl, t, f_name = clustering.k_means_clustering(13)
-                elif (userInput == "1"): u_lbl, lbl, t, f_name = clustering.dbscan_clustering()
-                elif (userInput == "2"): u_lbl, lbl, t, f_name = clustering.optics_clustering()
-                elif (userInput == "3"): u_lbl, lbl, t, f_name = clustering.mean_shift_clustering()
+                elif (userInput == "0"): u_lbl, lbl, f_name = clustering.k_means_clustering(13)
+                elif (userInput == "1"): u_lbl, lbl, f_name = clustering.dbscan_clustering()
+                elif (userInput == "2"): u_lbl, lbl, f_name = clustering.optics_clustering()
+                elif (userInput == "3"): u_lbl, lbl, f_name = clustering.mean_shift_clustering()
+                elif (userInput == "4"): 
+                    u_lbl, lbl, f_name = clustering.k_means_clustering(13)
+                    x = self.classify_test(u_lbl, lbl, f_name)
+                    if x==0: break
+                    u_lbl, lbl, f_name = clustering.dbscan_clustering()
+                    x = self.classify_test(u_lbl, lbl, f_name)
+                    if x==0: break
+                    u_lbl, lbl, f_name = clustering.optics_clustering()
+                    x = self.classify_test(u_lbl, lbl, f_name)
+                    if x==0: break
+                    u_lbl, lbl, f_name = clustering.mean_shift_clustering()
+                    x = self.classify_test(u_lbl, lbl, f_name)
+                    break
 
                 # classify point cloud and evaluate classification
                 userInput = input("\nClassify Clustering Result (y/n)?")
                 if (userInput == "q"): break
                 elif (userInput=="y"): 
-                    x = self.class_and_eval(u_lbl, lbl, t, f_name)
+                    x = self.class_and_eval(u_lbl, lbl, f_name)
+                    print("yes")
                     if x==0: break
             
 if __name__=="__main__":
