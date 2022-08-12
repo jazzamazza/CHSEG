@@ -1,5 +1,5 @@
 # CHSEG
-Semantically Meaningful Clustering of Cultural Heritage Sites
+Semantically Meaningful Density-Based Clustering of Cultural Heritage Sites
 
 # README
 `make run` to run the program
