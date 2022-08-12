@@ -2,7 +2,7 @@
 Semantically Meaningful Clustering of Cultural Heritage Sites
 
 # README
-`make run` to run the program
+`make run` to run the program \n
 `make clean` to clean the environment
 
 **LINUX:**
