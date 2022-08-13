@@ -16,7 +16,6 @@ def setup(pnet):
         ndarray: PointCloud in a numpy array
     """
     print("###### POINT CLOUD SETUP ######")
-
     gui_choice = input(
         "Select file from GUI:\n Would you like to use a GUI to select the Point Cloud file? [y/n]\n->"
     )
@@ -24,26 +23,7 @@ def setup(pnet):
         gui = True
     else:
         gui = False
-
-    vis_choice = input(
-        "Visualisation:\n Would you like to visualise the selected Point Cloud? [y/n]\n->"
-    )
-    if vis_choice == "y":
-        vis = True
-    else:
-        vis = False
-
-    ds_choice = input(
-        "Downsampling:\n Would you like to downsample the selected Point Cloud? [y/n]\n->"
-    )
-    if ds_choice == "y":
-        ds = True
-        ds_amt = float(input("Downsampling:\n Enter the downsample amount.\n->"))
-        print("ds amnt =", ds_amt)
-    else:
-        ds = False
-        ds_amt = float(0)
-
+        
     if gui:
         print("###### POINT CLOUD LOADER ######")
         root = Tk()
@@ -70,8 +50,9 @@ def setup(pnet):
         file_ext = file_path[-4:]
         print("selected file:", file_path)
         print("file ext:", file_ext)
-
+        
     pc_loader = PointCloudLoader(file_path, file_ext)
+    pcutils = PointCloudUtils()
     
     if pnet:
         #pc_loader = PointCloudLoader('./Data/church_registered_pnet_wtruth_0.05.ply', '.ply')
@@ -82,14 +63,33 @@ def setup(pnet):
         np.save("./Data/church_registered_pnet_0.075_all.npy", point_cloud_all)
         return point_cloud, False
 
-    elif file_ext == ".ply":
+    vis_choice = input(
+        "Visualisation:\n Would you like to visualise the selected Point Cloud? [y/n]\n->"
+    )
+    if vis_choice == "y":
+        vis = True
+    else:
+        vis = False
+
+    ds_choice = input(
+        "Downsampling:\n Would you like to downsample the selected Point Cloud? [y/n]\n->"
+    )
+    if ds_choice == "y":
+        ds = True
+        ds_amt = float(input("Downsampling:\n Enter the downsample amount.\n->"))
+        print("ds amnt =", ds_amt)
+    else:
+        ds = False
+        ds_amt = float(0)
+
+
+    if file_ext == ".ply":
         pcd = pc_loader.load_point_cloud_ply(vis, ds, ds_amt)
         return pcd, False
 
     elif file_ext == ".npy":
         if ds:
-            pcutils = PointCloudUtils()
-            ##not normal tp chnage
+            pcd, pcd_all = pc_loader.load_point_cloud_npy(vis)
             ds_path_npy, ds_path_ply = pcutils.npy_raw_alt(file_path, ds_amt)
             pc_loader = PointCloudLoader(ds_path_npy, file_ext)
 

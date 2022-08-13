@@ -3,13 +3,17 @@ import numpy as np
 
 class PointCloudUtils:
 
-    def downsample_pcd(self, pcd_arr, input_file_format=".npy", pnet=True, downsample_amt=0.05):
-        if pnet:
-            format = "pnet"
-        else:
-            format = "raw"
+    def downsample_pcd(self, pcd_arr, input_file_format, pnet=True, downsample_amt=0.05):
+        # if pnet:
+        #     pcd_format = "pnet"
+        # else:
+        #     pcd_format = "raw"
             
         print("Downsample Called! @", downsample_amt, "on", (input_file_format+" file"), "formating is", format)
+        
+        if input_file_format==".npy":
+            if pnet:
+                out_npy, out_ply = self.ds_npy_pnet(pcd_arr, downsample_amt)
         
         out_npy, out_ply = self.ds_npy_raw(pcd_arr, downsample_amt)
         return np.load(out_npy)

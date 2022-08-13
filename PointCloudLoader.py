@@ -9,8 +9,6 @@ from PointCloudViewer import PointCloudViewer
 from PointCloudUtils import PointCloudUtils
 from tkinter import filedialog as fd
 from tkinter import Tk
-
-
 class PointCloudLoader:
     """Point Cloud Loader"""
 
