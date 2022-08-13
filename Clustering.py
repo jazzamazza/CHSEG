@@ -1,12 +1,8 @@
 from sklearnex import patch_sklearn
 
 patch_sklearn()
-import matplotlib.pyplot as plt
-import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_samples, silhouette_score
-import matplotlib.cm as cm
-import pptk
 
 # jared methods
 from sklearn.cluster import Birch
@@ -17,11 +13,13 @@ from pyclustering.cluster.encoder import cluster_encoder
 from pyclustering.cluster.encoder import type_encoding
 from pyclustering.utils import read_sample
 from pyclustering.cluster import cluster_visualizer
-
-from PointCloudUtils import PointCloudUtils
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import numpy as np
+import pptk
 import open3d as o3d
 from tqdm import tqdm
-
+from PointCloudUtils import PointCloudUtils
 
 # Clustering class with various clustering methods
 class Clustering:
@@ -258,11 +256,11 @@ class Clustering:
         print("Starting using", k, "clusters...")
         cure_cluster.process()
         print("Clustering finished")
-        
+
         clusters = cure_cluster.get_clusters()
         means = cure_cluster.get_means()
         reps = cure_cluster.get_representors()
-        
+
         encoding = cure_cluster.get_cluster_encoding()
         print("Encoding:", encoding)
         encoder = cluster_encoder(encoding, clusters, data)
@@ -270,10 +268,9 @@ class Clustering:
         print("New Encoding:", encoder.get_encoding())
         clusters = encoder.get_clusters()
         clusters1d = clusters.flatten()
-        
-        view = pptk.viewer(data[:,:3], clusters1d)
-        
-        
+
+        view = pptk.viewer(data[:, :3], clusters1d)
+
         # visualizer = cluster_visualizer_multidim()
         # visualizer.append_clusters(clusters, x)
         # flat_list=[]

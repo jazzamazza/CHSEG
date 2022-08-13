@@ -1,4 +1,3 @@
-# point_cloudLoader
 import numpy as np
 import open3d as o3d
 import laspy as lp
@@ -9,6 +8,8 @@ from PointCloudViewer import PointCloudViewer
 from PointCloudUtils import PointCloudUtils
 from tkinter import filedialog as fd
 from tkinter import Tk
+
+
 class PointCloudLoader:
     """Point Cloud Loader"""
 
@@ -408,7 +409,7 @@ class PointCloudLoader:
         if downsample:
             pcutils = PointCloudUtils()
             pcutils.ds_npy_pnet(self.pcd_path, ds_size)
-            
+
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         ROOT_DIR = BASE_DIR
         sys.path.append(os.path.join(ROOT_DIR, "PointNet++"))

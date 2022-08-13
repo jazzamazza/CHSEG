@@ -1,8 +1,8 @@
 from Clustering import Clustering
 from PointCloudLoader import PointCloudLoader
 from PointCloudUtils import PointCloudUtils
-from tkinter import filedialog as fd
 import numpy as np
+from tkinter import filedialog as fd
 from tkinter import Tk
 
 
@@ -23,7 +23,7 @@ def setup(pnet):
         gui = True
     else:
         gui = False
-        
+
     if gui:
         print("###### POINT CLOUD LOADER ######")
         root = Tk()
@@ -50,12 +50,12 @@ def setup(pnet):
         file_ext = file_path[-4:]
         print("selected file:", file_path)
         print("file ext:", file_ext)
-        
+
     pc_loader = PointCloudLoader(file_path, file_ext)
     pcutils = PointCloudUtils()
-    
+
     if pnet:
-        #pc_loader = PointCloudLoader('./Data/church_registered_pnet_wtruth_0.05.ply', '.ply')
+        # pc_loader = PointCloudLoader('./Data/church_registered_pnet_wtruth_0.05.ply', '.ply')
         point_cloud, point_cloud_all = pc_loader.loadPointCloud_pNet(
             vis, ds
         )  # setup point cloud with PointNet++ features
@@ -81,7 +81,6 @@ def setup(pnet):
     else:
         ds = False
         ds_amt = float(0)
-
 
     if file_ext == ".ply":
         pcd = pc_loader.load_point_cloud_ply(vis, ds, ds_amt)
@@ -110,7 +109,7 @@ def setup(pnet):
 
     elif file_ext == ".las":
         pcd = pc_loader.load_point_cloud_las(vis)
-        
+
         truth_choice = input(
             "Include truth label:\n Would you like truth label in the selected Point Cloud? [y/n]\n->"
         )
@@ -118,10 +117,10 @@ def setup(pnet):
             truth = True
         else:
             truth = False
-            
+
         if truth:
             truth = np.load("./Data/church_registered_alt_dsample_0.05.npy")
-            truth = truth[:,4:5]
+            truth = truth[:, 4:5]
             pcd_all = np.hstack((pcd, truth))
             return pcd, True, pcd_all
         else:
