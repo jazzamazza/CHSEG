@@ -4,15 +4,14 @@ patch_sklearn()
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_samples, silhouette_score
 
-# jared methods
+# Jared methods: BIRCH, CURE, ROCK
 from sklearn.cluster import Birch
 from pyclustering.cluster.cure import cure
 from pyclustering.cluster.rock import rock
-from pyclustering.cluster import cluster_visualizer_multidim
 from pyclustering.cluster.encoder import cluster_encoder
 from pyclustering.cluster.encoder import type_encoding
-from pyclustering.utils import read_sample
 from pyclustering.cluster import cluster_visualizer
+from pyclustering.cluster import cluster_visualizer_multidim
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
@@ -23,16 +22,10 @@ from PointCloudUtils import PointCloudUtils
 
 # Clustering class with various clustering methods
 class Clustering:
-    def __init__(self, point_cloud, pcd_truth, pcd_choice):
+    def __init__(self, point_cloud, pcd_truth, pcd_type):
         self.pcd = point_cloud
         self.pcd_truth = pcd_truth
-        # self.pcd_truth = pcd_with_truths
-        if pcd_choice == "1":
-            self.type = "raw"
-        elif pcd_choice == "2":
-            self.type = "cldCmp"
-        elif pcd_choice == "3":
-            self.type = "pnet++"
+        self.type = pcd_type
 
     def get_ground_truth(self, unique_labels, y_km, t):
 
@@ -100,48 +93,7 @@ class Clustering:
         view = pptk.viewer(xyz, intensity1d, truthorig, tflat)
 
         print("pptk loaded")
-
-    def k_means_clustering(self, k):
-        x = self.pcd
-        t = self.pcd_truth
-
-        print("\n------------------k means---------------------")
-        kmeans = KMeans(n_clusters=k, n_init=10)  # number of clusters (k)
-        kmeans.fit(x)  # apply k means to dataset
-        print("x[0]", x[0])
-        # Visualise K-Means
-        y_km = kmeans.predict(x)
-        print("y_km:", y_km)  # 10 clusters
-
-        centroids = kmeans.cluster_centers_
-        print("centroids:", centroids)
-        unique_labels = np.unique(y_km)
-        print("unique_labels:", unique_labels)
-
-        # get ground truth
-        print("t in kmeans", t[0])
-        self.get_ground_truth(unique_labels, y_km, t)
-        print("get ground truth")
-
-        for i in unique_labels:
-            # print((x[y_km == i , 0] , x[y_km == i , 1])) #how to access the pointd
-            plt.scatter(
-                x[y_km == i, 0], x[y_km == i, 1], label=i, marker="o", picker=True
-            )
-        plt.scatter(
-            centroids[:, 0],
-            centroids[:, 1],
-            s=100,
-            marker="*",
-            c="red",
-            edgecolor="black",
-            label="centroids",
-        )
-        # plt.legend()
-        plt.title("Two clusters of data")
-        plt.savefig("k_means_clusters.png")
-        plt.show()
-
+    
     def find_quality(self):
         pcutils = PointCloudUtils()
         pcloud = self.pcd
@@ -198,7 +150,48 @@ class Clustering:
         print(o3d.io.write_point_cloud(output_path + ".ply", pcd, print_progress=True))
         print("done")
 
-    def birch(self, k):
+    def k_means_clustering(self, k):
+        x = self.pcd
+        t = self.pcd_truth
+
+        print("\n------------------k means---------------------")
+        kmeans = KMeans(n_clusters=k, n_init=10)  # number of clusters (k)
+        kmeans.fit(x)  # apply k means to dataset
+        print("x[0]", x[0])
+        # Visualise K-Means
+        y_km = kmeans.predict(x)
+        print("y_km:", y_km)  # 10 clusters
+
+        centroids = kmeans.cluster_centers_
+        print("centroids:", centroids)
+        unique_labels = np.unique(y_km)
+        print("unique_labels:", unique_labels)
+
+        # get ground truth
+        print("t in kmeans", t[0])
+        self.get_ground_truth(unique_labels, y_km, t)
+        print("get ground truth")
+
+        for i in unique_labels:
+            # print((x[y_km == i , 0] , x[y_km == i , 1])) #how to access the pointd
+            plt.scatter(
+                x[y_km == i, 0], x[y_km == i, 1], label=i, marker="o", picker=True
+            )
+        plt.scatter(
+            centroids[:, 0],
+            centroids[:, 1],
+            s=100,
+            marker="*",
+            c="red",
+            edgecolor="black",
+            label="centroids",
+        )
+        # plt.legend()
+        plt.title("Two clusters of data")
+        plt.savefig("k_means_clusters.png")
+        plt.show()
+
+    def birch_clustering(self, k):
         heading = "BIRCH Clustering"
         heading = ("*" * len(heading)) + heading + ("*" * len(heading))
         print(heading)
@@ -237,17 +230,64 @@ class Clustering:
         #      label='centroids'
         # )
         # plt.legend()
-        plt.title("K-Means Clustering")
-        plt.savefig("k_means_clusters.png")
+        plt.title("Birch Clustering")
+        plt.savefig("birch_clusters.png")
         plt.show()
+        
+    def rock_clustering(self, k=3, eps=1.0):
+        clustering_alg = "ROCK Clustering"
+        decoration = "*" * len(clustering_alg)
+        heading = decoration + clustering_alg + decoration
+        print(heading)
+        
+        data = self.pcd
+        pcutils = PointCloudUtils()
+        pcutils.get_attributes(data, "Input PCD")
+        
+        rock_cluster = rock(data, eps, k, ccore= True)
+        print("Starting using", k, "clusters, and a connectivity radius of", eps)
+        rock_cluster.process()
+        print("Clustering finished")
+        
+        clusters = rock_cluster.get_clusters()
+        pcutils.get_attributes(np.array(clusters), "clusters og attr")
+        encoding = rock_cluster.get_cluster_encoding()
+        print("Encoding:", encoding)
+        encoder = cluster_encoder(encoding, clusters, data)
+        encoder.set_encoding(type_encoding.CLUSTER_INDEX_LABELING)
+        clusters_np = np.array(encoder.get_clusters())
+        # unique_labels = np.unique(clusters_np)
+        clusters_np = np.vstack(clusters_np)
+        pcutils.get_attributes(clusters_np, "clusters new attr")
+        
+        points = self.pcd_truth[:,:3]
+        pcutils.get_attributes(points, "points attr")
+        
+        truth = self.pcd_truth[:,4:5]
+        pcutils.get_attributes(truth, "truth attr")
+        
+        p = o3d.utility.Vector3dVector(points)
+        normals = np.hstack((self.pcd_truth[:,3:4], clusters_np, np.zeros((np.shape(points)[0], 1))))
+        n = o3d.utility.Vector3dVector(normals)
+        colors = np.hstack((truth, np.zeros((np.shape(points)[0], 1)), np.zeros((np.shape(points)[0], 1))))
+        c = o3d.utility.Vector3dVector(colors)
+        
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = p
+        pcd.colors = c
+        pcd.normals = n
+        
+        o3d.io.write_point_cloud("./Data/rock_clust.ply", pcd)
 
-    def cure_clustering(self, k=3):
+        view = pptk.viewer(points, clusters_np.flatten(), debug=True)
+
+    def cure_clustering(self, k=10):
         clustering_alg = "CURE Clustering"
         decoration = "*" * len(clustering_alg)
         heading = decoration + clustering_alg + decoration
         print(heading)
 
-        data = np.asarray(self.pcd)
+        data = self.pcd
         pcutils = PointCloudUtils()
         pcutils.get_attributes(data, "Input PCD")
 
@@ -258,6 +298,11 @@ class Clustering:
         print("Clustering finished")
 
         clusters = cure_cluster.get_clusters()
+        pcutils.get_attributes(np.array(clusters), "clusters og attr")
+        # i =0
+        # for cluster in clusters:
+        #     i+=1
+        #     print("cluster", i, cluster)
         means = cure_cluster.get_means()
         reps = cure_cluster.get_representors()
 
@@ -265,11 +310,47 @@ class Clustering:
         print("Encoding:", encoding)
         encoder = cluster_encoder(encoding, clusters, data)
         encoder.set_encoding(type_encoding.CLUSTER_INDEX_LABELING)
-        print("New Encoding:", encoder.get_encoding())
-        clusters = encoder.get_clusters()
-        clusters1d = clusters.flatten()
+        # new_encoding = encoder.get_encoding()
+        # print("New Encoding:", new_encoding.get_cluster_encoding())
+        new_clusters = encoder.get_clusters()
+        clusters_np = np.array(new_clusters)
+        # unique_labels = np.unique(clusters_np)
+        clusters_np = np.vstack(clusters_np)
+        pcutils.get_attributes(clusters_np, "clusters new attr")
+        # for unique in unique_labels:
+        #     print("clusters",clusters_np[clusters_np==unique])
+        # print("clusters",clusters_np)
+        # clusters1d = clusters.flatten()
+        # pcutils.get_attributes(clusters1d, "clusters1d attr")
+        points = self.pcd_truth[:,:3]
+        pcutils.get_attributes(points, "points attr")
+        
+        truth = self.pcd_truth[:,4:5]
+        pcutils.get_attributes(truth, "truth attr")
+        
+        p = o3d.utility.Vector3dVector(points)
+        normals = np.hstack((self.pcd_truth[:,3:4], clusters_np, np.zeros((np.shape(points)[0], 1))))
+        n = o3d.utility.Vector3dVector(normals)
+        colors = np.hstack((truth, np.zeros((np.shape(points)[0], 1)), np.zeros((np.shape(points)[0], 1))))
+        c = o3d.utility.Vector3dVector(colors)
+        
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = p
+        pcd.colors = c
+        pcd.normals = n
+        
+        o3d.io.write_point_cloud("./Data/cure_clust.ply", pcd)
 
-        view = pptk.viewer(data[:, :3], clusters1d)
+        view = pptk.viewer(points, clusters_np.flatten(), debug=True)
+        #view.wait()
+        
+        # visualizer = cluster_visualizer(1,1,"cure clusters")
+        # visualizer.append_cluster(clusters, data, 0, '*', markersize=5)
+        # visualizer.show()
+        
+        # visualizer = cluster_visualizer_multidim()
+        # visualizer.append_clusters(clusters, data)
+        # visualizer.show()
 
         # visualizer = cluster_visualizer_multidim()
         # visualizer.append_clusters(clusters, x)
