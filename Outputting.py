@@ -1,8 +1,8 @@
 # OUTPUT
 
-# results_file = "Output_Data\Results_Raw.txt"
-results_file = "Output_Data\Results_Raw_12_55.txt"
-# results_file = "Output_Data\Results_CldCmp.txt"
+results_file = "MY_THESIS_RESULTS\mtr_Raw\Results_Raw_Final_Thurs_14_10.txt"
+# results_file = "Output_Data\Results_PNet_testing_k.txt"
+# results_file = "Output_Data\Results_CldCmp_wed_8_35.txt"
 # results_file = "Output_Data\Results_PNet.txt"
 
 img_path = "Output\\"
