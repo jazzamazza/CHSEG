@@ -138,4 +138,3 @@ class Clust_Vis():
         plt.title(title)
         plt.savefig(imgName)
         plt.show()
-        
