@@ -6,6 +6,7 @@ from sklearn.metrics import silhouette_samples, silhouette_score
 
 # Jared methods: BIRCH, CURE, ROCK
 from sklearn.cluster import Birch
+from sklearn.cluster import AgglomerativeClustering
 from pyclustering.cluster.cure import cure
 from pyclustering.cluster.rock import rock
 from pyclustering.cluster.encoder import cluster_encoder
@@ -233,6 +234,26 @@ class Clustering:
         plt.title("Birch Clustering")
         plt.savefig("birch_clusters.png")
         plt.show()
+        
+    def agglomerative_clustering(self, k, affinity="euclidean", linkage="ward"):
+        clustering_alg = "Agglomerative Clustering"
+        decoration = "*" * len(clustering_alg)
+        heading = decoration + clustering_alg + decoration
+        print(heading)
+        
+        x = self.pcd
+        pcutils = PointCloudUtils()
+        pcutils.get_attributes(x, "Input PCD")
+        
+        agg_clustering = AgglomerativeClustering(k, affinity=affinity, linkage=linkage)
+        print("Starting using:", k, "clusters, Affinity is:", affinity,", Linkage is: ",linkage)
+        agg_cluster = agg_clustering.fit(x)
+        clusters = agg_cluster.labels_
+        
+        
+        
+        
+        
 
     def rock_clustering(self, k=3, eps=1.0):
         clustering_alg = "ROCK Clustering"

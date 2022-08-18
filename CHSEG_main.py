@@ -142,9 +142,13 @@ def application():
         elif user_input == "3":
             point_cloud, pcd_truth = setup(pnet=True)
             clustering = Clustering(point_cloud, pcd_truth, "pnet_wtruth")
+    
+        experiment_menu(clustering, user_input)
+        
 
-        while user_input != "r":
-            # cluster point cloud
+def experiment_menu(clustering_obj, user_input):
+    clustering = clustering_obj
+    while user_input != "r":
             user_input = input(
                 "\nChoose Clustering Method(s):"
                 + "\n 0 : K-Means Clustering fais"
@@ -178,7 +182,6 @@ def application():
             elif user_input == "7":
                 clusters = int(input("n clusters: "))
                 clustering.rock_clustering(clusters)
-
-
+                
 if __name__ == "__main__":
     application()
