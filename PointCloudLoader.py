@@ -150,6 +150,7 @@ class PointCloudLoader:
               points = np.hstack((points, np.nan_to_num(np.vstack((pcd[dim])))))
             else:
                   truth_label = np.nan_to_num(np.vstack((pcd[dim])))
+            print("loaded feature:", dim)
         final_features = points[:, 3:]
         xyz_points = points[:, :3]
         label_and_final_features = np.hstack((truth_label, final_features))
