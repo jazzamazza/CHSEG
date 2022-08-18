@@ -37,91 +37,64 @@ class Testing:
                db_index = davies_bouldin_score(x, labels)
                results.update({i: db_index})
                print({i: db_index})
-
-          plt.plot(list(results.keys()), list(results.values()))
-          plt.xlabel("Number of clusters")
-          plt.ylabel("Davies-Boulding Index")
-          plt.show()
      
      def evaluate(self, metric_choice):
+        print("checking self.y_predict-----------------")
+        for i in self.y_predict:
+            if i != float(0) and i != float(1): print(i)
+        print("checking self.y_true-----------------")
+        for i in self.y_true:
+            if i != float(0) and i != float(1): print(i)
+
         if metric_choice == 0:
             # f1 score 
-            score1 = f1_score(self.y_true, self.y_predict, pos_label=0)
-            write_results_to_file("F1 Score (Binary):" + str(score1))
-            score2 = f1_score(self.y_true, self.y_predict, average='macro')
-            write_results_to_file("F1 Score (Macro):" + str(score2))
+            score = f1_score(self.y_true, self.y_predict, average='macro')
+            write_results_to_file("F1 Score (Macro):" + str(score))
         elif metric_choice == 1:
             # IOU score
-            score1 = jaccard_score(self.y_true, self.y_predict, pos_label=0)
-            write_results_to_file("IOU Score (Binary):" + str(score1))
-            score2 = jaccard_score(self.y_true, self.y_predict, average='macro')
-            write_results_to_file("IOU Score (Macro):" + str(score2))
+            score = jaccard_score(self.y_true, self.y_predict, average='macro')
+            write_results_to_file("IOU Score (Macro):" + str(score))
         elif metric_choice == 2:
             # precision
-            score = precision_score(self.y_true, self.y_predict, pos_label=0)
-            write_results_to_file("Precision (Binary):" + str(score1))
-            score2 = precision_score(self.y_true, self.y_predict, average='macro')
-            write_results_to_file("Precision (Macro):" + str(score2))
+            score = precision_score(self.y_true, self.y_predict, average='macro')
+            write_results_to_file("Precision (Macro):" + str(score))
         elif metric_choice == 3:
             # recall
-            score1 = recall_score(self.y_true, self.y_predict, pos_label=0)
-            write_results_to_file("Recall (Binary):" + str(score1))
-            score2 = recall_score(self.y_true, self.y_predict, average='macro')
-            write_results_to_file("Recall (Macro):" + str(score2))
+            score = recall_score(self.y_true, self.y_predict, average='macro')
+            write_results_to_file("Recall (Macro):" + str(score))
         elif metric_choice == 4:
             # mean absolute error 
-            score1 = mean_absolute_error(self.y_true, self.y_predict)
-            write_results_to_file("Mean Absolute Error:" + str(score1))
-            score2 = ""
+            score = mean_absolute_error(self.y_true, self.y_predict)
+            write_results_to_file("Mean Absolute Error:" + str(score))
         elif metric_choice == 5:
             # mean squared error 
-            score1 = mean_squared_error(self.y_true, self.y_predict)
-            write_results_to_file("Mean Squared Error:" + str(score1))
-            score2 = ""
+            score = mean_squared_error(self.y_true, self.y_predict)
+            write_results_to_file("Mean Squared Error:" + str(score))
         elif metric_choice == 6:
             # all metrics
-
-            # binary results
-            f = f1_score(self.y_true, self.y_predict, pos_label=0)
-            j = jaccard_score(self.y_true, self.y_predict, pos_label=0)
-            p = precision_score(self.y_true, self.y_predict, pos_label=0)
-            r = recall_score(self.y_true, self.y_predict, pos_label=0)
-            a = mean_absolute_error(self.y_true, self.y_predict)
-            s = mean_squared_error(self.y_true, self.y_predict)
-            print("F1 Score (Binary):", f, 
-                  "\nIOU Score (Binary):", j, 
-                  "\nPrecision (Binary):", p, 
-                  "\nRecall (Binary):", r, 
-                  "\nMean Absolute Error:", a,
-                  "\nMean Squared Error:", s)
-
-            write_results_to_file("F1 Score (Binary):" + str(f))
-            write_results_to_file("IOU Score (Binary):" + str(j))
-            write_results_to_file("Precision (Binary):" + str(p))
-            write_results_to_file("Recall (Binary):" + str(r))
-            write_results_to_file("Mean Absolute Error (Binary):" + str(s))
-            write_results_to_file("Mean Squared Error (Binary):" + str(s))
-
-            # macro results
             f2 = f1_score(self.y_true, self.y_predict, average='macro')
             j2 = jaccard_score(self.y_true, self.y_predict,  average='macro')
             p2 = precision_score(self.y_true, self.y_predict,  average='macro')
             r2 = recall_score(self.y_true, self.y_predict,  average='macro')
-            print("F1 Score (Macro):", f2, 
-                  "\nIOU Score (Macro):", j2, 
-                  "\nPrecision (Macro):", p2, 
-                  "\nRecall (Macro):", r2)
-            score1 = ""
-            score2 = ""
+            a = mean_absolute_error(self.y_true, self.y_predict)
+            s = mean_squared_error(self.y_true, self.y_predict)
+            print("F1 Score (Macro):", str(f2).replace('.', ','), 
+                  "\nIOU Score (Macro):", str(j2).replace('.', ','), 
+                  "\nPrecision (Macro):", str(p2).replace('.', ','), 
+                  "\nRecall (Macro):", str(r2).replace('.', ','),
+                  "\nMean Absolute Error:", str(a).replace('.', ','),
+                  "\nMean Squared Error:", str(s).replace('.', ','))
+            score = ""
 
-            write_results_to_file("F1 Score (Macro):" + str(f2))
-            write_results_to_file("IOU Score (Macro):" + str(j2))
-            write_results_to_file("Precision (Macro):" + str(p2))
-            write_results_to_file("Recall (Macro):" + str(r2))
-        return score1, score2
+            write_results_to_file("F1 Score (Macro):" + str(f2).replace('.', ','))
+            write_results_to_file("IOU Score (Macro):" + str(j2).replace('.', ','))
+            write_results_to_file("Precision (Macro):" + str(p2).replace('.', ','))
+            write_results_to_file("Recall (Macro):" + str(r2).replace('.', ','))
+            write_results_to_file("Mean Absolute Error:" + str(a).replace('.', ','))
+            write_results_to_file("Mean Squared Error:" + str(s).replace('.', ','))
+        return score
 
      def classification_metrics(self, actual_ground_truths, predicted_ground_truths):
-        print("hi")
         write_results_to_file("*************Classification Metrics*************")
         # data
         self.y_true = actual_ground_truths 
@@ -144,9 +117,8 @@ class Testing:
                                     "\n 6 : All of the Above"+
                                     "\n q : Quit\n")
             if (userInput == "q"): break
-            score1, score2 = self.evaluate(int(userInput))
-            print(score1)
-            print(score2)
+            score = self.evaluate(int(userInput))
+            print(score)
 
 if __name__ == "__main__":
     t = Testing()
