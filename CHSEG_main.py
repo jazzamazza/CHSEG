@@ -19,8 +19,9 @@ class CHSEG_main:
           self.testing = None
           self.class_pcd_file_path = classified_pcd_path
 
-    def class_and_eval(self, unique_labels, y_km, t, file_name):
+    def class_and_eval(self, unique_labels, y_km, file_name):
         # Classification
+        t = self.pcd_with_truths
         self.classifier.classify(unique_labels, y_km, t, self.index, self.class_pcd_file_path, file_name)
         true_labels, predicted_labels = self.classifier.get_ground_truth()
         # visualise classification in PPTK
@@ -87,7 +88,7 @@ class CHSEG_main:
                     self.dsSize = float(userInput)
 
             self.setup(pcd_choice)
-            clustering = Clustering(self.pointCloud, self.pcd_with_truths , pcd_choice)
+            clustering = Clustering(self.pointCloud , pcd_choice)
             
             while (userInput != "r" and userInput != "q"):
                 write_results_to_file("--------------------------------------------------------")
@@ -100,16 +101,16 @@ class CHSEG_main:
                                 "\n r : Restart the Application\n")
                 if (userInput == "q"): break
                 
-                elif (userInput == "0"): u_lbl, lbl, t, f_name = clustering.k_means_clustering(13)
-                elif (userInput == "1"): u_lbl, lbl, t, f_name = clustering.dbscan_clustering()
-                elif (userInput == "2"): u_lbl, lbl, t, f_name = clustering.optics_clustering()
-                elif (userInput == "3"): u_lbl, lbl, t, f_name = clustering.mean_shift_clustering()
+                elif (userInput == "0"): u_lbl, lbl, f_name = clustering.k_means_clustering(13)
+                elif (userInput == "1"): u_lbl, lbl, f_name = clustering.dbscan_clustering()
+                elif (userInput == "2"): u_lbl, lbl, f_name = clustering.optics_clustering()
+                elif (userInput == "3"): u_lbl, lbl, f_name = clustering.mean_shift_clustering()
 
                 # classify point cloud and evaluate classification
                 userInput = input("\nClassify Clustering Result (y/n)?")
                 if (userInput == "q"): break
                 elif (userInput=="y"): 
-                    x = self.class_and_eval(u_lbl, lbl, t, f_name)
+                    x = self.class_and_eval(u_lbl, lbl, f_name)
                     if x==0: break
             
 if __name__=="__main__":
