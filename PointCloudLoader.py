@@ -17,7 +17,9 @@ class PointCloudLoader:
         self.pcd_path = path
         self.filetype = file_ext
 
-    def load_point_cloud_npy(self, vis=False, downsample=False, ds_size=0.0, truth = False):
+    def load_point_cloud_npy(
+        self, vis=False, downsample=False, ds_size=0.0, truth=False
+    ):
         print("\n****************** Loading Point Cloud from .npy *******************")
         if downsample:
             print("Downsampling Active @", ds_size)
@@ -46,8 +48,8 @@ class PointCloudLoader:
         )
         final_pcd = np.hstack((points, intensity))  # without truth label
         self.get_attributes(final_pcd, "Point Cloud w/o GTruth")
-        
-        if truth:    
+
+        if truth:
             print(
                 "\n****************** Creating Final Point Cloud w/ GTruth *******************"
             )
@@ -61,21 +63,24 @@ class PointCloudLoader:
         else:
             if vis:
                 pview = PointCloudViewer()
-                pview.vis_npy(points, intensity, truth_label)   
+                pview.vis_npy(points, intensity, truth_label)
             return final_pcd
 
-    
-    def load_point_cloud_ply(self, vis=False, downsample=False, down_size=float(0.0), truth = False):
+    def load_point_cloud_ply(
+        self, vis=False, downsample=False, down_size=float(0.0), truth=False
+    ):
         if downsample:
             print("Downsampling Active @", down_size)
             pcutils = PointCloudUtils()
             pcd = o3d.io.read_point_cloud(self.pcd_path, print_progress=True)
-            ds_ply_path = pcutils.downsample_pcd(pcd, self.filetype, False, down_size, truth)
+            ds_ply_path = pcutils.downsample_pcd(
+                pcd, self.filetype, False, down_size, truth
+            )
             pcd = o3d.io.read_point_cloud(ds_ply_path, print_progress=True)
         else:
             print(
-            "\n******************Loading Point Cloud (.ply) with Raw Features (x, y, z, intensity) *******************"
-        )
+                "\n******************Loading Point Cloud (.ply) with Raw Features (x, y, z, intensity) *******************"
+            )
             # load point cloud .ply file
             path = self.pcd_path
             pcd = o3d.io.read_point_cloud(path, print_progress=True)
@@ -103,16 +108,16 @@ class PointCloudLoader:
             print(np.asarray(pcd.covariances))
 
         pcd_points = np.asarray(pcd.points)
-        pcd_intensity = np.asarray(pcd.normals)[:,0:1]
-        pcd_truth = np.asarray(pcd.colors)[:,0:1]
-        
+        pcd_intensity = np.asarray(pcd.normals)[:, 0:1]
+        pcd_truth = np.asarray(pcd.colors)[:, 0:1]
+
         print(
             "\n****************** Creating Final Point Cloud w/o GTruth *******************"
         )
         final_pcd = np.hstack((pcd_points, pcd_intensity))  # without truth label
         self.get_attributes(final_pcd, "Point Cloud w/o GTruth")
-        
-        if truth:    
+
+        if truth:
             print(
                 "\n****************** Creating Final Point Cloud w/ GTruth *******************"
             )
@@ -121,14 +126,14 @@ class PointCloudLoader:
 
             if vis:
                 pview = PointCloudViewer()
-                pview.vis_ply(pcd, pcd_points, pcd_intensity, pcd_truth) 
+                pview.vis_ply(pcd, pcd_points, pcd_intensity, pcd_truth)
             return final_pcd, final_pcd_wtruth
         else:
             if vis:
                 pview = PointCloudViewer()
-                pview.vis_ply(pcd, pcd_points, pcd_intensity, pcd_truth) 
+                pview.vis_ply(pcd, pcd_points, pcd_intensity, pcd_truth)
             return final_pcd
-    
+
     def load_point_cloud_las(self, vis, downsample=False, ds_size=0):
         print(
             "\n******************Loading Point Cloud with Cloud Compare Generated Features (x, y, z, intensity) *******************"
@@ -172,7 +177,7 @@ class PointCloudLoader:
             final_pcd = points
 
         return final_pcd
-    
+
     def loadPointCloud_pNet(self, vis=False, downsample=False, ds_size=float(0.0)):
         if downsample:
             print("Downsampling active @", ds_size)
@@ -206,7 +211,3 @@ class PointCloudLoader:
         print("\t- Point cloud shape:", np.shape(pcd))
         print("\t- Point cloud points:", np.shape(pcd)[0])
         print("\t- Point cloud data type:", pcd.dtype, "\n")
-
-    
-
-    

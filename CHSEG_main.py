@@ -69,12 +69,18 @@ def setup(pnet=False, truth=False):
         # setup point cloud with PointNet++ features
         point_cloud, point_cloud_all = pc_loader.loadPointCloud_pNet(vis, ds)
         if ds:
-            np.save(("./Data/church_registered_final_pnet_" + str(ds_amt) + ".npy"), point_cloud)
-            np.save(("./Data/church_registered_final_pnet_all_" + str(ds_amt) + ".npy"), point_cloud_all)
+            np.save(
+                ("./Data/church_registered_final_pnet_" + str(ds_amt) + ".npy"),
+                point_cloud,
+            )
+            np.save(
+                ("./Data/church_registered_final_pnet_all_" + str(ds_amt) + ".npy"),
+                point_cloud_all,
+            )
         else:
             np.save(("./Data/church_registered_final_pnet.npy"), point_cloud)
             np.save(("./Data/church_registered_final_pnet_all.npy"), point_cloud_all)
-        
+
         if truth:
             return point_cloud, point_cloud_all
         else:

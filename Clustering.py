@@ -93,7 +93,7 @@ class Clustering:
         view = pptk.viewer(xyz, intensity1d, truthorig, tflat)
 
         print("pptk loaded")
-    
+
     def find_quality(self):
         pcutils = PointCloudUtils()
         pcloud = self.pcd
@@ -233,22 +233,22 @@ class Clustering:
         plt.title("Birch Clustering")
         plt.savefig("birch_clusters.png")
         plt.show()
-        
+
     def rock_clustering(self, k=3, eps=1.0):
         clustering_alg = "ROCK Clustering"
         decoration = "*" * len(clustering_alg)
         heading = decoration + clustering_alg + decoration
         print(heading)
-        
+
         data = self.pcd
         pcutils = PointCloudUtils()
         pcutils.get_attributes(data, "Input PCD")
-        
-        rock_cluster = rock(data, eps, k, ccore= True)
+
+        rock_cluster = rock(data, eps, k, ccore=True)
         print("Starting using", k, "clusters, and a connectivity radius of", eps)
         rock_cluster.process()
         print("Clustering finished")
-        
+
         clusters = rock_cluster.get_clusters()
         pcutils.get_attributes(np.array(clusters), "clusters og attr")
         encoding = rock_cluster.get_cluster_encoding()
@@ -259,24 +259,32 @@ class Clustering:
         # unique_labels = np.unique(clusters_np)
         clusters_np = np.vstack(clusters_np)
         pcutils.get_attributes(clusters_np, "clusters new attr")
-        
-        points = self.pcd_truth[:,:3]
+
+        points = self.pcd_truth[:, :3]
         pcutils.get_attributes(points, "points attr")
-        
-        truth = self.pcd_truth[:,4:5]
+
+        truth = self.pcd_truth[:, 4:5]
         pcutils.get_attributes(truth, "truth attr")
-        
+
         p = o3d.utility.Vector3dVector(points)
-        normals = np.hstack((self.pcd_truth[:,3:4], clusters_np, np.zeros((np.shape(points)[0], 1))))
+        normals = np.hstack(
+            (self.pcd_truth[:, 3:4], clusters_np, np.zeros((np.shape(points)[0], 1)))
+        )
         n = o3d.utility.Vector3dVector(normals)
-        colors = np.hstack((truth, np.zeros((np.shape(points)[0], 1)), np.zeros((np.shape(points)[0], 1))))
+        colors = np.hstack(
+            (
+                truth,
+                np.zeros((np.shape(points)[0], 1)),
+                np.zeros((np.shape(points)[0], 1)),
+            )
+        )
         c = o3d.utility.Vector3dVector(colors)
-        
+
         pcd = o3d.geometry.PointCloud()
         pcd.points = p
         pcd.colors = c
         pcd.normals = n
-        
+
         o3d.io.write_point_cloud("./Data/rock_clust.ply", pcd)
 
         view = pptk.viewer(points, clusters_np.flatten(), debug=True)
@@ -322,32 +330,40 @@ class Clustering:
         # print("clusters",clusters_np)
         # clusters1d = clusters.flatten()
         # pcutils.get_attributes(clusters1d, "clusters1d attr")
-        points = self.pcd_truth[:,:3]
+        points = self.pcd_truth[:, :3]
         pcutils.get_attributes(points, "points attr")
-        
-        truth = self.pcd_truth[:,4:5]
+
+        truth = self.pcd_truth[:, 4:5]
         pcutils.get_attributes(truth, "truth attr")
-        
+
         p = o3d.utility.Vector3dVector(points)
-        normals = np.hstack((self.pcd_truth[:,3:4], clusters_np, np.zeros((np.shape(points)[0], 1))))
+        normals = np.hstack(
+            (self.pcd_truth[:, 3:4], clusters_np, np.zeros((np.shape(points)[0], 1)))
+        )
         n = o3d.utility.Vector3dVector(normals)
-        colors = np.hstack((truth, np.zeros((np.shape(points)[0], 1)), np.zeros((np.shape(points)[0], 1))))
+        colors = np.hstack(
+            (
+                truth,
+                np.zeros((np.shape(points)[0], 1)),
+                np.zeros((np.shape(points)[0], 1)),
+            )
+        )
         c = o3d.utility.Vector3dVector(colors)
-        
+
         pcd = o3d.geometry.PointCloud()
         pcd.points = p
         pcd.colors = c
         pcd.normals = n
-        
+
         o3d.io.write_point_cloud("./Data/cure_clust.ply", pcd)
 
         view = pptk.viewer(points, clusters_np.flatten(), debug=True)
-        #view.wait()
-        
+        # view.wait()
+
         # visualizer = cluster_visualizer(1,1,"cure clusters")
         # visualizer.append_cluster(clusters, data, 0, '*', markersize=5)
         # visualizer.show()
-        
+
         # visualizer = cluster_visualizer_multidim()
         # visualizer.append_clusters(clusters, data)
         # visualizer.show()
