@@ -5,6 +5,7 @@ from sklearn.metrics import *
 from kneed import KneeLocator
 from Outputting import write_results_to_file
 from Clust_Vis import *
+import pptk
 
 # Clustering class with various clustering methods
 class Clustering:
@@ -19,7 +20,7 @@ class Clustering:
      # k means clustering method --> clusters a dataset into k (given) clusters
      def k_means_clustering(self, k):
           x = self.pcd
-       
+          k = 13
           print("\n------------------k means---------------------")
           n_init = 10
           kmeans = KMeans(n_clusters=k, n_init=n_init).fit(x) # number of clusters (k)
@@ -32,6 +33,7 @@ class Clustering:
           self.get_information(y_km, x, unique_labels)
           # self.vis.vis_k_means(unique_labels, kmeans.cluster_centers_, y_km, x)
 
+          self.visualise_clustering(y_km, x)
           return unique_labels, y_km, "_kmeans"
 
       # OPTIC
@@ -44,6 +46,7 @@ class Clustering:
           max_e = 10
           print("starting optics method")
           clust = OPTICS(min_samples=min_samp, xi=xi, min_cluster_size=min_cluster_sz, max_eps=max_e).fit(X)
+          
           y_op = clust.fit_predict(X)
           print("finished optics method")
 
@@ -54,6 +57,7 @@ class Clustering:
           self.get_information(y_op, X, unique_labels)
           # self.vis.vis_OPTICS(X, clust.reachability_[clust.ordering_], y_op)
           
+          self.visualise_clustering(y_op, X)
           return unique_labels, y_op, "_OPTICS"
 
      # DBSCAN 
@@ -62,11 +66,14 @@ class Clustering:
           print("starting dbscan_clustering")
           X = self.pcd
 
-          min_samples_ = 36 # for cloud compare with 15 features
+          # self.calculate_best_db_parameters(X)
+
+          # min_samples_ = 30 #for cloud compare with 23 features
           min_samples_ = 8 # for raw point cloud
           e = self.calculateElbow(min_samples_)
+          print("e:", e)
 
-          arrResults = ["*************DBSCAN Parameters*************", "min_samples:"+str(min_samples_), "e:"+str(e)]
+          arrResults = ["*************DBSCAN Parameters*************", "min_samples:"+str(min_samples_), "e:"+str(e).replace('.', ',')]
           self.write_results(arrResults)
           
           db = DBSCAN(eps=e, min_samples=min_samples_).fit(X)
@@ -78,6 +85,8 @@ class Clustering:
           unique_labels = np.unique(y_db)
           self.get_information(y_db, X, unique_labels)
           # self.vis(X, y_db, db, core_samples_mask)
+
+          self.visualise_clustering(y_db, X)
 
           return unique_labels, y_db, "_DBSCAN"
 
@@ -101,14 +110,21 @@ class Clustering:
      def mean_shift_clustering(self):
           print("***************MEAN-SHIFT CLUSTERING***************")
           X = self.pcd
-          bandwidth = estimate_bandwidth(X, quantile=0.2, n_samples=500)
+          quantile = 0 #0.2 #0.2
+          n_samples = 0 #100 #500
+          # bandwidth = estimate_bandwidth(X, quantile=quantile, n_samples=n_samples)
+
+          bandwidth = 0.09 #0.09
+          print("bandwidth:", bandwidth)
           ms = MeanShift(bandwidth=bandwidth, bin_seeding=True).fit(X)
           y_ms = ms.predict(X)
 
-          self.write_results(["*************MEAN-SHIFT Parameters*************", "quantile: 0.2", "n_samples: 500", "bin_seeding: True"])
+          self.write_results(["*************MEAN-SHIFT Parameters*************", "quantile:" + str(quantile), "n_samples:" + str(n_samples), "bandwidth:" + str(bandwidth).replace('.', ','),  "bin_seeding: True"])
           unique_labels = np.unique(y_ms)
           self.get_information(y_ms, X, unique_labels)
           # self.vis.vis_mean_shift(X, y_ms, ms)
+
+          self.visualise_clustering(y_ms, X)
 
           return unique_labels, y_ms, "_meanshift"
 
@@ -130,5 +146,20 @@ class Clustering:
           print("Silhouette Coefficient: %0.3f" % sil_score)
           print("Davies Bouldin Score: %0.3f" % db_index)
           
-          arrResults = ["*************Clustering Metrics*************", "Silhouette Score:"+str(sil_score), "Davies Bouldin Index:"+str(db_index), clust, noise]
+          arrResults = ["*************Clustering Metrics*************", "Silhouette Score:"+str(sil_score).replace('.', ','), "Davies Bouldin Index:"+str(db_index).replace('.', ','), clust, noise]
           self.write_results(arrResults)
+     
+     def visualise_clustering(self, labels, x):
+          xyz = x[:,0:3]
+          pptk.viewer(xyz, labels.flatten())
+
+     def calculate_best_db_parameters(self, X):
+          self.write_results(["TESTING SILHOUETTE SCORE FOR DIFFERENT DB MIN_SAMPLES VALUES:"])
+          for i in range(8, 100):
+               print("min_samples:", i)
+               e = self.calculateElbow(i)
+               db = DBSCAN(eps=e, min_samples=i).fit(X)
+               y_db = db.fit_predict(X)
+               sil_score = silhouette_score(X, y_db)
+               print("Silhouette Coefficient: %0.3f" % sil_score)
+               self.write_results(["min_samples: " + str(i), "silhouette coefficient: ", str(sil_score)])
