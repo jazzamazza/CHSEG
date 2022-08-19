@@ -53,7 +53,7 @@ class CHSEG_main:
         return final_pcd, final_pcd_all
     
     def load_pointnet_from_file(self, path1, path2):
-        print("\n** Loading Point Cloud FINAL-PCD_pointnet_0.05**")
+        print("\n** Loading Point Cloud FINAL-PCD_pointnet_0.085**")
         loader = PointCloudLoader()
         final_pcd = np.load(path1)
         loader.get_attributes(final_pcd)   
@@ -65,13 +65,12 @@ class CHSEG_main:
         print("final_pcd features:", features)
         print("final_pcd[0]:", final_pcd[0])
 
-        print("\n** Loading Point Cloud FINAL-PCD-ALL_pointnet_0.05**")
+        print("\n** Loading Point Cloud FINAL-PCD-ALL_pointnet_0.085**")
         final_pcd_all = np.load(path2)
         loader.get_attributes(final_pcd_all)   
         
         # divide point_cloud into points and features 
         points = final_pcd_all[:,:3]
-        # truth_label = final_pcd_all[:,3:4]
         final_pcd_all[:,3:4] = np.ceil(final_pcd_all[:,3:4])
         features = final_pcd_all[:,4:]
         print("final_pcd_all points:", points)
@@ -148,7 +147,7 @@ class CHSEG_main:
             self.pointCloud, self.pcd_with_truths = self.load_cloudCompare_from_file("Data\cldCmp\FINAL-PCD_cloudCompare_0.085.npy", "Data\cldCmp\FINAL-PCD-ALL_PCD_cloudCompare_0.085.npy")
         elif (option == "3"):
             write_results_to_file("*************Point Cloud with PointNet++ Features*************")
-            self.pointCloud, self.pcd_with_truths = self.load_pointnet_from_file("Data\pnet\FINAL-PCD_pointnet_0.085.npy", "Data\pnet\FINAL-PCD-ALL_PCD_pointnet_0.085.npy")
+            self.pointCloud, self.pcd_with_truths = self.load_pointnet_from_file("Data\pnet\FINAL-PCD_pointnet_0.085_REDO.npy", "Data\pnet\FINAL-PCD-ALL_PCD_pointnet_0.085_REDO.npy")
 
         self.set_truth_label_idx(option)
         self.testing = Testing(self.pointCloud)

@@ -9,7 +9,6 @@ import sys
 import importlib
 import numpy as np
 from sklearn import preprocessing 
-from PointCloudLoader import PointCloudLoader
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = BASE_DIR
@@ -17,13 +16,11 @@ sys.path.append(os.path.join(ROOT_DIR, 'models'))
 
 def main_semseg():
     '''HYPER PARAMETER'''
-    os.environ["CUDA_VISIBLE_DEVICES"] = '0' #args.gpu
-
+    os.environ["CUDA_VISIBLE_DEVICES"] = '0' 
     NUM_CLASSES = 13
     BATCH_SIZE = 16 
     NUM_POINT = 4096 
 
-    #goes through both methods in pointnet data loadeer
     DATASET = DataLoader() 
            
     '''MODEL LOADING'''
@@ -37,26 +34,22 @@ def main_semseg():
     with torch.no_grad():
         scene_data, scene_label = DATASET[0]
         labels = DATASET.semantic_labels_list
-        print("labels outside", labels)
-        #now has labels appended to it
+        print("labels", labels)
+
         print("scene_data", scene_data)
-        print("length", len(scene_data[0])) #lenght is 4096
+        print("length", len(scene_data[0])) #length is 4096
 
         print("scene_label", scene_label)
-        x = scene_label[0]
-        print("x", x)
-        scene_label_new = np.append(scene_label, x)
-        print("scene_label_new shape", scene_label_new.shape)
-        print("scene_label_new", scene_label_new)
-        print("scene_label shape", scene_label.shape) #(799, 4096)
+        print("scene_label shape", scene_label.shape) # (799, 4096)
+
         print("Outside DataLoader")
+
         num_blocks = scene_data.shape[0]
         s_batch_num = (num_blocks + BATCH_SIZE - 1) // BATCH_SIZE
         batch_data = np.zeros((BATCH_SIZE, NUM_POINT, 9))
         batch_label = np.zeros((BATCH_SIZE, NUM_POINT))
         
-        feat_list = [] 
-        xyz_list = []
+        feat_list, xyz_list, labels_list = [], [], [] 
         for sbatch in range(s_batch_num):
             start_idx = sbatch * BATCH_SIZE
             end_idx = min((sbatch + 1) * BATCH_SIZE, num_blocks)
@@ -66,19 +59,21 @@ def main_semseg():
             torch_data = torch.Tensor(batch_data)
             torch_data = torch_data.float().cuda()
             torch_data = torch_data.transpose(2, 1)
-            feat, seg_pred = classifier(torch_data)
+            feat, _ = classifier(torch_data)
             
             f = feat.detach().cpu().numpy()
             p = torch_data[:,:3,:].permute(0, 2, 1).detach().cpu().numpy()
 
             xyz_list.append(p)
             feat_list.append(f)
-        
-        print("batch label", batch_label)
+            labels_list.append(batch_label)
+            
+        print("labels_list shape", np.shape(labels_list))
 
         new_feat_list = np.vstack((feat_list))
         new_xyz_list = np.vstack((xyz_list))
-        new_labels = np.vstack((scene_label_new))
+        new_labels = np.vstack((labels_list))
+        print("new_labels:", new_labels)
 
         new_new_labels = np.reshape(new_labels, new_labels.shape + (1,))
 
@@ -105,9 +100,9 @@ def main_semseg():
 
         finalPCD = np.column_stack((final_xyz_list, normalised_feat))
         finalPCD_all = np.column_stack((final_xyz_list, final_labels, normalised_feat))
-        # np.save('/content/drive/Shareddrives/CHSEG/data/PNET_TRUTH', finalPCD)
+        np.save('/content/drive/Shareddrives/Leah_Thesis/Data/pnet_redo.npy', finalPCD)
 
-        #now we use this test_semseg_pnet_DS2.npy file for the rest
+        #now we use this .npy file for the rest
         print("finalPCD shape:", finalPCD.shape)
         print("*********************************")
 
