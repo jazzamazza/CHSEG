@@ -1,5 +1,4 @@
-# CHSEG
-Semantically Meaningful Density-Based Clustering of Cultural Heritage Sites
+# Semantically Meaningful Density-Based Clustering of Cultural Heritage Sites
 
 `make run` to run the program \
 `make clean` to clean the environment
