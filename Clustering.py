@@ -20,9 +20,9 @@ class Clustering:
      # k means clustering method --> clusters a dataset into k (given) clusters
      def k_means_clustering(self, k):
           x = self.pcd
-          k = 13
+          k = 6000
           print("\n------------------k means---------------------")
-          n_init = 10
+          n_init = 100
           kmeans = KMeans(n_clusters=k, n_init=n_init).fit(x) # number of clusters (k)
           y_km = kmeans.predict(x)
 
@@ -40,10 +40,10 @@ class Clustering:
      def optics_clustering(self):
           print("***************OPTICS CLUSTERING***************")
           X = self.pcd
-          min_samp = 10
-          xi = 0.05
-          min_cluster_sz = 0.05
-          max_e = 10
+          min_samp = 80
+          xi = 0.02 #0.05
+          min_cluster_sz = 20
+          max_e = 1000
           print("starting optics method")
           clust = OPTICS(min_samples=min_samp, xi=xi, min_cluster_size=min_cluster_sz, max_eps=max_e).fit(X)
           
@@ -68,8 +68,8 @@ class Clustering:
 
           # self.calculate_best_db_parameters(X)
 
-          # min_samples_ = 30 #for cloud compare with 23 features
-          min_samples_ = 8 # for raw point cloud
+          min_samples_ = 50 #for cloud compare with 25 features
+          # min_samples_ = 7 # for raw point cloud with 4 features
           e = self.calculateElbow(min_samples_)
           print("e:", e)
 
@@ -114,7 +114,7 @@ class Clustering:
           n_samples = 0 #100 #500
           # bandwidth = estimate_bandwidth(X, quantile=quantile, n_samples=n_samples)
 
-          bandwidth = 0.09 #0.09
+          bandwidth = 0.09
           print("bandwidth:", bandwidth)
           ms = MeanShift(bandwidth=bandwidth, bin_seeding=True).fit(X)
           y_ms = ms.predict(X)

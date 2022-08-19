@@ -14,7 +14,7 @@ win_venv :
 	python -m venv venv
 
 run:	venv
-	python3 CHSEG_main.py	
+	python3 CHSEG_testing_main.py	
 	
 clean:
 	rm -r venv
