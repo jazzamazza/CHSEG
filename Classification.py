@@ -13,9 +13,6 @@ class Classification:
       self.get_attributes(self.predicted_labels, "self.predicted_labels")
       return self.true_labels, self.predicted_labels
           
-    # for raw: index = 4 --> x, y, z, intensity, ground_truth
-    # for cloud compare: index = 4 --> x, y, z, intensity, ground_truth, ...
-    # for pointnet: index = 3 --> x, y, z, ground_truth, ...
     def classify(self, unique_labels, y_km, t, index, file_path, file_name):
       print("\n******************Classification*******************")
       
