@@ -1,7 +1,6 @@
 # CHSEG
 Semantically Meaningful Density-Based Clustering of Cultural Heritage Sites
 
-# README
 `make run` to run the program \
 `make clean` to clean the environment
 
