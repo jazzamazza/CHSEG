@@ -20,9 +20,9 @@ class Clustering:
      # k means clustering method --> clusters a dataset into k (given) clusters
      def k_means_clustering(self, k):
           x = self.pcd
-          k = 6000
+          k = 2000
           print("\n------------------k means---------------------")
-          n_init = 100
+          n_init = 10
           kmeans = KMeans(n_clusters=k, n_init=n_init).fit(x) # number of clusters (k)
           y_km = kmeans.predict(x)
 
@@ -31,6 +31,8 @@ class Clustering:
           
           unique_labels = np.unique(y_km)
           self.get_information(y_km, x, unique_labels)
+
+          
           # self.vis.vis_k_means(unique_labels, kmeans.cluster_centers_, y_km, x)
 
           self.visualise_clustering(y_km, x)
@@ -114,7 +116,7 @@ class Clustering:
           n_samples = 0 #100 #500
           # bandwidth = estimate_bandwidth(X, quantile=quantile, n_samples=n_samples)
 
-          bandwidth = 0.09
+          bandwidth = 1 #0.09
           print("bandwidth:", bandwidth)
           ms = MeanShift(bandwidth=bandwidth, bin_seeding=True).fit(X)
           y_ms = ms.predict(X)
@@ -141,7 +143,7 @@ class Clustering:
           print(clust)
           print(noise)
 
-          sil_score = silhouette_score(X, labels)
+          sil_score = 0 #silhouette_score(X, labels)
           db_index = davies_bouldin_score(X, labels)
           print("Silhouette Coefficient: %0.3f" % sil_score)
           print("Davies Bouldin Score: %0.3f" % db_index)
