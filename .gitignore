@@ -107,6 +107,7 @@ celerybeat.pid
 env/
 venv/
 py*/
+thesis/
 ENV/
 env.bak/
 venv.bak/
