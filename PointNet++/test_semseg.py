@@ -100,7 +100,7 @@ def main_semseg():
 
         finalPCD = np.column_stack((final_xyz_list, normalised_feat))
         finalPCD_all = np.column_stack((final_xyz_list, final_labels, normalised_feat))
-        np.save('/content/drive/Shareddrives/Leah_Thesis/Data/pnet_redo.npy', finalPCD)
+        np.save('/content/drive/Shareddrives/Leah_Thesis/Data/pnet_redo.npy', finalPCD_all)
 
         #now we use this .npy file for the rest
         print("finalPCD shape:", finalPCD.shape)
