@@ -62,7 +62,7 @@ def main_semseg():
             feat, _ = classifier(torch_data)
             
             f = feat.detach().cpu().numpy()
-            p = torch_data[:,:3,:].permute(0, 2, 1).detach().cpu().numpy()
+            p = torch_data[:,:3,:].transpose(1,2).detach().cpu().numpy()
 
             xyz_list.append(p)
             feat_list.append(f)
@@ -75,15 +75,14 @@ def main_semseg():
         new_labels = np.vstack((labels_list))
         print("new_labels:", new_labels)
 
-        new_new_labels = np.reshape(new_labels, new_labels.shape + (1,))
 
-        print("new_labels", new_new_labels.shape) 
+        print("new_labels", new_labels.shape) 
         print('new_feat_list shape:', new_feat_list.shape)
         print('new_xyz_list shape:', new_xyz_list.shape)
 
         final_feat_list = np.vstack((new_feat_list))
         final_xyz_list = np.vstack((new_xyz_list))
-        final_labels = np.vstack((new_new_labels))
+        final_labels = np.reshape(new_labels, (final_xyz_list.shape[0], -1))
         
         print('final_feat_list shape:', final_feat_list.shape)
         print('final_xyz_list shape:', final_xyz_list.shape)
