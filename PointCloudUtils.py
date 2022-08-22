@@ -6,6 +6,23 @@ class PointCloudUtils:
     def __init__(self) -> None:
         print("PCU created")
 
+    def auto_downsample_data(
+        self,
+        ds_amt_start,
+        ds_amt_end,
+        ds_amt_inc=float(0.025),
+        pcd_file="./Data/church_registered.npy",
+        input_file_format=".npy",
+        pnet=False,
+        truth=False,
+    ):
+        pcd_arr = np.load(pcd_file)
+        ds = ds_amt_start
+        while ds <= ds_amt_end:
+            pcd_out_file = self.downsample_pcd(pcd_arr, input_file_format, pnet, ds, truth)
+            print("DS file saved at", pcd_out_file)
+            ds += ds_amt_inc
+
     def downsample_pcd(
         self,
         pcd,
@@ -69,7 +86,7 @@ class PointCloudUtils:
         pcd.normals = o3d.utility.Vector3dVector(normals)
 
         print("*******Downsample start**********")
-        downpcd = pcd.voxel_down_sample(voxel_size=downsample_amt)
+        downpcd = pcd.voxel_down_sample(voxel_size=float(str("%.3f" % downsample_amt)))
         print("*******Downsample end**********")
 
         down_np_pcloud = np.hstack(
@@ -93,7 +110,7 @@ class PointCloudUtils:
             "% smaller",
         )
 
-        output_path = "./Data/church_registered_ds_" + str(downsample_amt)
+        output_path = "./Data/church_registered_ds_" + str("%.3f" % downsample_amt)
         out_pth_npy = output_path + ".npy"
         out_pth_ply = output_path + ".ply"
         print("Saving pclouds")
@@ -121,7 +138,7 @@ class PointCloudUtils:
         npoints = np.shape(pcd_og)[0]
         self.get_attributes(pcd_og, "Predownsampling (.ply raw data)")
         print("*******Downsample start**********")
-        down_pcd = point_cloud.voxel_down_sample(voxel_size=downsample_amt)
+        down_pcd = point_cloud.voxel_down_sample(voxel_size=float(str("%.3f" % downsample_amt)))
         print("*******Downsample end**********")
 
         pcd_points = np.asarray(down_pcd.points)
@@ -148,7 +165,7 @@ class PointCloudUtils:
             "% smaller",
         )
 
-        output_path = "./Data/church_registered_ds_" + str(downsample_amt)
+        output_path = "./Data/church_registered_ds_" + str("%.3f" % downsample_amt)
         out_pth_npy = output_path + ".npy"
         out_pth_ply = output_path + ".ply"
         print("Saving pclouds")
@@ -267,8 +284,8 @@ class PointCloudUtils:
         heading_label = arr_name + " Attributes:"
         heading_label += ("\n") + (len(heading_label) * "*")
         print("\n" + heading_label)
-        print("\t- Point cloud n points:", np.shape(pcd)[0])
-        print("\t- Point cloud dim:", np.ndim(pcd))
-        print("\t- Point cloud shape:", np.shape(pcd))
-        print("\t- Point cloud size:", np.size(pcd))
-        print("\t- Point cloud data type:", pcd.dtype, "\n")
+        print("\n Point cloud n points:", np.shape(pcd)[0])
+        print("Point cloud dim:", np.ndim(pcd))
+        print("Point cloud shape:", np.shape(pcd))
+        print("Point cloud size:", np.size(pcd))
+        print("Point cloud data type:", pcd.dtype, "\n")
