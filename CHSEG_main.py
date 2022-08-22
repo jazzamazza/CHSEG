@@ -58,8 +58,8 @@ def setup(pnet=False, truth=False):
             print("selected file:", file_name)
             print("file ext:", file_ext)
     else:  # HARD CODE PATH
-        if (input("ds?")=="y"):
-            file_path="./Data/church_registered_ds" + input("amnt?") + input("filetype?")
+        if (input("DS File? (y)")=="y"):
+            file_path="./Data/church_registered_ds_" + input("ds amnt?: ") + input("filetype?: ")
         else:
             file_path = "./Data/church_registered.npy"  # C:\Users\Jared\Code\Thesis\CHSEG\Data\church_registered_alt_dsample_0.05.las
         file_ext = file_path[-4:]
