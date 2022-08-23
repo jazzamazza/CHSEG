@@ -126,6 +126,7 @@ def main_semseg():
 
         #now we use this .npy file for the rest
         print("finalPCD shape:", finalPCD.shape)
+        #Done
         print("*********************************")
 
         return finalPCD, finalPCD_all
