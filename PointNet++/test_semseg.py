@@ -28,19 +28,18 @@ def main_semseg():
     MODEL = importlib.import_module(model_name)
     classifier = MODEL.get_model(NUM_CLASSES).cuda()
     checkpoint = torch.load('PointNet++/best_model.pth') 
+  
     classifier.load_state_dict(checkpoint['model_state_dict'])
     classifier = classifier.eval()
 
     with torch.no_grad():
         scene_data, scene_label = DATASET[0]
-        labels = DATASET.semantic_labels_list
-        print("labels", labels)
 
         print("scene_data", scene_data)
         print("length", len(scene_data[0])) #length is 4096
 
         print("scene_label", scene_label)
-        print("scene_label shape", scene_label.shape) # (799, 4096)
+        print("scene_label shape", scene_label.shape) 
 
         print("Outside DataLoader")
 
@@ -54,56 +53,34 @@ def main_semseg():
             start_idx = sbatch * BATCH_SIZE
             end_idx = min((sbatch + 1) * BATCH_SIZE, num_blocks)
             real_batch_size = end_idx - start_idx
-            batch_data[0:real_batch_size, ...] = scene_data[start_idx:end_idx, ...]
+            batch_data[0:real_batch_size, ...] = scene_data[start_idx:end_idx, ...]       
             batch_label[0:real_batch_size, ...] = scene_label[start_idx:end_idx, ...]
-            torch_data = torch.Tensor(batch_data)
-            torch_data = torch_data.float().cuda()
-            torch_data = torch_data.transpose(2, 1)
+            
+            torch_data = torch.Tensor(batch_data).float().cuda().transpose(2, 1)
             feat, _ = classifier(torch_data)
             
-            f = feat.detach().cpu().numpy()
-            p = torch_data[:,:3,:].transpose(1,2).detach().cpu().numpy()
-
-            xyz_list.append(p)
-            feat_list.append(f)
-            labels_list.append(batch_label)
-            
-        print("labels_list shape", np.shape(labels_list))
-
-        new_feat_list = np.vstack((feat_list))
-        new_xyz_list = np.vstack((xyz_list))
-        new_labels = np.vstack((labels_list))
-        print("new_labels:", new_labels)
-
-
-        print("new_labels", new_labels.shape) 
-        print('new_feat_list shape:', new_feat_list.shape)
-        print('new_xyz_list shape:', new_xyz_list.shape)
-
-        final_feat_list = np.vstack((new_feat_list))
-        final_xyz_list = np.vstack((new_xyz_list))
-        final_labels = np.reshape(new_labels, (final_xyz_list.shape[0], -1))
-        
-        print('final_feat_list shape:', final_feat_list.shape)
-        print('final_xyz_list shape:', final_xyz_list.shape)
-        print('final_labels shape:', final_labels.shape)
-
-        print("final_feat_list:", final_feat_list)
-        print("final_xyz_list:", final_xyz_list)
-        print("final_labels:", final_labels)
+            xyz_list.append(torch_data[:,:3,:].transpose(1,2).detach().cpu().numpy())
+            feat_list.append(feat.detach().cpu().numpy())
+            labels_list.append(np.copy(batch_label))
 
         scalar = preprocessing.MinMaxScaler()
-        normalised_feat = scalar.fit_transform(final_feat_list)
+        final_xyz = np.vstack((np.vstack((xyz_list))))
+        final_labels = np.vstack((np.reshape(np.vstack((labels_list)), (final_xyz.shape[0], -1)))) #5636096
+        final_features = scalar.fit_transform(np.vstack((np.vstack((feat_list)))))
+
+        print('final_features shape:', final_features.shape)
+        print('final_xyz shape:', final_xyz.shape)
+        print('final_labels shape:', final_labels.shape)
+
+        print("final_features:", final_features)
+        print("final_xyz:", final_xyz)
+        print("final_labels:", final_labels)
 
         print("Calculating finalPCD")
-
-        finalPCD = np.column_stack((final_xyz_list, normalised_feat))
-        finalPCD_all = np.column_stack((final_xyz_list, final_labels, normalised_feat))
-        np.save('/content/drive/Shareddrives/Leah_Thesis/Data/pnet_redo.npy', finalPCD_all)
-
-        #now we use this .npy file for the rest
-        print("finalPCD shape:", finalPCD.shape)
-        print("*********************************")
+        finalPCD = np.column_stack((final_xyz, final_features))
+        finalPCD_all = np.column_stack((final_xyz, final_labels, final_features))
+        np.save('/content/drive/Shareddrives/CHSEG/LabelTests/pnet_test_final_all', finalPCD_all)
+        print("finalPCD shape:", finalPCD.shape, "\n*********************************")
 
         return finalPCD, finalPCD_all
 
