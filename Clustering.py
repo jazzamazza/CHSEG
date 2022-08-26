@@ -249,12 +249,8 @@ class Clustering:
         print("Starting using:", k, "clusters, Affinity is:", affinity,", Linkage is: ",linkage)
         agg_cluster = agg_clustering.fit(x)
         clusters = agg_cluster.labels_
+                            
         
-        
-        
-        
-        
-
     def rock_clustering(self, k=3, eps=1.0):
         clustering_alg = "ROCK Clustering"
         decoration = "*" * len(clustering_alg)

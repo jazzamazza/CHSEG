@@ -154,35 +154,29 @@ def experiment_menu(clustering_obj, user_input):
     while user_input != "r":
             user_input = input(
                 "\nChoose Clustering Method(s):"
-                + "\n 0 : K-Means Clustering fais"
-                + "\n 1 : sill"
-                + "\n 2 : Birch"
-                + "\n 3 : cure"
-                + "\n 4 : aprop"
-                + "\n 5 : kmed"
-                + "\n 6 : qual"
-                + "\n 6 : rock"
+                + "\n 1 : K-Means Clustering"
+                + "\n 2 : CURE Clustering"
+                + "\n 3 : BIRCH Clustering"
+                + "\n 4 : Agglomorative Clustering"
+                + "\n 5 : ROCK Clustering"
                 + "\n q : or quit the app"
                 + "\n r : Restart the Application\n"
             )
             if user_input == "q":
-                break
-            elif user_input == "0":
-                clustering.k_means_clustering(15)
+                exit(0)
             elif user_input == "1":
-                clustering.silhouette()
+                clusters = int(input("n clusters: "))
+                clustering.k_means_clustering(15)
             elif user_input == "2":
-                clustering.birch(13)
-            elif user_input == "3":
                 clusters = int(input("n clusters: "))
                 clustering.cure_clustering(clusters)
+            elif user_input == "3":
+                clusters = int(input("n clusters: "))
+                clustering.birch_clustering(clusters)
             elif user_input == "4":
-                clustering.affinity_progpogation_clustering()
+                clusters = int(input("n clusters: "))
+                clustering.agglomerative_clustering(clusters)
             elif user_input == "5":
-                clustering.kMediods_clustering(14)
-            elif user_input == "6":
-                clustering.find_quality()
-            elif user_input == "7":
                 clusters = int(input("n clusters: "))
                 clustering.rock_clustering(clusters)
                 
