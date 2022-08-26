@@ -58,8 +58,12 @@ def setup(pnet=False, truth=False):
             print("selected file:", file_name)
             print("file ext:", file_ext)
     else:  # HARD CODE PATH
-        if (input("DS File? (y)")=="y"):
-            file_path="./Data/church_registered_ds_" + input("ds amnt?: ") + input("filetype?: ")
+        if input("DS File? (y)") == "y":
+            file_path = (
+                "./Data/church_registered_ds_"
+                + input("ds amnt?: ")
+                + input("filetype?: ")
+            )
         else:
             file_path = "./Data/church_registered.npy"  # C:\Users\Jared\Code\Thesis\CHSEG\Data\church_registered_alt_dsample_0.05.las
         file_ext = file_path[-4:]
@@ -138,47 +142,48 @@ def application():
             break
         elif user_input == "1":
             point_cloud = setup()
-            clustering = Clustering(point_cloud, point_cloud, "raw")
+            clustering = Clustering(point_cloud, point_cloud)
         elif user_input == "2":
             point_cloud, pcd_truth = setup(truth=True)
-            clustering = Clustering(point_cloud, pcd_truth, "raw_wtruth")
+            clustering = Clustering(point_cloud, pcd_truth)
         elif user_input == "3":
             point_cloud, pcd_truth = setup(pnet=True)
-            clustering = Clustering(point_cloud, pcd_truth, "pnet_wtruth")
-    
+            clustering = Clustering(point_cloud, pcd_truth)
+
         experiment_menu(clustering, user_input)
-        
+
 
 def experiment_menu(clustering_obj, user_input):
     clustering = clustering_obj
     while user_input != "r":
-            user_input = input(
-                "\nChoose Clustering Method(s):"
-                + "\n 1 : K-Means Clustering"
-                + "\n 2 : CURE Clustering"
-                + "\n 3 : BIRCH Clustering"
-                + "\n 4 : Agglomorative Clustering"
-                + "\n 5 : ROCK Clustering"
-                + "\n q : or quit the app"
-                + "\n r : Restart the Application\n"
-            )
-            if user_input == "q":
-                exit(0)
-            elif user_input == "1":
-                clusters = int(input("n clusters: "))
-                clustering.k_means_clustering(15)
-            elif user_input == "2":
-                clusters = int(input("n clusters: "))
-                clustering.cure_clustering(clusters)
-            elif user_input == "3":
-                clusters = int(input("n clusters: "))
-                clustering.birch_clustering(clusters)
-            elif user_input == "4":
-                clusters = int(input("n clusters: "))
-                clustering.agglomerative_clustering(clusters)
-            elif user_input == "5":
-                clusters = int(input("n clusters: "))
-                clustering.rock_clustering(clusters)
-                
+        user_input = input(
+            "\nChoose Clustering Method(s):"
+            + "\n 1 : K-Means Clustering"
+            + "\n 2 : CURE Clustering"
+            + "\n 3 : BIRCH Clustering"
+            + "\n 4 : Agglomorative Clustering"
+            + "\n 5 : ROCK Clustering"
+            + "\n q : or quit the app"
+            + "\n r : Restart the Application\n"
+        )
+        if user_input == "q":
+            exit(0)
+        elif user_input == "1":
+            clusters = int(input("n clusters: "))
+            clustering.k_means_clustering(clusters)
+        elif user_input == "2":
+            clusters = int(input("n clusters: "))
+            clustering.cure_clustering(clusters)
+        elif user_input == "3":
+            clusters = int(input("n clusters: "))
+            clustering.birch_clustering(clusters)
+        elif user_input == "4":
+            clusters = int(input("n clusters: "))
+            clustering.agglomerative_clustering(clusters)
+        elif user_input == "5":
+            clusters = int(input("n clusters: "))
+            clustering.rock_clustering(clusters)
+
+
 if __name__ == "__main__":
     application()

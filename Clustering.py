@@ -13,8 +13,9 @@ from pyclustering.cluster.encoder import cluster_encoder
 from pyclustering.cluster.encoder import type_encoding
 from pyclustering.cluster import cluster_visualizer
 from pyclustering.cluster import cluster_visualizer_multidim
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
+
+# import matplotlib.pyplot as plt
+# import matplotlib.cm as cm
 import numpy as np
 import pptk
 import open3d as o3d
@@ -23,174 +24,161 @@ from PointCloudUtils import PointCloudUtils
 
 # Clustering class with various clustering methods
 class Clustering:
-    def __init__(self, point_cloud, pcd_truth, pcd_type):
-        self.pcd = point_cloud
-        self.pcd_truth = pcd_truth
-        self.type = pcd_type
+    def __init__(self, pcd_input, pcd_wtruth, pcd_type=None):
+        self.pcd = pcd_input
+        self.pcd_truth = pcd_wtruth
+        self.pcd_type = pcd_type
 
-    def get_ground_truth(self, unique_labels, y_km, t):
+        if self.pcd_type == None:
+            self.truth_index = 4
 
-        if np.shape(self.pcd_truth)[1] > 5:
-            index_truth = np.shape(self.pcd_truth)[1]  # last 1d
-        else:
-            index_truth = 4
+    # def get_ground_truth(self, unique_labels, y_km, t):
 
-        num_keep, num_discard = 0, 0
+    #     if np.shape(self.pcd_truth)[1] > 5:
+    #         index_truth = np.shape(self.pcd_truth)[1]  # last 1d
+    #     else:
+    #         index_truth = 4
 
-        ground_truths = np.array([])
-        print("t[0]", t[0])
-        print("ground_truth size:", ground_truths.size)
-        for i in tqdm(unique_labels, desc="quick loop"):
-            num_keep, num_discard = 0, 0
-            # print("cluster:", i)
-            # for point, p in map(None, x[y_km == i], t[y_km == i]):
-            for point in t[y_km == i]:
-                # print("p", point[4])
-                if point[index_truth - 1] >= float(0.5):
-                    num_discard += 1
-                else:
-                    num_keep += 1
-            # print("num_keep:", num_keep)
-            # print("num_discard:", num_discard)
-            if num_keep > num_discard:
-                ground_truths = np.append(
-                    ground_truths, 1
-                )  # changing the clusters to keep and discard
-            else:
-                ground_truths = np.append(ground_truths, 0)
+    #     num_keep, num_discard = 0, 0
 
-        print("ground_truth:", ground_truths)
+    #     ground_truths = np.array([])
+    #     print("t[0]", t[0])
+    #     print("ground_truth size:", ground_truths.size)
+    #     for i in tqdm(unique_labels, desc="quick loop"):
+    #         num_keep, num_discard = 0, 0
+    #         # print("cluster:", i)
+    #         # for point, p in map(None, x[y_km == i], t[y_km == i]):
+    #         for point in t[y_km == i]:
+    #             # print("p", point[4])
+    #             if point[index_truth - 1] >= float(0.5):
+    #                 num_discard += 1
+    #             else:
+    #                 num_keep += 1
+    #         # print("num_keep:", num_keep)
+    #         # print("num_discard:", num_discard)
+    #         if num_keep > num_discard:
+    #             ground_truths = np.append(
+    #                 ground_truths, 1
+    #             )  # changing the clusters to keep and discard
+    #         else:
+    #             ground_truths = np.append(ground_truths, 0)
 
-        # sets cluster to majority ground truth
-        g = np.asarray(t)
-        for i in tqdm(
-            range(0, len(ground_truths)), desc="for loops"
-        ):  # i is each cluster
-            # print("for")
-            if ground_truths[i] == float(1):  # if cluster == keep
-                for point in tqdm(
-                    t[y_km == i], desc="set keep loop"
-                ):  # set ground truth of each point to keep
-                    t[y_km == i, (index_truth - 1) : index_truth] = float(
-                        0
-                    )  # 0 in pcloud is keep
-            else:
-                for point in tqdm(t[y_km == i], desc="set discard loop"):
-                    t[y_km == i, (index_truth - 1) : index_truth] = float(
-                        1
-                    )  # 1 in pcloud is discard
+    #     print("ground_truth:", ground_truths)
 
-        print("t shape", np.shape(t))
-        print("truth", t[0])
-        print("g", g[0])
-        print("t", t)
-        print("t[:,4:5].flatten()", t[:, (index_truth - 1) : index_truth].flatten())
+    #     # sets cluster to majority ground truth
+    #     g = np.asarray(t)
+    #     for i in tqdm(
+    #         range(0, len(ground_truths)), desc="for loops"
+    #     ):  # i is each cluster
+    #         # print("for")
+    #         if ground_truths[i] == float(1):  # if cluster == keep
+    #             for point in tqdm(
+    #                 t[y_km == i], desc="set keep loop"
+    #             ):  # set ground truth of each point to keep
+    #                 t[y_km == i, (index_truth - 1) : index_truth] = float(
+    #                     0
+    #                 )  # 0 in pcloud is keep
+    #         else:
+    #             for point in tqdm(t[y_km == i], desc="set discard loop"):
+    #                 t[y_km == i, (index_truth - 1) : index_truth] = float(
+    #                     1
+    #                 )  # 1 in pcloud is discard
 
-        np.save("./Data/truths_class.npy", t)
-        tflat = t.flatten()
-        truthorig = self.pcd_truth[:, index_truth - 1 : index_truth].flatten()
-        xyz = self.pcd[:, 0:3]
-        intensity1d = (self.pcd[:, 3:4]).flatten()
-        view = pptk.viewer(xyz, intensity1d, truthorig, tflat)
+    #     print("t shape", np.shape(t))
+    #     print("truth", t[0])
+    #     print("g", g[0])
+    #     print("t", t)
+    #     print("t[:,4:5].flatten()", t[:, (index_truth - 1) : index_truth].flatten())
 
-        print("pptk loaded")
+    #     np.save("./Data/truths_class.npy", t)
+    #     tflat = t.flatten()
+    #     truthorig = self.pcd_truth[:, index_truth - 1 : index_truth].flatten()
+    #     xyz = self.pcd[:, 0:3]
+    #     intensity1d = (self.pcd[:, 3:4]).flatten()
+    #     view = pptk.viewer(xyz, intensity1d, truthorig, tflat)
 
-    def find_quality(self):
-        pcutils = PointCloudUtils()
-        pcloud = self.pcd
-        pcutils.get_attributes(pcloud, "pcloud")
-        pcloud_len = np.shape(pcloud)[0]
-        points = pcloud[:, :3]
-        intensity = pcloud[:, 3:4]
-        # gtruth = pcloud[:,4:5]
+    #     print("pptk loaded")
 
-        # format using open3d
-        pcd = o3d.geometry.PointCloud()
-        pcd.points = o3d.utility.Vector3dVector(points)  # add {x,y,z} points to pcd
-        intensity_to_rgb = np.hstack(
-            (intensity, np.zeros((pcloud_len, 1)), np.zeros((pcloud_len, 1)))
-        )  # form a 3D vector to add to o3d pcd
-        pcutils.get_attributes(intensity_to_rgb, "intrgb")
-        pcd.colors = o3d.utility.Vector3dVector(
-            intensity_to_rgb
-        )  # store intensity as every value in color vector
+    # def find_quality(self):
+    #     pcutils = PointCloudUtils()
+    #     pcloud = self.pcd
+    #     pcutils.get_attributes(pcloud, "pcloud")
+    #     pcloud_len = np.shape(pcloud)[0]
+    #     points = pcloud[:, :3]
+    #     intensity = pcloud[:, 3:4]
+    #     # gtruth = pcloud[:,4:5]
 
-        clusters, pred = self.k_means_clustering(13)
-        clusters = np.reshape(clusters, (-1, 1))
-        pred = np.reshape(pred, (-1, 1))
+    #     # format using open3d
+    #     pcd = o3d.geometry.PointCloud()
+    #     pcd.points = o3d.utility.Vector3dVector(points)  # add {x,y,z} points to pcd
+    #     intensity_to_rgb = np.hstack(
+    #         (intensity, np.zeros((pcloud_len, 1)), np.zeros((pcloud_len, 1)))
+    #     )  # form a 3D vector to add to o3d pcd
+    #     pcutils.get_attributes(intensity_to_rgb, "intrgb")
+    #     pcd.colors = o3d.utility.Vector3dVector(
+    #         intensity_to_rgb
+    #     )  # store intensity as every value in color vector
 
-        pcloud = np.load("./Data/church_registered_raw_0.5.npy")
-        gtruth = pcloud[:, 4:5]
-        pcloud = np.load("./Data/ground_truth.npy")
-        print("56", pcloud[:, 5:6])
-        keepdiscard = pcloud[:, 5:6]
+    #     clusters, pred = self.k_means_clustering(13)
+    #     clusters = np.reshape(clusters, (-1, 1))
+    #     pred = np.reshape(pred, (-1, 1))
 
-        pcutils.get_attributes(keepdiscard)
-        pcutils.get_attributes(gtruth, "gtruth")
-        pcutils.get_attributes(clusters, "clusters")
-        pcutils.get_attributes(pred, "pred")
+    #     pcloud = np.load("./Data/church_registered_raw_0.5.npy")
+    #     gtruth = pcloud[:, 4:5]
+    #     pcloud = np.load("./Data/ground_truth.npy")
+    #     print("56", pcloud[:, 5:6])
+    #     keepdiscard = pcloud[:, 5:6]
 
-        gtruth_clust_to_normal = np.hstack((gtruth, clusters, keepdiscard))
-        pcutils.get_attributes(gtruth_clust_to_normal, "gtclust")
-        pcd.normals = o3d.utility.Vector3dVector(
-            gtruth_clust_to_normal
-        )  # store keep discard as
+    #     pcutils.get_attributes(keepdiscard)
+    #     pcutils.get_attributes(gtruth, "gtruth")
+    #     pcutils.get_attributes(clusters, "clusters")
+    #     pcutils.get_attributes(pred, "pred")
 
-        outpcloud = np.hstack(
-            (
-                (np.asarray(pcd.points)),
-                (np.asarray(pcd.colors)),
-                (np.asarray(pcd.normals)),
-            )
-        )
-        pcutils.get_attributes(outpcloud, "outpcloud")
-        print(pcd)
+    #     gtruth_clust_to_normal = np.hstack((gtruth, clusters, keepdiscard))
+    #     pcutils.get_attributes(gtruth_clust_to_normal, "gtclust")
+    #     pcd.normals = o3d.utility.Vector3dVector(
+    #         gtruth_clust_to_normal
+    #     )  # store keep discard as
 
-        output_path = "./Data/church_registered_kmeans_" + str(0.05)
-        np.save(output_path + ".npy", outpcloud)
-        print(o3d.io.write_point_cloud(output_path + ".ply", pcd, print_progress=True))
-        print("done")
+    #     outpcloud = np.hstack(
+    #         (
+    #             (np.asarray(pcd.points)),
+    #             (np.asarray(pcd.colors)),
+    #             (np.asarray(pcd.normals)),
+    #         )
+    #     )
+    #     pcutils.get_attributes(outpcloud, "outpcloud")
+    #     print(pcd)
 
-    def k_means_clustering(self, k):
-        x = self.pcd
-        t = self.pcd_truth
+    #     output_path = "./Data/church_registered_kmeans_" + str(0.05)
+    #     np.save(output_path + ".npy", outpcloud)
+    #     print(o3d.io.write_point_cloud(output_path + ".ply", pcd, print_progress=True))
+    #     print("done")
 
-        print("\n------------------k means---------------------")
-        kmeans = KMeans(n_clusters=k, n_init=10)  # number of clusters (k)
-        kmeans.fit(x)  # apply k means to dataset
-        print("x[0]", x[0])
-        # Visualise K-Means
-        y_km = kmeans.predict(x)
-        print("y_km:", y_km)  # 10 clusters
-
+    def k_means_clustering(self, k=3, n_init=10):
+        kmeans = KMeans(n_clusters=k, n_init=n_init)  # number of clusters (k)
+        print("K-Means Clustering start on", k, "clusters:")
+        cluster_labels = kmeans.fit_predict(
+            self.pcd
+        )  # run kmeans on input data and get labels
+        print("K-Means Clustering done!")
+        unique_labels = np.unique(cluster_labels)
+        assert (len(unique_labels) == k)
         centroids = kmeans.cluster_centers_
-        print("centroids:", centroids)
-        unique_labels = np.unique(y_km)
-        print("unique_labels:", unique_labels)
+
+        truth_1d = (
+            self.pcd_truth[:, self.truth_index : self.truth_index + 1]
+        ).flatten()
+        clusters_1d = cluster_labels.flatten()
+        points = self.pcd[:, :3]
+        view = pptk.viewer(points, truth_1d, clusters_1d, debug=True)
+        view.wait()
+        view.close()
 
         # get ground truth
-        print("t in kmeans", t[0])
-        self.get_ground_truth(unique_labels, y_km, t)
-        print("get ground truth")
-
-        for i in unique_labels:
-            # print((x[y_km == i , 0] , x[y_km == i , 1])) #how to access the pointd
-            plt.scatter(
-                x[y_km == i, 0], x[y_km == i, 1], label=i, marker="o", picker=True
-            )
-        plt.scatter(
-            centroids[:, 0],
-            centroids[:, 1],
-            s=100,
-            marker="*",
-            c="red",
-            edgecolor="black",
-            label="centroids",
-        )
-        # plt.legend()
-        plt.title("Two clusters of data")
-        plt.savefig("k_means_clusters.png")
-        plt.show()
+        # print("t in kmeans", t[0])
+        # self.get_ground_truth(unique_labels, y_km, t)
+        # print("get ground truth")
 
     def birch_clustering(self, k):
         heading = "BIRCH Clustering"
@@ -214,43 +202,28 @@ class Clustering:
         view = pptk.viewer(points, intensity_1d, pred_lab)
         print("PPTK Loaded")
 
-        unique_labels = np.unique(pred_lab)
-        print("unique_labels:", unique_labels)
-        for i in unique_labels:
-            plt.scatter(
-                x[pred_lab == i, 0],
-                x[pred_lab == i, 1],
-                label=i,
-                marker="o",
-                picker=True,
-            )
-        # plt.scatter(
-        #      centroids[:, 0], centroids[:, 1],
-        #      s=100, marker='*',
-        #      c='red', edgecolor='black',
-        #      label='centroids'
-        # )
-        # plt.legend()
-        plt.title("Birch Clustering")
-        plt.savefig("birch_clusters.png")
-        plt.show()
-        
     def agglomerative_clustering(self, k, affinity="euclidean", linkage="ward"):
         clustering_alg = "Agglomerative Clustering"
         decoration = "*" * len(clustering_alg)
         heading = decoration + clustering_alg + decoration
         print(heading)
-        
+
         x = self.pcd
         pcutils = PointCloudUtils()
         pcutils.get_attributes(x, "Input PCD")
-        
+
         agg_clustering = AgglomerativeClustering(k, affinity=affinity, linkage=linkage)
-        print("Starting using:", k, "clusters, Affinity is:", affinity,", Linkage is: ",linkage)
+        print(
+            "Starting using:",
+            k,
+            "clusters, Affinity is:",
+            affinity,
+            ", Linkage is: ",
+            linkage,
+        )
         agg_cluster = agg_clustering.fit(x)
         clusters = agg_cluster.labels_
-                            
-        
+
     def rock_clustering(self, k=3, eps=1.0):
         clustering_alg = "ROCK Clustering"
         decoration = "*" * len(clustering_alg)

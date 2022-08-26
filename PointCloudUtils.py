@@ -19,7 +19,9 @@ class PointCloudUtils:
         pcd_arr = np.load(pcd_file)
         ds = ds_amt_start
         while ds <= ds_amt_end:
-            pcd_out_file = self.downsample_pcd(pcd_arr, input_file_format, pnet, ds, truth)
+            pcd_out_file = self.downsample_pcd(
+                pcd_arr, input_file_format, pnet, ds, truth
+            )
             print("DS file saved at", pcd_out_file)
             ds += ds_amt_inc
 
@@ -138,7 +140,9 @@ class PointCloudUtils:
         npoints = np.shape(pcd_og)[0]
         self.get_attributes(pcd_og, "Predownsampling (.ply raw data)")
         print("*******Downsample start**********")
-        down_pcd = point_cloud.voxel_down_sample(voxel_size=float(str("%.3f" % downsample_amt)))
+        down_pcd = point_cloud.voxel_down_sample(
+            voxel_size=float(str("%.3f" % downsample_amt))
+        )
         print("*******Downsample end**********")
 
         pcd_points = np.asarray(down_pcd.points)
