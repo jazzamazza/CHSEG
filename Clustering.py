@@ -163,7 +163,7 @@ class Clustering:
         )  # run kmeans on input data and get labels
         print("K-Means Clustering done!")
         unique_labels = np.unique(cluster_labels)
-        assert (len(unique_labels) == k)
+        assert len(unique_labels) == k
         centroids = kmeans.cluster_centers_
 
         truth_1d = (

@@ -137,6 +137,7 @@ def application():
             + "\n 2 : Load PC + PC w/truth labels"
             + "\n 3 : Load Point Cloud PointNet++"
             + "\n q : or quit the app\n"
+            + "\nSelection: "
         )
         if user_input == "q":
             break
@@ -165,6 +166,7 @@ def experiment_menu(clustering_obj, user_input):
             + "\n 5 : ROCK Clustering"
             + "\n q : or quit the app"
             + "\n r : Restart the Application\n"
+            + "Selection: "
         )
         if user_input == "q":
             exit(0)
