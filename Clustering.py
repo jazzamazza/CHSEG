@@ -11,8 +11,8 @@ from pyclustering.cluster.cure import cure
 from pyclustering.cluster.rock import rock
 from pyclustering.cluster.encoder import cluster_encoder
 from pyclustering.cluster.encoder import type_encoding
-from pyclustering.cluster import cluster_visualizer
-from pyclustering.cluster import cluster_visualizer_multidim
+# from pyclustering.cluster import cluster_visualizer
+# from pyclustering.cluster import cluster_visualizer_multidim
 
 # import matplotlib.pyplot as plt
 # import matplotlib.cm as cm
@@ -202,7 +202,61 @@ class Clustering:
         view = pptk.viewer(points, intensity_1d, pred_lab)
         print("PPTK Loaded")
 
-    def agglomerative_clustering(self, k, affinity="euclidean", linkage="ward"):
+        unique_labels = np.unique(pred_lab)
+        print("unique_labels:", unique_labels)
+        for i in unique_labels:
+            plt.scatter(
+                x[pred_lab == i, 0],
+                x[pred_lab == i, 1],
+                label=i,
+                marker="o",
+                picker=True,
+            )
+        # plt.scatter(
+        #      centroids[:, 0], centroids[:, 1],
+        #      s=100, marker='*',
+        #      c='red', edgecolor='black',
+        #      label='centroids'
+        # )
+        # plt.legend()
+        plt.title("Birch Clustering")
+        plt.savefig("birch_clusters.png")
+        plt.show()
+        
+    def clusters_to_ply(self, clusters, algorithm_name="unknown"):
+        pcutils = PointCloudUtils()
+        points = self.pcd_truth[:, :3]
+        pcutils.get_attributes(points, "points attr")
+        truth = self.pcd_truth[:, 4:5]
+        pcutils.get_attributes(truth, "truth attr")
+
+        p = o3d.utility.Vector3dVector(points)
+        normals = np.hstack(
+            (self.pcd_truth[:, 3:4], clusters, np.zeros((np.shape(points)[0], 1)))
+        )
+        n = o3d.utility.Vector3dVector(normals)
+        colors = np.hstack(
+            (
+                truth,
+                np.zeros((np.shape(points)[0], 1)),
+                np.zeros((np.shape(points)[0], 1)),
+            )
+        )
+        c = o3d.utility.Vector3dVector(colors)
+
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = p
+        pcd.colors = c
+        pcd.normals = n
+
+        o3d.io.write_point_cloud("./Data/church_registered_clusters_"+algorithm_name+".ply", pcd)
+
+        view = pptk.viewer(points, clusters.flatten(), debug=True)
+        view.wait()
+        view.close()
+        
+        
+    def agglomerative_clustering(self, k, affinity='euclidean', linkage='ward'):
         clustering_alg = "Agglomerative Clustering"
         decoration = "*" * len(clustering_alg)
         heading = decoration + clustering_alg + decoration
@@ -210,19 +264,20 @@ class Clustering:
 
         x = self.pcd
         pcutils = PointCloudUtils()
-        pcutils.get_attributes(x, "Input PCD")
+        pcutils.get_attributes(x, "Input PCD attr")
+        
+        #agg_clustering = AgglomerativeClustering(n_clusters = k, affinity=affinity, linkage=linkage)
+        agg_clustering = AgglomerativeClustering(n_clusters = k)
+        print("Starting using:", k, "clusters, Affinity is:", affinity,", Linkage is: ",linkage)
+        #agg_cluster = 
+        #agg_clustering.fit(x)
+        clusters = agg_clustering.fit_predict(x)
+        print("Clustering complete")
+        #clusters = agg_clustering.labels_
+        clusters_2d = np.vstack(clusters)
+        pcutils.get_attributes(clusters_2d, "clusters attr")
+        self.clusters_to_ply(clusters_2d, "agglomerative")
 
-        agg_clustering = AgglomerativeClustering(k, affinity=affinity, linkage=linkage)
-        print(
-            "Starting using:",
-            k,
-            "clusters, Affinity is:",
-            affinity,
-            ", Linkage is: ",
-            linkage,
-        )
-        agg_cluster = agg_clustering.fit(x)
-        clusters = agg_cluster.labels_
 
     def rock_clustering(self, k=3, eps=1.0):
         clustering_alg = "ROCK Clustering"
@@ -248,36 +303,8 @@ class Clustering:
         clusters_np = np.array(encoder.get_clusters())
         # unique_labels = np.unique(clusters_np)
         clusters_np = np.vstack(clusters_np)
-        pcutils.get_attributes(clusters_np, "clusters new attr")
-
-        points = self.pcd_truth[:, :3]
-        pcutils.get_attributes(points, "points attr")
-
-        truth = self.pcd_truth[:, 4:5]
-        pcutils.get_attributes(truth, "truth attr")
-
-        p = o3d.utility.Vector3dVector(points)
-        normals = np.hstack(
-            (self.pcd_truth[:, 3:4], clusters_np, np.zeros((np.shape(points)[0], 1)))
-        )
-        n = o3d.utility.Vector3dVector(normals)
-        colors = np.hstack(
-            (
-                truth,
-                np.zeros((np.shape(points)[0], 1)),
-                np.zeros((np.shape(points)[0], 1)),
-            )
-        )
-        c = o3d.utility.Vector3dVector(colors)
-
-        pcd = o3d.geometry.PointCloud()
-        pcd.points = p
-        pcd.colors = c
-        pcd.normals = n
-
-        o3d.io.write_point_cloud("./Data/rock_clust.ply", pcd)
-
-        view = pptk.viewer(points, clusters_np.flatten(), debug=True)
+        self.clusters_to_ply(clusters_np, "rock")
+       
 
     def cure_clustering(self, k=10):
         clustering_alg = "CURE Clustering"
@@ -314,59 +341,7 @@ class Clustering:
         clusters_np = np.array(new_clusters)
         # unique_labels = np.unique(clusters_np)
         clusters_np = np.vstack(clusters_np)
-        pcutils.get_attributes(clusters_np, "clusters new attr")
-        # for unique in unique_labels:
-        #     print("clusters",clusters_np[clusters_np==unique])
-        # print("clusters",clusters_np)
-        # clusters1d = clusters.flatten()
-        # pcutils.get_attributes(clusters1d, "clusters1d attr")
-        points = self.pcd_truth[:, :3]
-        pcutils.get_attributes(points, "points attr")
-
-        truth = self.pcd_truth[:, 4:5]
-        pcutils.get_attributes(truth, "truth attr")
-
-        p = o3d.utility.Vector3dVector(points)
-        normals = np.hstack(
-            (self.pcd_truth[:, 3:4], clusters_np, np.zeros((np.shape(points)[0], 1)))
-        )
-        n = o3d.utility.Vector3dVector(normals)
-        colors = np.hstack(
-            (
-                truth,
-                np.zeros((np.shape(points)[0], 1)),
-                np.zeros((np.shape(points)[0], 1)),
-            )
-        )
-        c = o3d.utility.Vector3dVector(colors)
-
-        pcd = o3d.geometry.PointCloud()
-        pcd.points = p
-        pcd.colors = c
-        pcd.normals = n
-
-        o3d.io.write_point_cloud("./Data/cure_clust.ply", pcd)
-
-        view = pptk.viewer(points, clusters_np.flatten(), debug=True)
-        # view.wait()
-
-        # visualizer = cluster_visualizer(1,1,"cure clusters")
-        # visualizer.append_cluster(clusters, data, 0, '*', markersize=5)
-        # visualizer.show()
-
-        # visualizer = cluster_visualizer_multidim()
-        # visualizer.append_clusters(clusters, data)
-        # visualizer.show()
-
-        # visualizer = cluster_visualizer_multidim()
-        # visualizer.append_clusters(clusters, x)
-        # flat_list=[]
-        # for sublist in clusters:
-        #      for item in sublist:
-        #           flat_list.append(item)
-        # visualizer.append_clusters(clusters, x.tolist(), marker="o", markersize=5)
-        # visualizer.append_cluster(means, x.tolist(), '*', 5)
-        # visualizer.show()
+        self.clusters_to_ply(clusters_np, "cure")
 
     def silhouette(self):
         x = self.pcd
