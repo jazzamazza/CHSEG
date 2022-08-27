@@ -58,7 +58,7 @@ def setup(pnet=False, truth=False):
             print("selected file:", file_name)
             print("file ext:", file_ext)
     else:  # HARD CODE PATH
-        file_path = "./Data/church_registered_alt_dsample_0.05.las"  # C:\Users\Jared\Code\Thesis\CHSEG\Data\church_registered_alt_dsample_0.05.las
+        file_path = "./Data/church_registered_ds_0.05.npy"  # C:\Users\Jared\Code\Thesis\CHSEG\Data\church_registered_alt_dsample_0.05.las
         file_ext = file_path[-4:]
         print("selected file:", file_path)
         print("file ext:", file_ext)
@@ -158,7 +158,8 @@ def experiment_menu(clustering_obj, user_input):
                 + "\n 4 : aprop"
                 + "\n 5 : kmed"
                 + "\n 6 : qual"
-                + "\n 6 : rock"
+                + "\n 7 : rock"
+                + "\n 8 : agglormative"
                 + "\n q : or quit the app"
                 + "\n r : Restart the Application\n"
             )
@@ -182,6 +183,10 @@ def experiment_menu(clustering_obj, user_input):
             elif user_input == "7":
                 clusters = int(input("n clusters: "))
                 clustering.rock_clustering(clusters)
+            elif user_input == "8":
+                # def agglomerative_clustering(self, k, affinity="euclidean", linkage="ward"):
+                clusters = int(input("n clusters: "))
+                clustering.agglomerative_clustering(clusters)
                 
 if __name__ == "__main__":
     application()
