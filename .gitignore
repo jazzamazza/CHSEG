@@ -107,6 +107,7 @@ celerybeat.pid
 env/
 venv/
 py*/
+thesis/
 ENV/
 env.bak/
 venv.bak/
@@ -137,5 +138,8 @@ dmypy.json
 # Images
 .png
 
-#configs
+# Configs
 .vscode/
+
+# MacOS
+.DS_Store
