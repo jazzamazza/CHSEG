@@ -13,9 +13,17 @@ from tkinter import Tk
 class PointCloudLoader:
     """Point Cloud Loader"""
 
-    def __init__(self, path, file_ext):
+    def __init__(self, path, file_type = None):
         self.pcd_path = path
-        self.filetype = file_ext
+        self.filetype = path[-4:]
+        
+    def load_point_cloud(self, vis=False, downsample=False, ds_size=0.0, truth=True):
+        if self.filetype == ".npy":
+            return self.load_point_cloud_npy(vis, downsample, ds_size, truth)
+        elif self.filetype == ".ply":
+            return self.load_point_cloud_ply(vis, downsample, ds_size, truth)
+        elif self.filetype == ".las":
+            return self.load_point_cloud_las(vis, downsample, ds_size)
 
     def load_point_cloud_npy(
         self, vis=False, downsample=False, ds_size=0.0, truth=False

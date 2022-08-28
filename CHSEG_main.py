@@ -156,6 +156,7 @@ def application():
 
 def experiment_menu(clustering_obj, user_input):
     clustering = clustering_obj
+    input_prompt = "\nSet no. clusters: "
     while user_input != "r":
         user_input = input(
             "\nChoose Clustering Method(s):"
@@ -171,19 +172,19 @@ def experiment_menu(clustering_obj, user_input):
         if user_input == "q":
             exit(0)
         elif user_input == "1":
-            clusters = int(input("n clusters: "))
+            clusters = int(input(input_prompt))
             clustering.k_means_clustering(clusters)
         elif user_input == "2":
-            clusters = int(input("n clusters: "))
+            clusters = int(input(input_prompt))
             clustering.cure_clustering(clusters)
         elif user_input == "3":
-            clusters = int(input("n clusters: "))
+            clusters = int(input(input_prompt))
             clustering.birch_clustering(clusters)
         elif user_input == "4":
-            clusters = int(input("n clusters: "))
+            clusters = int(input(input_prompt))
             clustering.agglomerative_clustering(clusters)
         elif user_input == "5":
-            clusters = int(input("n clusters: "))
+            clusters = int(input(input_prompt))
             clustering.rock_clustering(clusters)
 
 

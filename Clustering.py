@@ -11,6 +11,7 @@ from pyclustering.cluster.cure import cure
 from pyclustering.cluster.rock import rock
 from pyclustering.cluster.encoder import cluster_encoder
 from pyclustering.cluster.encoder import type_encoding
+
 # from pyclustering.cluster import cluster_visualizer
 # from pyclustering.cluster import cluster_visualizer_multidim
 
@@ -21,6 +22,7 @@ import pptk
 import open3d as o3d
 from tqdm import tqdm
 from PointCloudUtils import PointCloudUtils
+from Classification import Classification
 
 # Clustering class with various clustering methods
 class Clustering:
@@ -28,9 +30,18 @@ class Clustering:
         self.pcd = pcd_input
         self.pcd_truth = pcd_wtruth
         self.pcd_type = pcd_type
+        self.pcutils = PointCloudUtils()
 
         if self.pcd_type == None:
             self.truth_index = 4
+        elif self.pcd_type == "raw":
+            self.truth_index = 4
+        elif self.pcd_type == "cc":
+            self.truth_index = 4
+
+        self.truth_labels = self.pcd_truth[:, self.truth_index : self.truth_index + 1]
+        self.cluster_labels = None
+        self.classification = Classification(self.pcd, self.pcd_truth, self.pcd_type)
 
     # def get_ground_truth(self, unique_labels, y_km, t):
 
@@ -155,108 +166,88 @@ class Clustering:
     #     print(o3d.io.write_point_cloud(output_path + ".ply", pcd, print_progress=True))
     #     print("done")
 
-    def k_means_clustering(self, k=3, n_init=10):
-        kmeans = KMeans(n_clusters=k, n_init=n_init)  # number of clusters (k)
-        print("K-Means Clustering start on", k, "clusters:")
-        cluster_labels = kmeans.fit_predict(
-            self.pcd
-        )  # run kmeans on input data and get labels
-        print("K-Means Clustering done!")
-        unique_labels = np.unique(cluster_labels)
-        assert len(unique_labels) == k
-        centroids = kmeans.cluster_centers_
-
-        truth_1d = (
-            self.pcd_truth[:, self.truth_index : self.truth_index + 1]
-        ).flatten()
-        clusters_1d = cluster_labels.flatten()
-        points = self.pcd[:, :3]
-        view = pptk.viewer(points, truth_1d, clusters_1d, debug=True)
-        view.wait()
-        view.close()
-
-        # get ground truth
-        # print("t in kmeans", t[0])
-        # self.get_ground_truth(unique_labels, y_km, t)
-        # print("get ground truth")
-
-    def birch_clustering(self, k):
-        heading = "BIRCH Clustering"
-        heading = ("*" * len(heading)) + heading + ("*" * len(heading))
-        print(heading)
-        print("Using", k, "Clusters")
-        birch = Birch(n_clusters=k)
-        x = self.pcd
-        print("X shape", np.shape(x))
-        print("Fit start")
-        birch.fit(x)
-        print("Pred start")
-        pred_lab = birch.predict(x)
-        print("labels", pred_lab)
-        print("shape", np.shape(pred_lab))
-        intensity_1d = x[:, 3:4].flatten()
-        points = x[:, :3]
-        print("Visualising in PPTK")
-        # intensity_1d = intensity.flatten()
-        # truth_label_1d = truth_label.flatten()
-        view = pptk.viewer(points, intensity_1d, pred_lab)
-        print("PPTK Loaded")
-
-        unique_labels = np.unique(pred_lab)
-        print("unique_labels:", unique_labels)
-        for i in unique_labels:
-            plt.scatter(
-                x[pred_lab == i, 0],
-                x[pred_lab == i, 1],
-                label=i,
-                marker="o",
-                picker=True,
-            )
-        # plt.scatter(
-        #      centroids[:, 0], centroids[:, 1],
-        #      s=100, marker='*',
-        #      c='red', edgecolor='black',
-        #      label='centroids'
-        # )
-        # plt.legend()
-        plt.title("Birch Clustering")
-        plt.savefig("birch_clusters.png")
-        plt.show()
+    def clusters_to_ply(self, clusters, algorithm_name="unknown", truth_labels = None):
+        points = self.pcd_truth[:,:3]
+        intensity = self.pcd_truth[:,3:4]
+        if truth_labels is None:
+            truth = self.pcd_truth[:,4:5]
+        else:
+            truth = truth_labels
+        zeros = np.zeros((np.shape(points)[0], 1))
         
-    def clusters_to_ply(self, clusters, algorithm_name="unknown"):
-        pcutils = PointCloudUtils()
-        points = self.pcd_truth[:, :3]
-        pcutils.get_attributes(points, "points attr")
-        truth = self.pcd_truth[:, 4:5]
-        pcutils.get_attributes(truth, "truth attr")
+        self.pcutils.get_attributes(points, "Points")
+        self.pcutils.get_attributes(intensity, "Intensity")
+        self.pcutils.get_attributes(truth, "Truth")
+        self.pcutils.get_attributes(clusters, "Clusters")
+
+        normals = np.hstack((intensity, clusters, zeros))
+        colors = np.hstack((truth, zeros, zeros))
+        
+        self.pcutils.get_attributes(normals, "Normals")
+        self.pcutils.get_attributes(colors, "Colors")
 
         p = o3d.utility.Vector3dVector(points)
-        normals = np.hstack(
-            (self.pcd_truth[:, 3:4], clusters, np.zeros((np.shape(points)[0], 1)))
-        )
         n = o3d.utility.Vector3dVector(normals)
-        colors = np.hstack(
-            (
-                truth,
-                np.zeros((np.shape(points)[0], 1)),
-                np.zeros((np.shape(points)[0], 1)),
-            )
-        )
         c = o3d.utility.Vector3dVector(colors)
 
         pcd = o3d.geometry.PointCloud()
-        pcd.points = p
-        pcd.colors = c
-        pcd.normals = n
+        pcd.points, pcd.colors, pcd.normals = p, c, n
 
-        o3d.io.write_point_cloud("./Data/church_registered_clusters_"+algorithm_name+".ply", pcd)
+        o3d.io.write_point_cloud(
+            "./Data/Clustered/church_registered_clusters_" + algorithm_name + ".ply",
+            pcd,
+        )
 
-        view = pptk.viewer(points, clusters.flatten(), debug=True)
+        view = pptk.viewer(
+            points, clusters.flatten(), truth.flatten(), intensity.flatten(), debug=True
+        )
         view.wait()
         view.close()
+
+    def print_heading(self, title="Clustering"):
+        heading = "\n" + ("*" * len(title)) + " " + title + " " + ("*" * len(title)) + "\n"
+        print(heading)
+
+    def k_means_clustering(self, k=3, n_init=10):
+        self.print_heading("K-Means Clustering")
+        # number of clusters (k)
+        kmeans = KMeans(n_clusters=k, n_init=n_init)
+        print("*!* K-Means Clustering start on", k, "clusters *!*")
+        # run kmeans on input data and get labels
+        cluster_labels = kmeans.fit_predict(self.pcd)
+        cluster_labels = np.vstack((cluster_labels))
+        self.cluster_labels = cluster_labels
+        print("*!* K-Means Clustering done *!*")
+        unique_labels = np.unique(cluster_labels)
+        assert len(unique_labels) == k
+        # centroids = kmeans.cluster_centers_
+
+        #new_truth_labels = self.classification.classify(unique_labels, cluster_labels)
+        self.clusters_to_ply(cluster_labels, "kmeans")
         
+        return self.cluster_labels
         
-    def agglomerative_clustering(self, k, affinity='euclidean', linkage='ward'):
+    def birch_clustering(self, k):
+        self.print_heading("BIRCH Clustering")
+        print("*!* Using", k, "Clusters *!*")
+        birch = Birch(n_clusters=k)
+        print("-> Fit start")
+        birch.fit(self.pcd)
+        print("<- Fit end")
+        print("-> Pred start")
+        cluster_labels = birch.predict(self.pcd)
+        self.cluster_labels = cluster_labels
+        print("<- Pred end")
+        unique_labels = np.unique(cluster_labels)
+        assert len(unique_labels) == k
+        
+        #new_truth_labels = self.classification.classify(unique_labels, cluster_labels)
+        self.clusters_to_ply(cluster_labels, "birch")
+        
+        return self.cluster_labels
+        
+
+    def agglomerative_clustering(self, k, affinity="euclidean", linkage="ward"):
         clustering_alg = "Agglomerative Clustering"
         decoration = "*" * len(clustering_alg)
         heading = decoration + clustering_alg + decoration
@@ -265,19 +256,25 @@ class Clustering:
         x = self.pcd
         pcutils = PointCloudUtils()
         pcutils.get_attributes(x, "Input PCD attr")
-        
-        #agg_clustering = AgglomerativeClustering(n_clusters = k, affinity=affinity, linkage=linkage)
-        agg_clustering = AgglomerativeClustering(n_clusters = k)
-        print("Starting using:", k, "clusters, Affinity is:", affinity,", Linkage is: ",linkage)
-        #agg_cluster = 
-        #agg_clustering.fit(x)
+
+        # agg_clustering = AgglomerativeClustering(n_clusters = k, affinity=affinity, linkage=linkage)
+        agg_clustering = AgglomerativeClustering(n_clusters=k)
+        print(
+            "Starting using:",
+            k,
+            "clusters, Affinity is:",
+            affinity,
+            ", Linkage is: ",
+            linkage,
+        )
+        # agg_cluster =
+        # agg_clustering.fit(x)
         clusters = agg_clustering.fit_predict(x)
         print("Clustering complete")
-        #clusters = agg_clustering.labels_
+        # clusters = agg_clustering.labels_
         clusters_2d = np.vstack(clusters)
         pcutils.get_attributes(clusters_2d, "clusters attr")
         self.clusters_to_ply(clusters_2d, "agglomerative")
-
 
     def rock_clustering(self, k=3, eps=1.0):
         clustering_alg = "ROCK Clustering"
@@ -304,7 +301,6 @@ class Clustering:
         # unique_labels = np.unique(clusters_np)
         clusters_np = np.vstack(clusters_np)
         self.clusters_to_ply(clusters_np, "rock")
-       
 
     def cure_clustering(self, k=10):
         clustering_alg = "CURE Clustering"
@@ -351,132 +347,132 @@ class Clustering:
             fig.set_size_inches(18, 7)
 
     # Classification
-    def classification(self, unique_labels, y_km, pcd_with_truth):
-        t = pcd_with_truth
-        ground_truths = np.array([])
-        print("ground_truth size:", ground_truths.size)
-        for i in unique_labels:
-            num_keep, num_discard = 0, 0
-            print("cluster:", i)
-            for point in t[y_km == i]:
-                print("p", point[4])
-                if point[4] >= float(0.5):
-                    num_discard += 1
-                else:
-                    num_keep += 1
-            print("num_keep:", num_keep)
-            print("num_discard:", num_discard)
-            if num_keep > num_discard:
-                ground_truths = np.append(ground_truths, 0)
-            else:
-                ground_truths = np.append(ground_truths, 1)
-        print("ground_truth:", ground_truths)
+    # def classification(self, unique_labels, y_km, pcd_with_truth):
+    #     t = pcd_with_truth
+    #     ground_truths = np.array([])
+    #     print("ground_truth size:", ground_truths.size)
+    #     for i in unique_labels:
+    #         num_keep, num_discard = 0, 0
+    #         print("cluster:", i)
+    #         for point in t[y_km == i]:
+    #             print("p", point[4])
+    #             if point[4] >= float(0.5):
+    #                 num_discard += 1
+    #             else:
+    #                 num_keep += 1
+    #         print("num_keep:", num_keep)
+    #         print("num_discard:", num_discard)
+    #         if num_keep > num_discard:
+    #             ground_truths = np.append(ground_truths, 0)
+    #         else:
+    #             ground_truths = np.append(ground_truths, 1)
+    #     print("ground_truth:", ground_truths)
 
-        g = np.asarray(t)
-        for i in range(0, len(ground_truths)):  # i is each cluster
-            if ground_truths[i] == float(1):  # if cluster == keep
-                for point in t[y_km == i]:  # set ground truth of each point to keep
-                    t[y_km == i, 4:5] = float(1)
-            else:
-                for point in t[y_km == i]:
-                    t[y_km == i, 4:5] = float(0)
-        print("t shape", np.shape(t))
-        print("t[0]", t[0])
+    #     g = np.asarray(t)
+    #     for i in range(0, len(ground_truths)):  # i is each cluster
+    #         if ground_truths[i] == float(1):  # if cluster == keep
+    #             for point in t[y_km == i]:  # set ground truth of each point to keep
+    #                 t[y_km == i, 4:5] = float(1)
+    #         else:
+    #             for point in t[y_km == i]:
+    #                 t[y_km == i, 4:5] = float(0)
+    #     print("t shape", np.shape(t))
+    #     print("t[0]", t[0])
 
-        # Initialize the clusterer with n_clusters value and a random generator
-        # seed of 10 for reproducibility.
-        clusterer = Birch(n_clusters=k)
-        cluster_labels = clusterer.fit_predict(x)
-        for i in unique_labels:
-            print("cluster:", i)
-            for point in t[y_km == i]:
-                print("new point", t[y_km == i, 4:5])
+    #     # Initialize the clusterer with n_clusters value and a random generator
+    #     # seed of 10 for reproducibility.
+    #     clusterer = Birch(n_clusters=k)
+    #     cluster_labels = clusterer.fit_predict(x)
+    #     for i in unique_labels:
+    #         print("cluster:", i)
+    #         for point in t[y_km == i]:
+    #             print("new point", t[y_km == i, 4:5])
 
-                silhouette_avg = silhouette_score(x, cluster_labels)
-                print(
-                    "For n_clusters =",
-                    k,
-                    "The average silhouette_score is :",
-                    silhouette_avg,
-                )
-                sample_silhouette_values = silhouette_samples(x, cluster_labels)
+    #             silhouette_avg = silhouette_score(x, cluster_labels)
+    #             print(
+    #                 "For n_clusters =",
+    #                 k,
+    #                 "The average silhouette_score is :",
+    #                 silhouette_avg,
+    #             )
+    #             sample_silhouette_values = silhouette_samples(x, cluster_labels)
 
-                y_lower = 10
-                for i in range(k):
-                    # Aggregate the silhouette scores for samples belonging to
-                    # cluster i, and sort them
-                    ith_cluster_silhouette_values = sample_silhouette_values[
-                        cluster_labels == i
-                    ]
-                    ith_cluster_silhouette_values.sort()
-                    size_cluster_i = ith_cluster_silhouette_values.shape[0]
-                    y_upper = y_lower + size_cluster_i
+    #             y_lower = 10
+    #             for i in range(k):
+    #                 # Aggregate the silhouette scores for samples belonging to
+    #                 # cluster i, and sort them
+    #                 ith_cluster_silhouette_values = sample_silhouette_values[
+    #                     cluster_labels == i
+    #                 ]
+    #                 ith_cluster_silhouette_values.sort()
+    #                 size_cluster_i = ith_cluster_silhouette_values.shape[0]
+    #                 y_upper = y_lower + size_cluster_i
 
-                    color = cm.nipy_spectral(float(i) / k)
-                    ax1.fill_betweenx(
-                        np.arange(y_lower, y_upper),
-                        0,
-                        ith_cluster_silhouette_values,
-                        facecolor=color,
-                        edgecolor=color,
-                        alpha=0.7,
-                    )
+    #                 color = cm.nipy_spectral(float(i) / k)
+    #                 ax1.fill_betweenx(
+    #                     np.arange(y_lower, y_upper),
+    #                     0,
+    #                     ith_cluster_silhouette_values,
+    #                     facecolor=color,
+    #                     edgecolor=color,
+    #                     alpha=0.7,
+    #                 )
 
-                    ax1.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i))
+    #                 ax1.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i))
 
-                    # Compute the new y_lower for next plot
-                    y_lower = y_upper + 10  # 10 for the 0 samples
+    #                 # Compute the new y_lower for next plot
+    #                 y_lower = y_upper + 10  # 10 for the 0 samples
 
-                ax1.set_title("The silhouette plot for the various clusters.")
-                ax1.set_xlabel("The silhouette coefficient values")
-                ax1.set_ylabel("Cluster label")
+    #             ax1.set_title("The silhouette plot for the various clusters.")
+    #             ax1.set_xlabel("The silhouette coefficient values")
+    #             ax1.set_ylabel("Cluster label")
 
-                ax1.axvline(x=silhouette_avg, color="red", linestyle="--")
+    #             ax1.axvline(x=silhouette_avg, color="red", linestyle="--")
 
-                ax1.set_yticks([])  # Clear the y-axis labels / ticks
-                ax1.set_xticks([-0.1, 0, 0.2, 0.4, 0.6, 0.8, 1])
+    #             ax1.set_yticks([])  # Clear the y-axis labels / ticks
+    #             ax1.set_xticks([-0.1, 0, 0.2, 0.4, 0.6, 0.8, 1])
 
-                # 2nd Plot showing the actual clusters formed
-                colors = cm.nipy_spectral(cluster_labels.astype(float) / k)
-                ax2.scatter(
-                    x[:, 0],
-                    x[:, 1],
-                    marker=".",
-                    s=30,
-                    lw=0,
-                    alpha=0.7,
-                    c=colors,
-                    edgecolor="k",
-                )
+    #             # 2nd Plot showing the actual clusters formed
+    #             colors = cm.nipy_spectral(cluster_labels.astype(float) / k)
+    #             ax2.scatter(
+    #                 x[:, 0],
+    #                 x[:, 1],
+    #                 marker=".",
+    #                 s=30,
+    #                 lw=0,
+    #                 alpha=0.7,
+    #                 c=colors,
+    #                 edgecolor="k",
+    #             )
 
-                # Labeling the clusters
-                # centers = clusterer.
-                # # Draw white circles at cluster centers
-                # ax2.scatter(
-                #      centers[:, 0],
-                #      centers[:, 1],
-                #      marker="o",
-                #      c="white",
-                #      alpha=1,
-                #      s=200,
-                #      edgecolor="k",
-                # )
+    #             # Labeling the clusters
+    #             # centers = clusterer.
+    #             # # Draw white circles at cluster centers
+    #             # ax2.scatter(
+    #             #      centers[:, 0],
+    #             #      centers[:, 1],
+    #             #      marker="o",
+    #             #      c="white",
+    #             #      alpha=1,
+    #             #      s=200,
+    #             #      edgecolor="k",
+    #             # )
 
-                # for i, c in enumerate(centers):
-                #      ax2.scatter(c[0], c[1], marker="$%d$" % i, alpha=1, s=50, edgecolor="k")
+    #             # for i, c in enumerate(centers):
+    #             #      ax2.scatter(c[0], c[1], marker="$%d$" % i, alpha=1, s=50, edgecolor="k")
 
-                # ax2.set_title("The visualization of the clustered data.")
-                # ax2.set_xlabel("Feature space for the 1st feature")
-                # ax2.set_ylabel("Feature space for the 2nd feature")
+    #             # ax2.set_title("The visualization of the clustered data.")
+    #             # ax2.set_xlabel("Feature space for the 1st feature")
+    #             # ax2.set_ylabel("Feature space for the 2nd feature")
 
-                plt.suptitle(
-                    "Silhouette analysis for KMeans clustering on sample data with n_clusters = %d"
-                    % k,
-                    fontsize=14,
-                    fontweight="bold",
-                )
+    #             plt.suptitle(
+    #                 "Silhouette analysis for KMeans clustering on sample data with n_clusters = %d"
+    #                 % k,
+    #                 fontsize=14,
+    #                 fontweight="bold",
+    #             )
 
-                plt.show()
+    #             plt.show()
 
     # output
     # For n_clusters = 2 The average silhouette_score is : 0.3889045527426348

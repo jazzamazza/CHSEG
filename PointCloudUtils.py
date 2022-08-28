@@ -285,11 +285,11 @@ class PointCloudUtils:
         Args:
             pcd (Any): Point Cloud Array
         """
-        heading_label = arr_name + " Attributes:"
-        heading_label += ("\n") + (len(heading_label) * "*")
-        print("\n" + heading_label)
-        print("\n Point cloud n points:", np.shape(pcd)[0])
-        print("Point cloud dim:", np.ndim(pcd))
-        print("Point cloud shape:", np.shape(pcd))
-        print("Point cloud size:", np.size(pcd))
-        print("Point cloud data type:", pcd.dtype, "\n")
+        heading_label = "\n" + arr_name + " Attributes:"
+        heading_label += "\n" + (len(heading_label) * "*")
+        print(heading_label)
+        print("\tPoint cloud n points:", np.shape(pcd)[0])
+        print("\tPoint cloud dim:", np.ndim(pcd))
+        print("\tPoint cloud shape:", np.shape(pcd))
+        print("\tPoint cloud size:", np.size(pcd))
+        print("\tPoint cloud data type:", pcd.dtype, "\n")
