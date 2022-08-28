@@ -8,19 +8,6 @@ import pandas as pd
 class AutoTest:
     def __init__(self):
         self.pcutils = PointCloudUtils()
-        if input("Are you loading a downsampled file?: ") == "y":
-            self.file_path = (
-                "./Data/church_registered_ds_"
-                + input("ds amnt?: ")
-                + "_"
-                + input("file type?: ")
-            )
-        else:
-            print("Default file selected.")
-            self.file_path = "./Data/church_registered.npy"
-        self.file_ext = self.file_path[-4:]
-        print("selected file:", self.file_path)
-        print("file ext:", self.file_ext)
 
     def menu(self):
         print("Welcome to AutoTest")
@@ -38,11 +25,9 @@ class AutoTest:
             self.pcutils.auto_downsample_data(ds_amt_start, ds_amt_end, ds_amt_inc)
 
     def test_kmeans(self, cluster_start, cluster_end, ds_amt):
-
         pass
 
-    def data_wrtiter():
-
+    def data_writer(self):
         df = pd.DataFrame()
 
 

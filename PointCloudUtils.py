@@ -219,15 +219,16 @@ class PointCloudUtils:
                 o3d.io.write_point_cloud(output_path, pcd)
 
     def voxel_downsample(self, points, features, upperBound, ds_size):
-        print("Features shape:", np.shape(features))
-
         ds_points = np.array([])
         x, y = 0, 0
 
-        for i in range(0, upperBound):
+        for _ in range(0, upperBound):
             x += 1
             print("===========================i:", y)
             print("points.size:", points.size, "points.shape:", np.shape(points))
+            print(
+                "features.size:", features.size, "features.shape:", np.shape(features)
+            )
 
             pc = o3d.geometry.PointCloud()
             pc.points = o3d.utility.Vector3dVector(points)
@@ -240,35 +241,22 @@ class PointCloudUtils:
             )
             ds_points = np.asarray(downpcd.points)
             print(
-                "ds_features.size:",
-                ds_features.size,
-                "ds_features shape:",
-                np.shape(ds_features),
-            )
-            print(
                 "ds_points.size:",
                 ds_points.size,
                 "ds_points shape:",
                 np.shape(ds_points),
             )
+            print(
+                "ds_features.size:",
+                ds_features.size,
+                "ds_features shape:",
+                np.shape(ds_features),
+            )
 
             if x == 1:
-                old_ds_points = ds_points
                 total_ds_features = ds_features
             else:
-                print(
-                    "ds_point and old_ds_points EQUAL?",
-                    np.array_equal(old_ds_points, ds_points),
-                )
-                old_ds_points = ds_points
                 total_ds_features = np.hstack((total_ds_features, ds_features))
-                print(
-                    "total_ds_features.size:",
-                    total_ds_features.size,
-                    "total_ds_features shape:",
-                    np.shape(total_ds_features),
-                )
-
             y = y + 6
             if y >= upperBound:
                 break

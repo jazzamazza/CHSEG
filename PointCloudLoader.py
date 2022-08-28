@@ -15,15 +15,40 @@ class PointCloudLoader:
 
     def __init__(self, path, file_type=None):
         self.pcd_path = path
-        self.filetype = path[-4:]
+        self.filetype = self.pcd_path[-4:]
+        self.dataset = "raw"
+        self.ds = False
+        self.ds_amt = None
 
-    def load_point_cloud(self, vis=False, downsample=False, ds_size=0.0, truth=True):
+        path_info = self.pcd_path[:-4].split("_")
+        for info in path_info:
+            if info == "ds":
+                self.ds = True
+            if (self.ds) and (info.find("0.") > -1):
+                self.ds_amt = float(info)
+            if info == "cc":
+                self.dataset = "cc"
+            if info == "pnet":
+                self.dataset = "pnet"
+
+    def file_info(self):
+        return {
+            "path": self.pcd_path,
+            "filetype": self.filetype,
+            "dataset": self.dataset,
+            "downsampled": self.ds,
+            "dsamt": self.ds_amt,
+        }
+
+    def load_point_cloud(
+        self, vis=False, downsample=False, ds_size=float(0.0), truth=True
+    ):
         if self.filetype == ".npy":
             return self.load_point_cloud_npy(vis, downsample, ds_size, truth)
         elif self.filetype == ".ply":
             return self.load_point_cloud_ply(vis, downsample, ds_size, truth)
         elif self.filetype == ".las":
-            return self.load_point_cloud_las(vis, downsample, ds_size)
+            return self.load_point_cloud_las(vis, downsample, ds_size, truth)
 
     def load_point_cloud_npy(
         self, vis=False, downsample=False, ds_size=0.0, truth=False
@@ -142,11 +167,12 @@ class PointCloudLoader:
                 pview.vis_ply(pcd, pcd_points, pcd_intensity, pcd_truth)
             return final_pcd
 
-    def load_point_cloud_las(self, vis, downsample=False, ds_size=0):
+    def load_point_cloud_las(
+        self, vis, downsample=False, ds_size=float(0.05), truth=False
+    ):
         print(
-            "\n******************Loading Point Cloud with Cloud Compare Generated Features (x, y, z, intensity) *******************"
+            "\n******************Loading Point Cloud with Cloud Compare Generated Features *******************"
         )
-
         path = self.pcd_path
         self.filetype = ".las"
 
@@ -155,36 +181,39 @@ class PointCloudLoader:
             print("Header:", pcd_f.header)
             point_count = pcd_f.header.point_count
             print("Points:", point_count)
+        pcd_f.close()
 
         print("***READING LAS****")
         pcd = lp.read(path)
         # print('Points from Header:', fh.header.point_count)
         print("Std features:", list(pcd.point_format.standard_dimension_names))
         print("Cloud Compare Features:", list(pcd.point_format.extra_dimension_names))
-        geofeat_count = len(list(pcd.point_format.extra_dimension_names))
-        print("Extra feat count:", geofeat_count)
-
-        points = np.transpose(np.vstack((pcd.x, pcd.y, pcd.z)))
-        print("points", points)
+        extra_feat_count = len(list(pcd.point_format.extra_dimension_names))
+        print("Extra feat count:", extra_feat_count)
+        # points = np.transpose(np.vstack((pcd.x, pcd.y, pcd.z)))
+        points = pcd.xyz
 
         for dim in pcd.point_format.extra_dimension_names:
             points = np.hstack((points, np.nan_to_num(np.vstack((pcd[dim])))))
-        final_features = points[:, 3:]
+        truths = points[:, 4:5]
+        intensity = points[:, 3:4]
+        extra_features = points[:, 5:]
+        points = points[:, :3]
 
-        self.get_attributes(points, "points pcd")
-        print("points pcd", points)
-        self.get_attributes(final_features, "final extra array")
-        print("final extras", final_features)
+        final_pcd = np.hstack((points, intensity, extra_features))
+        final_pcd_wtruth = np.hstack((points, intensity, truths, extra_features))
 
         if vis:
-            print("vis")
+            print("to do vis")
 
         if downsample:
-            final_pcd = self.voxel_downsample(points, final_features, 18, ds_size)
-        else:
-            final_pcd = points
+            # final_pcd = self.voxel_downsample(points, final_features, 18, ds_size)
+            print("to do ds")
 
-        return final_pcd
+        if truth == True:
+            return final_pcd, final_pcd_wtruth
+        else:
+            return final_pcd
 
     def loadPointCloud_pNet(self, vis=False, downsample=False, ds_size=float(0.0)):
         if downsample:

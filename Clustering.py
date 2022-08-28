@@ -33,17 +33,10 @@ class Clustering:
         self.pcd_truth = pcd_wtruth
         self.pcd_type = pcd_type
         self.pcutils = PointCloudUtils()
-
-        if self.pcd_type == None:
-            self.truth_index = 4
-        elif self.pcd_type == "raw":
-            self.truth_index = 4
-        elif self.pcd_type == "cc":
-            self.truth_index = 4
-
+        self.truth_index = 4
         self.truth_labels = self.pcd_truth[:, self.truth_index : self.truth_index + 1]
         self.cluster_labels = None
-        self.classification = Classification(self.pcd, self.pcd_truth, self.pcd_type)
+        self.classification = Classification(self.truth_labels)
 
     def clusters_to_ply(self, clusters, algorithm_name="unknown", truth_labels=None):
         points = self.pcd_truth[:, :3]
@@ -102,10 +95,6 @@ class Clustering:
         unique_labels = np.unique(cluster_labels)
         assert len(unique_labels) == k
         # centroids = kmeans.cluster_centers_
-
-        # new_truth_labels = self.classification.classify(unique_labels, cluster_labels)
-        self.clusters_to_ply(cluster_labels, "kmeans")
-
         return self.cluster_labels
 
     def birch_clustering(self, k):
@@ -121,10 +110,6 @@ class Clustering:
         print("<- Pred end")
         unique_labels = np.unique(cluster_labels)
         assert len(unique_labels) == k
-
-        # new_truth_labels = self.classification.classify(unique_labels, cluster_labels)
-        self.clusters_to_ply(cluster_labels, "birch")
-
         return self.cluster_labels
 
     def agglomerative_clustering(self, k, affinity="euclidean", linkage="ward"):
@@ -144,7 +129,6 @@ class Clustering:
         print("Clustering complete")
         cluster_labels = np.vstack(cluster_labels)
         self.cluster_labels = cluster_labels
-        self.clusters_to_ply(cluster_labels, "agglo")
         return self.cluster_labels
 
     def rock_clustering(self, k=3, eps=1.0):
@@ -153,7 +137,6 @@ class Clustering:
         print("Starting using", k, "clusters, and a connectivity radius of", eps)
         rock_cluster.process()
         print("Clustering finished")
-
         clusters = rock_cluster.get_clusters()
         encoding = rock_cluster.get_cluster_encoding()
         encoder = cluster_encoder(encoding, clusters, self.pcd)
@@ -161,9 +144,8 @@ class Clustering:
         cluster_labels = np.vstack(np.array(encoder.get_clusters()))
         self.clusters_to_ply(cluster_labels, "rock")
         self.cluster_labels = cluster_labels
-
         return self.cluster_labels
-    
+
     def cure_clustering(self, k=10):
         self.print_heading("CURE Clustering")
         # *!* to do num rep_points, compression *!*
@@ -171,11 +153,9 @@ class Clustering:
         print("Starting using", k, "clusters")
         cure_cluster.process()
         print("Clustering finished")
-
         clusters = cure_cluster.get_clusters()
         # means = cure_cluster.get_means()
         # reps = cure_cluster.get_representors()
-
         encoding = cure_cluster.get_cluster_encoding()
         encoder = cluster_encoder(encoding, clusters, self.pcd)
         encoder.set_encoding(type_encoding.CLUSTER_INDEX_LABELING)
@@ -184,5 +164,4 @@ class Clustering:
         cluster_labels = np.vstack(cluster_labels)
         self.clusters_to_ply(cluster_labels, "cure")
         self.cluster_labels = cluster_labels
-
         return self.cluster_labels

@@ -1,4 +1,5 @@
 from Clustering import Clustering
+from Classification import Classification
 from PointCloudLoader import PointCloudLoader
 from PointCloudUtils import PointCloudUtils
 import numpy as np
@@ -110,14 +111,11 @@ def setup(pnet=False, truth=False):
             return pcd
 
     elif file_ext == ".las":
-        pcd = pc_loader.load_point_cloud_las(vis)
-
         if truth:
-            truth = np.load("./Data/church_registered_alt_dsample_0.05.npy")
-            truth = truth[:, 4:5]
-            pcd_all = np.hstack((pcd, truth))
+            pcd, pcd_all = pc_loader.load_point_cloud_las(vis, ds, ds_amt, truth)
             return pcd, pcd_all
         else:
+            pcd = pc_loader.load_point_cloud_las(vis, ds, ds_amt)
             return pcd
 
     else:
@@ -173,7 +171,7 @@ def experiment_menu(clustering_obj, user_input):
             exit(0)
         elif user_input == "1":
             clusters = int(input(input_prompt))
-            clustering.k_means_clustering(clusters)
+            clusters = clustering.k_means_clustering(clusters)
         elif user_input == "2":
             clusters = int(input(input_prompt))
             clustering.cure_clustering(clusters)
