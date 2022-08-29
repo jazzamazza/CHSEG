@@ -3,14 +3,14 @@ from PointCloudUtils import PointCloudUtils
 import csv
 import datetime
 import pandas as pd
+from Experiment import Experiment
 
-
-class AutoTest:
+class AutoRun:
     def __init__(self):
         self.pcutils = PointCloudUtils()
 
     def menu(self):
-        print("Welcome to AutoTest")
+        print("Welcome to AutoRun")
         menu_selection = input(
             "\nPlease select an option from the menu:"
             + "\n1.) Auto Downsample"
@@ -24,38 +24,18 @@ class AutoTest:
             ds_amt_inc = float(input("Downsample increment value: "))
             self.pcutils.auto_downsample_data(ds_amt_start, ds_amt_end, ds_amt_inc)
 
-    def test_kmeans(self, cluster_start, cluster_end, ds_amt):
-        pass
-
     def data_writer(self):
         df = pd.DataFrame()
 
 
-class Test:
-    def __init__(
-        self,
-        algorithm,
-        dataset,
-        ds_amt,
-        n_points,
-        n_clusters,
-        n_feats,
-        feat_list,
-        special_info,
-    ) -> None:
-        self.algorithm = algorithm
-        self.dataset = dataset
-        self.date = datetime.date.today()
-        self.time = datetime.now().strftime("%H:%M:%S")
-        self.ds_amt = float(ds_amt)
-        self.n_points = int(n_points)
-        self.n_clusters = int(n_clusters)
-        self.n_feats = int(n_feats)
-        self.feat_list = feat_list
-        self.special_info = special_info
+class AutoExperiment:
+    def __init__(self) -> None:
+        self.experiment = Experiment()
         # metrics and their values
+        
+    
+    def experiment_writer(self):
 
 
 if __name__ == "__main__":
-    autotest = AutoTest()
-    autotest.menu()
+    exit(1)

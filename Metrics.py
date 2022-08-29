@@ -35,13 +35,13 @@ class Evaluation:
     def evaluate_clusters(self, y_true, y_pred, cluster_labels, input_pcd, metric_choice = "all"):
         self.cluster_metrics = ClusterMetrics(y_true, y_pred, cluster_labels, input_pcd)
         scores = self.cluster_metrics.run_metric(metric_choice)
-        print(scores)
+        return scores
     
     def evaluate_classification(self, y_true, y_pred, metric_choice = "all"):
         self.check_truth(y_pred, y_true)
         self.class_metrics = ClassificationMetrics(y_pred, y_true)
         scores = self.class_metrics.run_metric(metric_choice)
-        print(scores)
+        return scores
 
 class ClassificationMetrics:
     def __init__(self, y_pred, y_true) -> None:
