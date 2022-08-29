@@ -45,8 +45,19 @@ class Experiment:
         
         # Other
         self.date_today = datetime.date.today()
-        self.time = datetime.datetime.now().strftime("%H:%M:%S")    
+        self.time = datetime.datetime.now().strftime("%H:%M:%S")
+        
+        # Metrics
+        self.classification_metrics = ['f1', 'jaccard', 'precision', 'recall', 'mean_abs', 'mean_sqr']
+        self.clustering_metrics = ['sill','db','rand']
 
+    def fix_truth(self, ground_truth):
+        for i in range(0, len(ground_truth)):
+            #print(truth)
+            ground_truth[i][0] = float(round(ground_truth[i][0]))
+            if ground_truth[i][0] != float(0) and ground_truth[i][0] != float(1): print(ground_truth[i][0])
+        return ground_truth
+    
     def load(self, file_path):
         self.pcloader = PointCloudLoader(file_path)
         file_info = self.pcloader.file_info()
@@ -63,13 +74,7 @@ class Experiment:
             self.truth_index = 4
         else:
             self.truth_index = 4
-        self.ground_truth = self.pcd_truth[:,self.truth_index:self.truth_index + 1]
-        
-        for i in range(0, len(self.ground_truth)):
-            #print(truth)
-            self.ground_truth[i][0] = float(round(self.ground_truth[i][0]))
-            if self.ground_truth[i][0] != float(0) and self.ground_truth[i][0] != float(1): print(self.ground_truth[i][0])
-        
+        self.ground_truth = self.fix_truth(self.pcd_truth[:,self.truth_index:self.truth_index + 1])
         self.clustering = Clustering(self.pcd, self.pcd_truth, self.dataset)
         self.classification = Classification(self.ground_truth)
         
@@ -95,7 +100,6 @@ class Experiment:
         self.pred_ground_truth = self.classification.pred_truth_labels
         assert ((np.array_equal(self.ground_truth, self.pred_ground_truth)) != True)
         self.truth_labels = np.hstack((self.ground_truth, self.pred_ground_truth))
-        
     
     def pick_file(self, use_default_path=True , default_path="./Data/Datasets/CloudCompare/church_registered_ds_0.075_cc_23_feats.las"):
         if use_default_path:
@@ -162,9 +166,9 @@ class Experiment:
         self.cluster("kmeans", 125)
         self.classify()
         self.clusters_pred_to_ply(self.alg)
-        eval = Evaluation(self.truth_labels)
-        eval.evaluate("f1")
-        
+        evalualtion = Evaluation(self.truth_labels)
+        evalualtion.evaluate_classification(self.ground_truth, self.pred_ground_truth, metric_choice="all")
+        evalualtion.evaluate_clusters(self.ground_truth, self.pred_ground_truth, self.cluster_labels, self.pcd, metric_choice="all")
     
 if __name__ == "__main__":
     my_experiment = Experiment()

@@ -22,78 +22,26 @@ import matplotlib.cm as cm
 
 class Evaluation:
     def __init__(self, truth_labels):
-        self.y_true = truth_labels[:,0:1]
-        self.y_pred = truth_labels[:,1:2]
-        self.class_metrics = ClassificationMetrics(self.y_pred, self.y_true)
-
-    def check_truth(self):
+        self.truth_labels = truth_labels
+        
+    def check_truth(self, y_pred, y_true):
         print("checking self.y_predict:")
-        for i in self.y_pred:
-            assert(i != float(0) and i != float(1))
+        for i in y_pred:
+            assert(not (i != float(0) and i != float(1)))
         print("checking self.y_true:")
-        for i in self.y_true:
-            assert(i != float(0) and i != float(1))
+        for i in y_true:
+            assert(not (i != float(0) and i != float(1)))
     
-    def evaluate(self, metric_choice):
-        self.check_truth()
-        score = self.class_metrics.run_metric(metric_choice)
-        print(score)
-          
-    # def evaluate(self, metric_choice):
-    #     print("checking self.y_predict-----------------")
-    #     for i in self.y_predict:
-    #         if i != float(0) and i != float(1): print(i)
-    #     print("checking self.y_true-----------------")
-    #     for i in self.y_true:
-    #         if i != float(0) and i != float(1): print(i)
-
-    #     if metric_choice == 0:
-    #         # f1 score 
-    #         score = f1_score(self.y_true, self.y_predict, average='macro')
-    #         write_results_to_file("F1 Score (Macro):" + str(score))
-    #     elif metric_choice == 1:
-    #         # IOU score
-    #         score = jaccard_score(self.y_true, self.y_predict, average='macro')
-    #         write_results_to_file("IOU Score (Macro):" + str(score))
-    #     elif metric_choice == 2:
-    #         # precision
-    #         score = precision_score(self.y_true, self.y_predict, average='macro')
-    #         write_results_to_file("Precision (Macro):" + str(score))
-    #     elif metric_choice == 3:
-    #         # recall
-    #         score = recall_score(self.y_true, self.y_predict, average='macro')
-    #         write_results_to_file("Recall (Macro):" + str(score))
-    #     elif metric_choice == 4:
-    #         # mean absolute error 
-    #         score = mean_absolute_error(self.y_true, self.y_predict)
-    #         write_results_to_file("Mean Absolute Error:" + str(score))
-    #     elif metric_choice == 5:
-    #         # mean squared error 
-    #         score = mean_squared_error(self.y_true, self.y_predict)
-    #         write_results_to_file("Mean Squared Error:" + str(score))
-    #     elif metric_choice == 6:
-    #         # all metrics
-    #         f2 = f1_score(self.y_true, self.y_predict, average='macro')
-    #         j2 = jaccard_score(self.y_true, self.y_predict,  average='macro')
-    #         p2 = precision_score(self.y_true, self.y_predict,  average='macro')
-    #         r2 = recall_score(self.y_true, self.y_predict,  average='macro')
-    #         a = mean_absolute_error(self.y_true, self.y_predict)
-    #         s = mean_squared_error(self.y_true, self.y_predict)
-    #         print("F1 Score (Macro):", str(f2).replace('.', ','), 
-    #               "\nIOU Score (Macro):", str(j2).replace('.', ','), 
-    #               "\nPrecision (Macro):", str(p2).replace('.', ','), 
-    #               "\nRecall (Macro):", str(r2).replace('.', ','),
-    #               "\nMean Absolute Error:", str(a).replace('.', ','),
-    #               "\nMean Squared Error:", str(s).replace('.', ','))
-    #         score = ""
-
-    #         write_results_to_file("F1 Score (Macro):" + str(f2).replace('.', ','))
-    #         write_results_to_file("IOU Score (Macro):" + str(j2).replace('.', ','))
-    #         write_results_to_file("Precision (Macro):" + str(p2).replace('.', ','))
-    #         write_results_to_file("Recall (Macro):" + str(r2).replace('.', ','))
-    #         write_results_to_file("Mean Absolute Error:" + str(a).replace('.', ','))
-    #         write_results_to_file("Mean Squared Error:" + str(s).replace('.', ','))
-    #     return score
+    def evaluate_clusters(self, y_true, y_pred, cluster_labels, input_pcd, metric_choice = "all"):
+        self.cluster_metrics = ClusterMetrics(y_true, y_pred, cluster_labels, input_pcd)
+        scores = self.cluster_metrics.run_metric(metric_choice)
+        print(scores)
+    
+    def evaluate_classification(self, y_true, y_pred, metric_choice = "all"):
+        self.check_truth(y_pred, y_true)
+        self.class_metrics = ClassificationMetrics(y_pred, y_true)
+        scores = self.class_metrics.run_metric(metric_choice)
+        print(scores)
 
 class ClassificationMetrics:
     def __init__(self, y_pred, y_true) -> None:
@@ -101,6 +49,9 @@ class ClassificationMetrics:
         self.y_pred = y_pred
         # Ground Truth Labels
         self.y_true = y_true
+        # Metrics
+        self.classification_metrics = ['f1', 'jaccard', 'precision', 'recall', 'mean_abs', 'mean_sqr']
+        
     
     def run_metric(self, metric_choice):
         if metric_choice == "f1":
@@ -115,32 +66,30 @@ class ClassificationMetrics:
             return mean_absolute_error(self.y_true, self.y_pred)
         elif metric_choice == "mean_sqr":
             return mean_squared_error(self.y_true, self.y_pred)
-        # elif metric_choice == "all":
-        #     # all metrics
-        #     f2 = f1_score(self.y_true, self.y_predict, average='macro')
-        #     j2 = jaccard_score(self.y_true, self.y_predict,  average='macro')
-        #     p2 = precision_score(self.y_true, self.y_predict,  average='macro')
-        #     r2 = recall_score(self.y_true, self.y_predict,  average='macro')
-        #     ab = mean_absolute_error(self.y_true, self.y_predict)
-        #     sq = mean_squared_error(self.y_true, self.y_predict)
-        #     print("F1 Score (Macro):", str(f2).replace('.', ','), 
-        #           "\nIOU Score (Macro):", str(j2).replace('.', ','), 
-        #           "\nPrecision (Macro):", str(p2).replace('.', ','), 
-        #           "\nRecall (Macro):", str(r2).replace('.', ','),
-        #           "\nMean Absolute Error:", str(ab).replace('.', ','),
-        #           "\nMean Squared Error:", str(sq).replace('.', ','))
+        elif metric_choice == "all":
+            metric_vals = {}
+            for metric in self.classification_metrics:
+                metric_vals[metric] = self.run_metric(metric)
+            return metric_vals
 
 class ClusterMetrics:
     def __init__(self, y_true, y_pred, cluster_labels, input_pcd) -> None:
         self.y_true = y_true
         self.y_pred = y_pred
-        self.cluster_labels = cluster_labels
+        self.cluster_labels = cluster_labels.flatten()
         self.input_pcd = input_pcd
+        self.clustering_metrics = ['sill','db','rand']
         
     def run_metric(self, metric_choice):
         if metric_choice == "sill":
             return silhouette_score(self.input_pcd, self.cluster_labels)
-        if metric_choice == "db":
+        elif metric_choice == "db":
             return davies_bouldin_score(self.input_pcd, self.cluster_labels)
-        if metric_choice == "rand":
-            return rand_score(self.y_true, self.cluster_labels)
+        elif metric_choice == "rand":
+            return rand_score(self.y_true.flatten(), self.cluster_labels)
+        elif metric_choice == "all":
+            metric_vals = {}
+            for metric in self.clustering_metrics:
+                metric_vals[metric] = self.run_metric(metric)
+                # print(metric_vals)
+            return metric_vals
