@@ -93,12 +93,20 @@ class Experiment:
         self.alg, self.n_clusters = alg, n_clusters
         if alg == "kmeans":
             self.cluster_labels = self.clustering.k_means_clustering(n_clusters)
+            if np.ndim(self.cluster_labels)!=2:
+                self.cluster_labels = np.vstack(self.cluster_labels)
         elif alg == "birch":
             self.cluster_labels = self.clustering.birch_clustering(n_clusters)
+            if np.ndim(self.cluster_labels)!=2:
+                self.cluster_labels = np.vstack(self.cluster_labels)
         elif alg == "cure":
             self.cluster_labels = self.clustering.cure_clustering(n_clusters)
+            if np.ndim(self.cluster_labels)!=2:
+                self.cluster_labels = np.vstack(self.cluster_labels)
         elif alg == "aggl":
             self.cluster_labels = self.clustering.agglomerative_clustering(n_clusters)
+            if np.ndim(self.cluster_labels)!=2:
+                self.cluster_labels = np.vstack(self.cluster_labels)
         self.unique_clusters = np.unique(self.cluster_labels)
     
     def classify(self):
@@ -172,14 +180,15 @@ class Experiment:
     def create_pandas(self):
         columns = ['date', 'time', 'data_set', 'is_down_sample', 
                    'down_sample_amount', 'n_points', 'n_clusters', 
-                   'clustering_algorithm', 'classification_metrics',
-                   'clustering_metrics']
+                   'clustering_algorithm']
+        columns.append('classification_metrics')
         for metric in self.classification_metrics:
             columns.append(metric)
+        columns.append('clustering_metrics')
         for metric in self.clustering_metrics:
             columns.append(metric)
         self.experiment_df = pd.DataFrame(data=None, columns=columns)
-        print(self.experiment_df)
+        #print(self.experiment_df)
         
     def experiment_to_pandas(self, index):
         data = {}
@@ -193,40 +202,47 @@ class Experiment:
         data['clustering_algorithm'] = self.alg
         data['classification_metrics'] = str(self.classification_metrics)
         #data['classification_metrics_results'] = str(self.class_eval)
-        data['clustering_metrics'] = str(self.clustering_metrics)
         for metric in self.classification_metrics:
             data[metric] = self.class_eval[metric]
+        data['clustering_metrics'] = str(self.clustering_metrics)
         for metric in self.clustering_metrics:
             data[metric] = self.clust_eval[metric]
         #data['clustering_metrics_results'] = str(self.clust_eval)
         
         #new_data = pd.Series(data = data, index = self.experiment_df.columns, name=index)
         self.experiment_df = self.experiment_df.append(data, ignore_index=True)
-        print(self.experiment_df)
+        #print(self.experiment_df)
         print(self.experiment_df.head())
+        self.experiment_writer()
     
     def experiment_writer(self):
-        self.experiment_df.to_csv("./Results/test.csv")
+        self.experiment_df.to_csv("./Results/test_100_500_kme_cur_bir_raw_cc_0.075.csv")
         
-    def run_experiment(self, cluster_start, cluster_end, algs = ["kmeans"], data_set_paths=["./Data/church_registered_ds_0.125.npy"]):
+    def run_experiment(self, cluster_start, cluster_end, algs = ["kmeans","birch","cure"], data_set_paths=["./Data/church_registered_ds_0.075.npy", "./Data/Datasets/CloudCompare/church_registered_ds_0.075_cc_23_feats.las"]):
         index = 0
+        self.classification_metrics = ['f1', 'jaccard', 'precision', 'recall', 'mean_abs', 'mean_sqr']
+        self.clustering_metrics = ['db','rand']
+        evalualtion = Evaluation(self.truth_labels)
         self.create_pandas()
-        for alg in algs:
-            for path in data_set_paths:
-                for k in range(cluster_start, cluster_end+1):
+        for k in range(cluster_start, cluster_end+1):
+            print("Clusters: ", k)
+            for alg in algs:
+                print("Alg: ", alg)
+                for path in data_set_paths:
+                    print("Path:", path)
                     self.pick_file(use_default_path=True, default_path = path)
                     self.load(self.file_path)
                     self.cluster(alg, k)
                     self.classify()
                     self.clusters_pred_to_ply(self.alg)
-                    evalualtion = Evaluation(self.truth_labels)
-                    self.class_eval = evalualtion.evaluate_classification(self.ground_truth, self.pred_ground_truth, metric_choice="all")
-                    self.clust_eval = evalualtion.evaluate_clusters(self.ground_truth, self.pred_ground_truth, self.cluster_labels, self.pcd, metric_choice="all")
+                    self.class_eval = evalualtion.evaluate_classification(self.ground_truth, self.pred_ground_truth, self.classification_metrics, metric_choice="all")
+                    self.clust_eval = evalualtion.evaluate_clusters(self.ground_truth, self.pred_ground_truth, self.cluster_labels, self.pcd, self.clustering_metrics, metric_choice="all")
                     self.experiment_to_pandas(index)
+                    print("iteration:", index)
                     index+=1
-        self.experiment_writer()
+        #self.experiment_writer()
                     
 if __name__ == "__main__":
     my_experiment = Experiment()
-    my_experiment.run_experiment(55,58)
+    my_experiment.run_experiment(100, 550)
     

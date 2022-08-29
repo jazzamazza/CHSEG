@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from prometheus_client import Metric
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
@@ -28,18 +29,22 @@ class Evaluation:
         print("checking self.y_predict:")
         for i in y_pred:
             assert(not (i != float(0) and i != float(1)))
+        print("All good!")
         print("checking self.y_true:")
         for i in y_true:
             assert(not (i != float(0) and i != float(1)))
+        print("All good!")
     
-    def evaluate_clusters(self, y_true, y_pred, cluster_labels, input_pcd, metric_choice = "all"):
+    def evaluate_clusters(self, y_true, y_pred, cluster_labels, input_pcd, clustering_metrics = ['sill','db','rand'], metric_choice = "all"):
         self.cluster_metrics = ClusterMetrics(y_true, y_pred, cluster_labels, input_pcd)
+        self.cluster_metrics.set_metrics(clustering_metrics)
         scores = self.cluster_metrics.run_metric(metric_choice)
         return scores
     
-    def evaluate_classification(self, y_true, y_pred, metric_choice = "all"):
+    def evaluate_classification(self, y_true, y_pred, classification_metrics = ['f1', 'jaccard', 'precision', 'recall', 'mean_abs', 'mean_sqr'], metric_choice = "all"):
         self.check_truth(y_pred, y_true)
         self.class_metrics = ClassificationMetrics(y_pred, y_true)
+        self.class_metrics.set_metrics(classification_metrics)
         scores = self.class_metrics.run_metric(metric_choice)
         return scores
 
@@ -51,7 +56,9 @@ class ClassificationMetrics:
         self.y_true = y_true
         # Metrics
         self.classification_metrics = ['f1', 'jaccard', 'precision', 'recall', 'mean_abs', 'mean_sqr']
-        
+    
+    def set_metrics(self, metrics):
+        self.classification_metrics = metrics    
     
     def run_metric(self, metric_choice):
         if metric_choice == "f1":
@@ -79,6 +86,9 @@ class ClusterMetrics:
         self.cluster_labels = cluster_labels.flatten()
         self.input_pcd = input_pcd
         self.clustering_metrics = ['sill','db','rand']
+        
+    def set_metrics(self, metrics):
+        self.clustering_metrics = metrics
         
     def run_metric(self, metric_choice):
         if metric_choice == "sill":

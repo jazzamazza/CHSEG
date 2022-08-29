@@ -194,7 +194,18 @@ class PointCloudLoader:
         points = pcd.xyz
 
         for dim in pcd.point_format.extra_dimension_names:
-            points = np.hstack((points, np.nan_to_num(np.vstack((pcd[dim])))))
+            feat = np.nan_to_num(np.vstack((pcd[dim])))
+            max_feat = float(max(feat))
+            min_feat = float(min(feat))
+            range_feat = max_feat-min_feat
+            
+            if max_feat > 1.0:
+                for point in feat:
+                    if point[0] != 0.0:
+                        point[0] = (point[0]-min_feat)/range_feat
+            new_max_feat = float(max(feat))
+            assert(new_max_feat<=1.0)
+            points = np.hstack((points, feat))
         truths = points[:, 4:5]
         intensity = points[:, 3:4]
         extra_features = points[:, 5:]
