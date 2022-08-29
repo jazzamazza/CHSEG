@@ -2,6 +2,7 @@ from Classification import Classification
 from PointCloudLoader import PointCloudLoader
 from Clustering import Clustering
 from PointCloudUtils import PointCloudUtils
+from Metrics import Evaluation
 import numpy as np
 import open3d as o3d
 import pptk
@@ -39,7 +40,8 @@ class Experiment:
         # Classification Info
         self.ground_truth = None
         self.pred_ground_truth = None
-        self.test_truth = None  
+        self.test_truth = None
+        self.truth_labels = None 
         
         # Other
         self.date_today = datetime.date.today()
@@ -62,6 +64,11 @@ class Experiment:
         else:
             self.truth_index = 4
         self.ground_truth = self.pcd_truth[:,self.truth_index:self.truth_index + 1]
+        
+        for i in range(0, len(self.ground_truth)):
+            #print(truth)
+            self.ground_truth[i][0] = float(round(self.ground_truth[i][0]))
+            if self.ground_truth[i][0] != float(0) and self.ground_truth[i][0] != float(1): print(self.ground_truth[i][0])
         
         self.clustering = Clustering(self.pcd, self.pcd_truth, self.dataset)
         self.classification = Classification(self.ground_truth)
@@ -87,6 +94,8 @@ class Experiment:
         self.classification.classify(self.unique_clusters, self.cluster_labels)
         self.pred_ground_truth = self.classification.pred_truth_labels
         assert ((np.array_equal(self.ground_truth, self.pred_ground_truth)) != True)
+        self.truth_labels = np.hstack((self.ground_truth, self.pred_ground_truth))
+        
     
     def pick_file(self, use_default_path=True , default_path="./Data/Datasets/CloudCompare/church_registered_ds_0.075_cc_23_feats.las"):
         if use_default_path:
@@ -153,6 +162,9 @@ class Experiment:
         self.cluster("kmeans", 125)
         self.classify()
         self.clusters_pred_to_ply(self.alg)
+        eval = Evaluation(self.truth_labels)
+        eval.evaluate("f1")
+        
     
 if __name__ == "__main__":
     my_experiment = Experiment()
