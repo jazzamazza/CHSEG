@@ -1,7 +1,17 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.cluster import KMeans
-from sklearn.metrics import *
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import classification_report
+from sklearn.metrics import f1_score
+from sklearn.metrics import jaccard_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import top_k_accuracy_score
+from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics import precision_recall_curve
+from sklearn.metrics import PrecisionRecallDisplay
+
 import matplotlib.cm as cm
 
 
@@ -15,19 +25,7 @@ class Testing:
 
         K = range(2, 20)
         for k in K:
-            fig, (ax1, ax2) = plt.subplots(1, 2)
-            fig.set_size_inches(18, 7)
-
-            # The 1st subplot is the silhouette plot
-            # The silhouette coefficient can range from -1, 1 but in this example all
-            # lie within [-0.1, 1]
-            ax1.set_xlim([-0.1, 1])
-            # The (n_clusters+1)*10 is for inserting blank space between silhouette
-            # plots of individual clusters, to demarcate them clearly.
-            ax1.set_ylim([0, len(x) + (k + 1) * 10])
-
-            # Initialize the clusterer with n_clusters value and a random generator
-            # seed of 10 for reproducibility.
+            
             clusterer = KMeans(n_clusters=k)  # for k-means and k-medoids
 
             cluster_labels = clusterer.fit_predict(x)
@@ -178,8 +176,96 @@ class Testing:
                 break
             score = self.evaluate(int(userInput))
             print(score)
+            
+    def evaluate(self, metric_choice):
+        print("checking self.y_predict-----------------")
+        for i in self.y_predict:
+            if i != float(0) and i != float(1): print(i)
+        print("checking self.y_true-----------------")
+        for i in self.y_true:
+            if i != float(0) and i != float(1): print(i)
 
+        if metric_choice == 0:
+            # f1 score 
+            score = f1_score(self.y_true, self.y_predict, average='macro')
+            write_results_to_file("F1 Score (Macro):" + str(score))
+        elif metric_choice == 1:
+            # IOU score
+            score = jaccard_score(self.y_true, self.y_predict, average='macro')
+            write_results_to_file("IOU Score (Macro):" + str(score))
+        elif metric_choice == 2:
+            # precision
+            score = precision_score(self.y_true, self.y_predict, average='macro')
+            write_results_to_file("Precision (Macro):" + str(score))
+        elif metric_choice == 3:
+            # recall
+            score = recall_score(self.y_true, self.y_predict, average='macro')
+            write_results_to_file("Recall (Macro):" + str(score))
+        elif metric_choice == 4:
+            # mean absolute error 
+            score = mean_absolute_error(self.y_true, self.y_predict)
+            write_results_to_file("Mean Absolute Error:" + str(score))
+        elif metric_choice == 5:
+            # mean squared error 
+            score = mean_squared_error(self.y_true, self.y_predict)
+            write_results_to_file("Mean Squared Error:" + str(score))
+        elif metric_choice == 6:
+            # all metrics
+            f2 = f1_score(self.y_true, self.y_predict, average='macro')
+            j2 = jaccard_score(self.y_true, self.y_predict,  average='macro')
+            p2 = precision_score(self.y_true, self.y_predict,  average='macro')
+            r2 = recall_score(self.y_true, self.y_predict,  average='macro')
+            a = mean_absolute_error(self.y_true, self.y_predict)
+            s = mean_squared_error(self.y_true, self.y_predict)
+            print("F1 Score (Macro):", str(f2).replace('.', ','), 
+                  "\nIOU Score (Macro):", str(j2).replace('.', ','), 
+                  "\nPrecision (Macro):", str(p2).replace('.', ','), 
+                  "\nRecall (Macro):", str(r2).replace('.', ','),
+                  "\nMean Absolute Error:", str(a).replace('.', ','),
+                  "\nMean Squared Error:", str(s).replace('.', ','))
+            score = ""
 
+            write_results_to_file("F1 Score (Macro):" + str(f2).replace('.', ','))
+            write_results_to_file("IOU Score (Macro):" + str(j2).replace('.', ','))
+            write_results_to_file("Precision (Macro):" + str(p2).replace('.', ','))
+            write_results_to_file("Recall (Macro):" + str(r2).replace('.', ','))
+            write_results_to_file("Mean Absolute Error:" + str(a).replace('.', ','))
+            write_results_to_file("Mean Squared Error:" + str(s).replace('.', ','))
+        return score
+    
+    def classification_metrics(self, actual_ground_truths, predicted_ground_truths):
+        write_results_to_file("*************Classification Metrics*************")
+        # data
+        self.y_true = actual_ground_truths 
+        self.y_predict = predicted_ground_truths
+        print("**********************INSIDE METRICS****************")
+        print("---------------------self.y_true:", self.y_true)
+        print("shape:", np.shape(self.y_true), "len:", len(self.y_true))
+        print("---------------------self.y_predict:", self.y_predict)
+        print("shape:", np.shape(self.y_predict), "len:", len(self.y_predict))
+
+        userInput = "", ""
+        while (userInput != "q"):
+            userInput = input("\nChoose Classification Metric to Evaluate with:"+
+                                    "\n 0 : F1 Score" +
+                                    "\n 1 : Intersection Over Union Score"+
+                                    "\n 2 : Precision"+
+                                    "\n 3 : Recall"+
+                                    "\n 4 : Mean Absolute Error"+
+                                    "\n 5 : Mean Squared Error"+
+                                    "\n 6 : All of the Above"+
+                                    "\n q : Quit\n")
+            if (userInput == "q"): break
+            score = self.evaluate(int(userInput))
+            print(score)
+
+class Metrics:
+    def __init__(self, y_pred, y_true) -> None:
+        # Predicted Labels
+        self.y_pred = y_pred
+        # Grounf Truth Labels
+        self.y_true = y_true
+    
 if __name__ == "__main__":
     t = Testing()
     t.classification_metrics()
