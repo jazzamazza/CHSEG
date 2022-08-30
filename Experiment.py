@@ -218,7 +218,7 @@ class Experiment:
     def experiment_writer(self):
         self.experiment_df.to_csv("./Results/test_100_500_kme_cur_bir_raw_cc_0.075.csv")
         
-    def run_experiment(self, cluster_start, cluster_end, algs = ["kmeans","birch","cure"], data_set_paths=["./Data/church_registered_ds_0.075.npy", "./Data/Datasets/CloudCompare/church_registered_ds_0.075_cc_23_feats.las"]):
+    def run_experiment(self, cluster_start, cluster_end, algs = ["kmeans","birch"], data_set_paths=["./Data/church_registered_ds_0.075.npy", "./Data/Datasets/CloudCompare/church_registered_ds_0.075_cc_23_feats.las"]):
         index = 0
         self.classification_metrics = ['f1', 'jaccard', 'precision', 'recall', 'mean_abs', 'mean_sqr']
         self.clustering_metrics = ['db','rand']
