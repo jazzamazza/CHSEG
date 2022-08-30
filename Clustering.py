@@ -149,7 +149,7 @@ class Clustering:
     def cure_clustering(self, k=10):
         self.print_heading("CURE Clustering")
         # *!* to do num rep_points, compression *!*
-        cure_cluster = cure(self.pcd, k, ccore=True)
+        cure_cluster = cure(self.pcd, k, ccore=False)
         print("Starting using", k, "clusters")
         cure_cluster.process()
         print("Clustering finished")
