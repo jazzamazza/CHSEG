@@ -1,4 +1,5 @@
 wheel
+# pip
 torch
 torchvision
 torchaudio
@@ -7,9 +8,11 @@ matplotlib
 scikit-learn
 scikit-learn-intelex
 scikit-learn-extra
+jupyterlab
 laspy
 # faiss-cpu
 tqdm
 open3d
 pptk
 pyclustering
+pandas

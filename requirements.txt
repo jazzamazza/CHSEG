@@ -9,6 +9,7 @@ matplotlib
 scikit-learn
 scikit-learn-intelex
 scikit-learn-extra
+jupyterlab
 laspy
 # faiss-cpu
 tqdm

@@ -8,6 +8,7 @@ import open3d as o3d
 import pandas as pd
 import pptk
 import datetime
+import matplotlib.pyplot as plt
 
 
 class Experiment:
@@ -241,8 +242,74 @@ class Experiment:
                     print("iteration:", index)
                     index+=1
         #self.experiment_writer()
+        
+class Graph:
+    def __init__(self, file) -> None:
+        print("File chosen", file)
+        self.df = self.read_file(file)
+        self.plt_graph("n_clusters", "f1", "kmeans", self.df, "f1 - raw vs cc: kmeans")
+        self.plt_graph("n_clusters", "f1", "birch", self.df, "f1 - raw vs cc: birch")
+        self.plt_graph("n_clusters", "jaccard", "kmeans", self.df, "iou - raw vs cc: kmeans")
+        self.plt_graph("n_clusters", "jaccard", "birch", self.df, "iou - raw vs cc: birch")
+        self.plt_graph("n_clusters", "db", "kmeans", self.df, "db - raw vs cc: kmeans")
+        self.plt_graph("n_clusters", "db", "birch", self.df, "db - raw vs cc: kmeans")
+        
+        #self.plt_graph("n_clusters", ["f1"], res)
+        #f = df_in
+        #res.plot("n_clusters", "f1")
+        # fig, ax = plt.subplots(figsize=(8,6))
+        # res = self.query('kmeans')
+        # res.plot("n_clusters", "f1", ax=ax)
+        # ax.legend(res["data_set"].unique())
+        # ax.set_xlabel("n_clusters")
+        # ax.set_ylabel("f1")
+        # ax.set_title("raw vs cc: kmeans")
+        # plt.show()
+        # fig, ax = plt.subplots(figsize=(8,6))
+        # res = self.query('birch')
+        # res.plot("n_clusters", "f1", ax=ax)
+        # ax.legend(res["data_set"].unique())
+        # ax.set_xlabel("n_clusters")
+        # ax.set_ylabel("f1")
+        # ax.set_title("raw vs cc: kmeans")
+        # plt.show()
+        
+    def read_file(self, file):
+        df = pd.read_csv(file)
+        print("Data frame created.")
+        print(type(df))
+        pd.set_option("display.max.columns", None)
+        print(df.head())
+        return df
+        
+    def plt_graph(self, x_clusters, y_metric, q_alg, df_in, title):
+        df = df_in
+        fig, ax = plt.subplots(figsize=(8,6))
+        res = self.query(q_alg, df)
+        res.plot(x_clusters, y_metric, ax=ax)
+        ax.legend(res["data_set"].unique())
+        ax.set_xlabel(x_clusters)
+        ax.set_ylabel(y_metric)
+        ax.set_title(title)
+        plt.show()
+        
+    def query(self, alg, df):
+        df_alg = df[(df["clustering_algorithm"]==alg)].groupby(["data_set"])
+        return df_alg
+       # df_groupBy = self.df.groupby(["clustering_algorithm"])
+        #df_groupBy = df_groupBy["clustering_algorithm"]
+        #return df_groupBy
+        
+        # df = self.df
+        # res = df[(df["data_set"]=='cc')
+        #          & (df["clustering_algorithm"]=='kmeans')]
+        # print (res.head())
+        # return res
+        
+        
                     
 if __name__ == "__main__":
-    my_experiment = Experiment()
-    my_experiment.run_experiment(550, 1000)
+    #my_experiment = Experiment()
+    my_graph = Graph("./Results/test_100_439.csv")
+    #my_experiment.run_experiment(550, 1000)
     
