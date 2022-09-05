@@ -53,7 +53,8 @@ class PointCloudLoader:
     def load_point_cloud_npy(
         self, vis=False, downsample=False, ds_size=0.0, truth=False
     ):
-        print("\n****************** Loading Point Cloud from .npy *******************")
+        print("\n**** Loading Point Cloud (.npy) ****")
+        print("File is:", self.pcd_path)
         if downsample:
             print("Downsampling Active @", ds_size)
             pcutils = PointCloudUtils()
@@ -66,28 +67,31 @@ class PointCloudLoader:
         else:
             point_cloud = np.load(self.pcd_path)
             self.filetype = ".npy"
-            self.get_attributes(point_cloud, "Original Point Cloud")
+            print("**** Point Cloud Loaded ****")
+            #self.get_attributes(point_cloud, "Original Point Cloud")
 
         # divide point_cloud into points and features
         points = point_cloud[:, :3]
-        print("points [0]", points[0])
+        #print("points [0]", points[0])
         intensity = point_cloud[:, 3:4]
-        print("intensity [0]", intensity[0])
+        #print("intensity [0]", intensity[0])
         truth_label = point_cloud[:, 4:5]
-        print("truth label [0]", truth_label[0])
+        #print("truth label [0]", truth_label[0])
 
         print(
-            "\n****************** Creating Final Point Cloud w/o GTruth *******************"
+            "\n**** Creating Final Point Cloud w/o GTruth ****"
         )
         final_pcd = np.hstack((points, intensity))  # without truth label
-        self.get_attributes(final_pcd, "Point Cloud w/o GTruth")
+        print("*** Done ***")
+        #self.get_attributes(final_pcd, "Point Cloud w/o GTruth")
 
         if truth:
             print(
-                "\n****************** Creating Final Point Cloud w/ GTruth *******************"
+                "\n**** Creating Final Point Cloud w/ GTruth ****"
             )
             final_pcd_wtruth = np.hstack((points, intensity, truth_label))
-            self.get_attributes(final_pcd_wtruth, "Point Cloud w/ GTruth")
+            print("*** Done ***")
+            #self.get_attributes(final_pcd_wtruth, "Point Cloud w/ GTruth")
 
             if vis:
                 pview = PointCloudViewer()
@@ -100,7 +104,7 @@ class PointCloudLoader:
             return final_pcd
 
     def load_point_cloud_ply(
-        self, vis=False, downsample=False, down_size=float(0.0), truth=False
+        self, vis=False, downsample=False, down_size=float(0.0), truth=False, has = False
     ):
         if downsample:
             print("Downsampling Active @", down_size)
@@ -112,50 +116,54 @@ class PointCloudLoader:
             pcd = o3d.io.read_point_cloud(ds_ply_path, print_progress=True)
         else:
             print(
-                "\n******************Loading Point Cloud (.ply) with Raw Features (x, y, z, intensity) *******************"
+                "\n**** Loading Point Cloud (.ply) ****"
             )
+            print("File is:", self.pcd_path)
             # load point cloud .ply file
             path = self.pcd_path
             pcd = o3d.io.read_point_cloud(path, print_progress=True)
             self.filetype = ".ply"
-            print("Point Cloud Loaded:", pcd)
-
-        has_points = pcd.has_points()
-        has_colors = pcd.has_colors()
-        has_normals = pcd.has_normals()
-        has_covariances = pcd.has_covariances()
-        print("pcd has points ->", has_points)
-        if has_points:
-            print(np.asarray(pcd.points))
-            # print(np.asarray(pcd.points)[1789886])
-        print("pcd has colours ->", has_colors)
-        if has_colors:
-            print(np.asarray(pcd.colors))
-            # print(np.asarray(pcd.colors)[1789886])
-        print("pcd has normals ->", has_normals)
-        if has_normals:
-            print(np.asarray(pcd.normals))
-            # print(np.asarray(pcd.normals)[1789886])
-        print("pcd has covariances ->", has_covariances)
-        if has_covariances:
-            print(np.asarray(pcd.covariances))
+            print("Point Cloud Loaded", pcd)
+        
+        if has:
+            has_points = pcd.has_points()
+            has_colors = pcd.has_colors()
+            has_normals = pcd.has_normals()
+            has_covariances = pcd.has_covariances()
+            print("pcd has points ->", has_points)
+            if has_points:
+                print(np.asarray(pcd.points))
+                # print(np.asarray(pcd.points)[1789886])
+            print("pcd has colours ->", has_colors)
+            if has_colors:
+                print(np.asarray(pcd.colors))
+                # print(np.asarray(pcd.colors)[1789886])
+            print("pcd has normals ->", has_normals)
+            if has_normals:
+                print(np.asarray(pcd.normals))
+                # print(np.asarray(pcd.normals)[1789886])
+            print("pcd has covariances ->", has_covariances)
+            if has_covariances:
+                print(np.asarray(pcd.covariances))
 
         pcd_points = np.asarray(pcd.points)
         pcd_intensity = np.asarray(pcd.normals)[:, 0:1]
         pcd_truth = np.asarray(pcd.colors)[:, 0:1]
 
         print(
-            "\n****************** Creating Final Point Cloud w/o GTruth *******************"
+            "\n**** Creating Final Point Cloud w/o GTruth ****"
         )
         final_pcd = np.hstack((pcd_points, pcd_intensity))  # without truth label
-        self.get_attributes(final_pcd, "Point Cloud w/o GTruth")
+        print("*** Done ***")
+        #self.get_attributes(final_pcd, "Point Cloud w/o GTruth")
 
         if truth:
             print(
-                "\n****************** Creating Final Point Cloud w/ GTruth *******************"
+                "\n**** Creating Final Point Cloud w/ GTruth ****"
             )
             final_pcd_wtruth = np.hstack((pcd_points, pcd_intensity, pcd_truth))
-            self.get_attributes(final_pcd_wtruth, "Point Cloud w/ GTruth")
+            print("*** Done ***")
+            #self.get_attributes(final_pcd_wtruth, "Point Cloud w/ GTruth")
 
             if vis:
                 pview = PointCloudViewer()
