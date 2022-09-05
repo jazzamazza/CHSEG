@@ -80,8 +80,10 @@ class Experiment:
         self.intensity = self.pcd_truth[:, 3:4]
         if self.dataset == "raw" or self.dataset == "cc":
             self.truth_index = 4
-        else:
-            self.truth_index = 4
+        elif self.dataset == "pnet":
+            self.truth_index = 3
+            print(self.truth_index)
+            #exit(0)
         self.ground_truth = self.fix_truth(self.pcd_truth[:,self.truth_index:self.truth_index + 1])
         self.clustering = Clustering(self.pcd, self.pcd_truth, self.dataset)
         self.classification = Classification(self.ground_truth)
@@ -217,9 +219,9 @@ class Experiment:
         self.experiment_writer()
     
     def experiment_writer(self):
-        self.experiment_df.to_csv("./Results/test_cure_0.090_raw.csv")
+        self.experiment_df.to_csv("./Results/test_pnet_birch.csv")
         
-    def run_experiment(self, cluster_start, cluster_end, algs = ["cure"], data_set_paths=["./Data/church_registered_ds_0.225.npy"]):
+    def run_experiment(self, cluster_start, cluster_end, algs = ["birch"], data_set_paths=["./Data/PNet/church_registered_ds_0.075_0.085_pnet.npy"]):
         index = 0
         self.classification_metrics = ['f1', 'jaccard', 'precision', 'recall', 'mean_abs', 'mean_sqr']
         self.clustering_metrics = ['db','rand']
@@ -311,5 +313,5 @@ class Graph:
 if __name__ == "__main__":
     my_experiment = Experiment()
     #my_graph = Graph("./Results/test_100_439.csv")
-    my_experiment.run_experiment(25, 150)
+    my_experiment.run_experiment(5, 50)
     
