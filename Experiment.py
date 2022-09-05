@@ -80,8 +80,10 @@ class Experiment:
         self.intensity = self.pcd_truth[:, 3:4]
         if self.dataset == "raw" or self.dataset == "cc":
             self.truth_index = 4
-        else:
-            self.truth_index = 4
+        elif self.dataset == "pnet":
+            self.truth_index = 3
+            print(self.truth_index)
+            #exit(0)
         self.ground_truth = self.fix_truth(self.pcd_truth[:,self.truth_index:self.truth_index + 1])
         self.clustering = Clustering(self.pcd, self.pcd_truth, self.dataset)
         self.classification = Classification(self.ground_truth)

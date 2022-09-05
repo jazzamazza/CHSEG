@@ -25,7 +25,8 @@ class PointCloudLoader:
             if info == "ds":
                 self.ds = True
             if (self.ds) and (info.find("0.") > -1):
-                self.ds_amt = float(info)
+                if self.ds_amt != None:
+                    self.ds_amt = float(info)
             if info == "cc":
                 self.dataset = "cc"
             if info == "pnet":
@@ -44,7 +45,11 @@ class PointCloudLoader:
         self, vis=False, downsample=False, ds_size=float(0.0), truth=True
     ):
         if self.filetype == ".npy":
-            return self.load_point_cloud_npy(vis, downsample, ds_size, truth)
+            if self.file_info()['dataset']=="pnet":
+                print("in pnet")
+                return self.load_point_cloud_pnet(vis, downsample, ds_size, truth)
+            else:
+                return self.load_point_cloud_npy(vis, downsample, ds_size, truth)
         elif self.filetype == ".ply":
             return self.load_point_cloud_ply(vis, downsample, ds_size, truth)
         elif self.filetype == ".las":
@@ -230,6 +235,47 @@ class PointCloudLoader:
             print("to do ds")
 
         if truth == True:
+            return final_pcd, final_pcd_wtruth
+        else:
+            return final_pcd
+        
+    def load_point_cloud_pnet(
+        self, vis=False, downsample=False, ds_size=0.0, truth=False
+    ):
+        print("\n**** Loading Point Cloud (.npy) ****")
+        print("File is:", self.pcd_path)
+        
+        point_cloud = np.load(self.pcd_path)
+        print("pnet pcloud shape:", np.shape(point_cloud))
+        self.filetype = ".npy"
+        print("**** Point Cloud Loaded ****")
+        #self.get_attributes(point_cloud, "Original Point Cloud")
+
+        # divide point_cloud into points and features
+        points = point_cloud[:, :3]
+        #print("points [0]", points[0])
+        # intensity = point_cloud[:, 3:4]
+        #print("intensity [0]", intensity[0])
+        truth_label = point_cloud[:, 3:4]
+        #print("truth label [0]", truth_label[0])
+        pnet_feats = point_cloud[:,4:]
+
+        print(
+            "\n**** Creating Final Point Cloud w/o GTruth ****"
+        )
+        final_pcd = np.hstack((points, pnet_feats))  # without truth label
+        print("pnet no truth pcloud shape:", np.shape(final_pcd))
+        print("*** Done ***")
+        #self.get_attributes(final_pcd, "Point Cloud w/o GTruth")
+
+        if truth:
+            print(
+                "\n**** Creating Final Point Cloud w/ GTruth ****"
+            )
+            final_pcd_wtruth = np.hstack((points, truth_label, pnet_feats))
+            print("pnet truth pcloud shape:", np.shape(final_pcd_wtruth))
+            print("*** Done ***")
+            #self.get_attributes(final_pcd_wtruth, "Point Cloud w/ GTruth")
             return final_pcd, final_pcd_wtruth
         else:
             return final_pcd
