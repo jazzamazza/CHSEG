@@ -39,7 +39,7 @@ class Classification:
         assert len(ground_truths) == len(unique_clusters)
         assert (np.array_equal(self.truth_labels, self.pred_truth_labels)) != True
         print("\nFinal clusters:")
-        print("ground_truths:", ground_truths, "\nunique_labels:", unique_clusters)
+        print("ground_truths:", len(ground_truths), "\nunique_labels:", len(unique_clusters))
         print("total_discard:", total_discard, "total_keep:", total_keep)
 
     # def get_attributes(self, arr, title):

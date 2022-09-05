@@ -48,7 +48,7 @@ class Experiment:
         
         # Other
         self.date_today = datetime.date.today()
-        self.time = datetime.datetime.now().strftime("%H:%M:%S")
+        self.time = datetime.datetime.now().strftime("%H-%M%p")
         
         # Metrics
         self.classification_metrics = ['f1', 'jaccard', 'precision', 'recall', 'mean_abs', 'mean_sqr']
@@ -101,7 +101,7 @@ class Experiment:
             if np.ndim(self.cluster_labels)!=2:
                 self.cluster_labels = np.vstack(self.cluster_labels)
         elif alg == "cure":
-            self.cluster_labels = self.clustering.cure_clustering(n_clusters, reps = 120, comp = 0.5, ccore = True)
+            self.cluster_labels = self.clustering.cure_clustering(n_clusters, reps = 40, comp = 0.5, ccore = True)
             if np.ndim(self.cluster_labels)!=2:
                 self.cluster_labels = np.vstack(self.cluster_labels)
         elif alg == "aggl":
@@ -162,8 +162,8 @@ class Experiment:
         data_info = algorithm_name + "_" + self.dataset + "_" + str(self.n_clusters) + "_" + str(self.date_today) + "_" + str(self.time)
         if self.ds:
             data_info = "ds_" + str(self.ds_amt) + "_" + data_info
-
-        o3d.io.write_point_cloud("./Data/Clustered/"+algorithm_name+"/church_registered_clusters_"+data_info+".ply", pcd)        
+        file_path = str("./Data/Clustered/"+algorithm_name+"/church_registered_clusters_"+data_info+".ply")
+        o3d.io.write_point_cloud(file_path, pcd)        
         # self.vis_clusters_pred(points, clusters, truth, pred_truth, intensity)
 
     def vis_clusters_pred(self, points, clusters, truth, pred_truth, intensity):
@@ -191,7 +191,7 @@ class Experiment:
         self.experiment_df = pd.DataFrame(data=None, columns=columns)
         #print(self.experiment_df)
         
-    def experiment_to_pandas(self, index):
+    def experiment_to_pandas(self, index, output_file = "./Results/test_x.csv" ):
         data = {}
         data['date'] = str(self.date_today)
         data['time'] = str(self.time)
@@ -213,32 +213,34 @@ class Experiment:
         #new_data = pd.Series(data = data, index = self.experiment_df.columns, name=index)
         self.experiment_df = self.experiment_df.append(data, ignore_index=True)
         #print(self.experiment_df)
-        print(self.experiment_df.head())
-        self.experiment_writer()
+        print(self.experiment_df.tail(5))
+        self.experiment_writer(output_file)
     
-    def experiment_writer(self):
-        self.experiment_df.to_csv("./Results/test_cure_0.090_raw.csv")
+    def experiment_writer(self, output_file):
+        self.experiment_df.to_csv(output_file)
         
-    def run_experiment(self, cluster_start, cluster_end, algs = ["cure"], data_set_paths=["./Data/church_registered_ds_0.225.npy"]):
+    def run_experiment(self, cluster_start, cluster_end, algs = ["cure"], data_set_paths=["./Data/church_registered_ds_0.225.npy", "./Data/CC/church_registered_ds_0.225_cc_23_feats.las" ]):
         index = 0
         self.classification_metrics = ['f1', 'jaccard', 'precision', 'recall', 'mean_abs', 'mean_sqr']
         self.clustering_metrics = ['db','rand']
         evalualtion = Evaluation(self.truth_labels)
         self.create_pandas()
-        for k in range(cluster_start, cluster_end+1):
-            print("Clusters: ", k)
-            for alg in algs:
-                print("Alg: ", alg)
-                for path in data_set_paths:
-                    print("Path:", path)
-                    self.pick_file(use_default_path=True, default_path = path)
-                    self.load(self.file_path)
+        for path in data_set_paths:
+            print("Path:", path)
+            self.pick_file(use_default_path=True, default_path = path)
+            self.load(self.file_path)
+            for k in range(cluster_start, cluster_end+1):
+                print("Clusters: ", k)
+                for alg in algs:
+                    print("Alg: ", alg)
+                    self.date_today = datetime.date.today()
+                    self.time = datetime.datetime.now().strftime("%H-%M%p")
                     self.cluster(alg, k)
                     self.classify()
                     self.clusters_pred_to_ply(self.alg)
                     self.class_eval = evalualtion.evaluate_classification(self.ground_truth, self.pred_ground_truth, self.classification_metrics, metric_choice="all")
                     self.clust_eval = evalualtion.evaluate_clusters(self.ground_truth, self.pred_ground_truth, self.cluster_labels, self.pcd, self.clustering_metrics, metric_choice="all")
-                    self.experiment_to_pandas(index)
+                    self.experiment_to_pandas(index, "./Results/test_0.175_25_150_raw_cc_cure.csv")
                     print("iteration:", index)
                     index+=1
         #self.experiment_writer()
@@ -311,5 +313,5 @@ class Graph:
 if __name__ == "__main__":
     my_experiment = Experiment()
     #my_graph = Graph("./Results/test_100_439.csv")
-    my_experiment.run_experiment(25, 150)
+    my_experiment.run_experiment(2, 50)
     

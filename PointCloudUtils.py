@@ -66,7 +66,7 @@ class PointCloudUtils:
 
     def ds_npy(self, pcd_arr, downsample_amt=float(0.05)):
         point_cloud = pcd_arr
-        self.get_attributes(point_cloud, "Predownsampling (.npy raw data)")
+        # self.get_attributes(point_cloud, "Predownsampling (.npy raw data)")
         npoints = np.shape(point_cloud)[0]
 
         # divide pointCloud into points and features
@@ -99,16 +99,15 @@ class PointCloudUtils:
             )
         )
         ndownpoints = np.shape(down_np_pcloud)[0]
-        self.get_attributes(down_np_pcloud, "Postdownsampling (.npy raw data)")
+        # self.get_attributes(down_np_pcloud, "Postdownsampling (.npy raw data)")
 
         reduction = 100 - ((ndownpoints / npoints) * 100)
         print(
             "Orig Num Points:",
             npoints,
-            "\nDs Num Points:",
+            "\nDS Num Points:",
             ndownpoints,
-            "\nNew is",
-            reduction,
+            "\nNew is", str("%.3f" % reduction),
             "% smaller",
         )
 
@@ -138,7 +137,7 @@ class PointCloudUtils:
         pcd_normals = np.asarray(point_cloud.normals)
         pcd_og = np.hstack((pcd_points, pcd_colors, pcd_normals))
         npoints = np.shape(pcd_og)[0]
-        self.get_attributes(pcd_og, "Predownsampling (.ply raw data)")
+        # self.get_attributes(pcd_og, "Predownsampling (.ply raw data)")
         print("*******Downsample start**********")
         down_pcd = point_cloud.voxel_down_sample(
             voxel_size=float(str("%.3f" % downsample_amt))
@@ -149,7 +148,7 @@ class PointCloudUtils:
         pcd_colors = np.asarray(down_pcd.colors)
         pcd_normals = np.asarray(down_pcd.normals)
         pcd_ds = np.hstack((pcd_points, pcd_colors, pcd_normals))
-        self.get_attributes(pcd_ds, "Postdownsampling (.ply raw data)")
+        # self.get_attributes(pcd_ds, "Postdownsampling (.ply raw data)")
         ndownpoints = np.shape(pcd_ds)[0]
 
         # divide pointCloud into points and features
@@ -164,8 +163,7 @@ class PointCloudUtils:
             npoints,
             "\nDs Num Points:",
             ndownpoints,
-            "\nNew is",
-            reduction,
+            "\nNew is", str("%.3f" % reduction),
             "% smaller",
         )
 
@@ -183,7 +181,7 @@ class PointCloudUtils:
     def npy_to_pnet(self, file_path, truth=False, is_ds=False, ds_amt=float(0.0)):
 
         point_cloud = np.load(file_path)
-        self.get_attributes(point_cloud, "Orignal PCD")
+        # self.get_attributes(point_cloud, "Orignal PCD")
 
         # divide pointCloud into points and features
         points = point_cloud[:, :3]

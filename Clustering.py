@@ -98,7 +98,7 @@ class Clustering:
     def birch_clustering(self, k):
         self.print_heading("BIRCH Clustering")
         print("*!* Using", k, "Clusters *!*")
-        birch = Birch(n_clusters=k)
+        birch = Birch(n_clusters=k, threshold=0.4)
         print("-> Fit start")
         birch.fit(self.pcd)
         print("<- Fit end")
