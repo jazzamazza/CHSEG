@@ -24,7 +24,7 @@ class PointCloudLoader:
         for info in path_info:
             if info == "ds":
                 self.ds = True
-            if (self.ds) and (info.find("0.") > -1):
+            if (self.ds) and (info.find("0.") > -1):                
                 self.ds_amt = float(info)
             if info == "cc":
                 self.dataset = "cc"
