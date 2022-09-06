@@ -68,9 +68,20 @@ def main_semseg():
         
         print('final_feat_list shape:', final_feat_list.shape)
         print('final_xyz_list shape:', final_xyz_list.shape)
-
+        
         print("final_feat_list:", final_feat_list)
         print("final_xyz_list:", final_xyz_list)
+        
+        unique_feats = np.unique(final_feat_list)
+        unique_xyz = np.unique(final_xyz_list)
+        
+        print('final_unique feat_list shape:', unique_feats.shape)
+        print('final_unique xyz_list shape:', unique_xyz.shape)
+        
+        print("final_uniqfeat_list:", unique_feats)
+        print("final_unqxyz_list:", unique_xyz)
+        
+       
 
         scalar = preprocessing.MinMaxScaler()
         normalised_feat = scalar.fit_transform(final_feat_list)

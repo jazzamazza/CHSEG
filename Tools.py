@@ -3,6 +3,7 @@ import importlib
 import os
 import sys
 from PointCloudUtils import PointCloudUtils
+import numpy as np
 
 class Tools:
     def __init__(self):
@@ -14,6 +15,10 @@ class Tools:
             sys.path.append(os.path.join(ROOT_DIR, "PointNet++"))
             pnet = importlib.import_module("test_semseg")
             return pnet.main_semseg()
+    
+    def view_pnet(self):
+        pnet_cloud = np.load("./Data/church_registered_ds_0.125.npy")
+        self.pcutils.get_attributes(pnet_cloud)
 
     def menu(self):
         print("Welcome to Tools")
@@ -21,6 +26,7 @@ class Tools:
             "\nPlease select an option from the menu:"
             + "\n1.) Auto Downsample"
             + "\n2.) Run PointNet++"
+            + "\n3.) PointNet++ info"
             + "\nSelection: "
         )
 
@@ -32,6 +38,8 @@ class Tools:
             self.pcutils.auto_downsample_data(ds_amt_start, ds_amt_end, ds_amt_inc)
         elif menu_selection == "2":
             self.run_pnet()
+        elif menu_selection == "3":
+            self.view_pnet()
         # else exits
 
 
