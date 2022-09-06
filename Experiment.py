@@ -103,7 +103,7 @@ class Experiment:
             if np.ndim(self.cluster_labels)!=2:
                 self.cluster_labels = np.vstack(self.cluster_labels)
         elif alg == "cure":
-            self.cluster_labels = self.clustering.cure_clustering(n_clusters, reps = 70, comp = 0.5, ccore = True)
+            self.cluster_labels = self.clustering.cure_clustering(n_clusters, reps = 40, comp = 0.5, ccore = True)
             if np.ndim(self.cluster_labels)!=2:
                 self.cluster_labels = np.vstack(self.cluster_labels)
         elif alg == "aggl":
@@ -221,7 +221,7 @@ class Experiment:
     def experiment_writer(self, output_file):
         self.experiment_df.to_csv(output_file)
         
-    def run_experiment(self, cluster_start, cluster_end, algs = ["cure"], data_set_paths=["./Data/PNet/church_registered_ds_0.075_0.085_pnet.npy"]):
+    def run_experiment(self, cluster_start, cluster_end, algs = ["cure"], data_set_paths=["./Data/church_registered_ds_0.250.npy", "./Data/CC/church_registered_ds_0.250_cc_23_feats.las"]):
         index = 0
         self.classification_metrics = ['f1', 'jaccard', 'precision', 'recall', 'mean_abs', 'mean_sqr']
         self.clustering_metrics = ['db','rand']
@@ -313,7 +313,6 @@ class Graph:
         
                     
 if __name__ == "__main__":
-    my_experiment = Experiment()
-    #my_graph = Graph("./Results/test_100_439.csv")
-    my_experiment.run_experiment(5, 50)
-    
+    #my_experiment = Experiment()
+    my_graph = Graph("./Results/test_100_439.csv")
+    #my_experiment.run_experiment(5, 50)

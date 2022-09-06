@@ -25,8 +25,7 @@ class PointCloudLoader:
             if info == "ds":
                 self.ds = True
             if (self.ds) and (info.find("0.") > -1):
-                if self.ds_amt != None:
-                    self.ds_amt = float(info)
+                self.ds_amt = float(info)
             if info == "cc":
                 self.dataset = "cc"
             if info == "pnet":
