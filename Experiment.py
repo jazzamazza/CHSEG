@@ -103,7 +103,7 @@ class Experiment:
             if np.ndim(self.cluster_labels)!=2:
                 self.cluster_labels = np.vstack(self.cluster_labels)
         elif alg == "cure":
-            self.cluster_labels = self.clustering.cure_clustering(n_clusters, reps = 70, comp = 0.5, ccore = True)
+            self.cluster_labels = self.clustering.cure_clustering(n_clusters, reps = 400, comp = 0.7, ccore = True)
             if np.ndim(self.cluster_labels)!=2:
                 self.cluster_labels = np.vstack(self.cluster_labels)
         elif alg == "aggl":
@@ -221,7 +221,7 @@ class Experiment:
     def experiment_writer(self, output_file):
         self.experiment_df.to_csv(output_file)
         
-    def run_experiment(self, cluster_start, cluster_end, algs = ["cure"], data_set_paths=["./Data/PNet/church_registered_ds_0.075_0.085_pnet.npy"]):
+    def run_experiment(self, cluster_start, cluster_end, algs = ["aggl"], data_set_paths=["./Data/PNet/church_registered_ds_0.075_0.085_pnet.npy"]):
         index = 0
         self.classification_metrics = ['f1', 'jaccard', 'precision', 'recall', 'mean_abs', 'mean_sqr']
         self.clustering_metrics = ['db','rand']
@@ -232,9 +232,9 @@ class Experiment:
             self.pick_file(use_default_path=True, default_path = path)
             self.load(self.file_path)
             for k in range(cluster_start, cluster_end+1):
-                print("Clusters: ", k)
+                print("Clusters:", k)
                 for alg in algs:
-                    print("Alg: ", alg)
+                    print("Alg:", alg)
                     self.date_today = datetime.date.today()
                     self.time = datetime.datetime.now().strftime("%H-%M%p")
                     self.cluster(alg, k)
@@ -242,7 +242,7 @@ class Experiment:
                     self.clusters_pred_to_ply(self.alg)
                     self.class_eval = evalualtion.evaluate_classification(self.ground_truth, self.pred_ground_truth, self.classification_metrics, metric_choice="all")
                     self.clust_eval = evalualtion.evaluate_clusters(self.ground_truth, self.pred_ground_truth, self.cluster_labels, self.pcd, self.clustering_metrics, metric_choice="all")
-                    self.experiment_to_pandas(index, "./Results/test_pnet_cure.csv")
+                    self.experiment_to_pandas(index, "./Results/test_aggl_pnet.csv")
                     print("iteration:", index)
                     index+=1
         #self.experiment_writer()
@@ -315,5 +315,5 @@ class Graph:
 if __name__ == "__main__":
     my_experiment = Experiment()
     #my_graph = Graph("./Results/test_100_439.csv")
-    my_experiment.run_experiment(5, 50)
+    my_experiment.run_experiment(10, 50)
     
