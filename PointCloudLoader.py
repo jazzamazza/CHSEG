@@ -24,7 +24,7 @@ class PointCloudLoader:
         for info in path_info:
             if info == "ds":
                 self.ds = True
-            if (self.ds) and (info.find("0.") > -1):                
+            if (self.ds) and (info.find("0.") > -1):
                 self.ds_amt = float(info)
             if info == "cc":
                 self.dataset = "cc"
@@ -44,7 +44,7 @@ class PointCloudLoader:
         self, vis=False, downsample=False, ds_size=float(0.0), truth=True
     ):
         if self.filetype == ".npy":
-            if self.file_info()['dataset']=="pnet":
+            if self.file_info()["dataset"] == "pnet":
                 print("in pnet")
                 return self.load_point_cloud_pnet(vis, downsample, ds_size, truth)
             else:
@@ -72,30 +72,26 @@ class PointCloudLoader:
             point_cloud = np.load(self.pcd_path)
             self.filetype = ".npy"
             print("**** Point Cloud Loaded ****")
-            #self.get_attributes(point_cloud, "Original Point Cloud")
+            # self.get_attributes(point_cloud, "Original Point Cloud")
 
         # divide point_cloud into points and features
         points = point_cloud[:, :3]
-        #print("points [0]", points[0])
+        # print("points [0]", points[0])
         intensity = point_cloud[:, 3:4]
-        #print("intensity [0]", intensity[0])
+        # print("intensity [0]", intensity[0])
         truth_label = point_cloud[:, 4:5]
-        #print("truth label [0]", truth_label[0])
+        # print("truth label [0]", truth_label[0])
 
-        print(
-            "\n**** Creating Final Point Cloud w/o GTruth ****"
-        )
+        print("\n**** Creating Final Point Cloud w/o GTruth ****")
         final_pcd = np.hstack((points, intensity))  # without truth label
         print("*** Done ***")
-        #self.get_attributes(final_pcd, "Point Cloud w/o GTruth")
+        # self.get_attributes(final_pcd, "Point Cloud w/o GTruth")
 
         if truth:
-            print(
-                "\n**** Creating Final Point Cloud w/ GTruth ****"
-            )
+            print("\n**** Creating Final Point Cloud w/ GTruth ****")
             final_pcd_wtruth = np.hstack((points, intensity, truth_label))
             print("*** Done ***")
-            #self.get_attributes(final_pcd_wtruth, "Point Cloud w/ GTruth")
+            # self.get_attributes(final_pcd_wtruth, "Point Cloud w/ GTruth")
 
             if vis:
                 pview = PointCloudViewer()
@@ -108,7 +104,7 @@ class PointCloudLoader:
             return final_pcd
 
     def load_point_cloud_ply(
-        self, vis=False, downsample=False, down_size=float(0.0), truth=False, has = False
+        self, vis=False, downsample=False, down_size=float(0.0), truth=False, has=False
     ):
         if downsample:
             print("Downsampling Active @", down_size)
@@ -119,16 +115,14 @@ class PointCloudLoader:
             )
             pcd = o3d.io.read_point_cloud(ds_ply_path, print_progress=True)
         else:
-            print(
-                "\n**** Loading Point Cloud (.ply) ****"
-            )
+            print("\n**** Loading Point Cloud (.ply) ****")
             print("File is:", self.pcd_path)
             # load point cloud .ply file
             path = self.pcd_path
             pcd = o3d.io.read_point_cloud(path, print_progress=True)
             self.filetype = ".ply"
             print("Point Cloud Loaded", pcd)
-        
+
         if has:
             has_points = pcd.has_points()
             has_colors = pcd.has_colors()
@@ -154,20 +148,16 @@ class PointCloudLoader:
         pcd_intensity = np.asarray(pcd.normals)[:, 0:1]
         pcd_truth = np.asarray(pcd.colors)[:, 0:1]
 
-        print(
-            "\n**** Creating Final Point Cloud w/o GTruth ****"
-        )
+        print("\n**** Creating Final Point Cloud w/o GTruth ****")
         final_pcd = np.hstack((pcd_points, pcd_intensity))  # without truth label
         print("*** Done ***")
-        #self.get_attributes(final_pcd, "Point Cloud w/o GTruth")
+        # self.get_attributes(final_pcd, "Point Cloud w/o GTruth")
 
         if truth:
-            print(
-                "\n**** Creating Final Point Cloud w/ GTruth ****"
-            )
+            print("\n**** Creating Final Point Cloud w/ GTruth ****")
             final_pcd_wtruth = np.hstack((pcd_points, pcd_intensity, pcd_truth))
             print("*** Done ***")
-            #self.get_attributes(final_pcd_wtruth, "Point Cloud w/ GTruth")
+            # self.get_attributes(final_pcd_wtruth, "Point Cloud w/ GTruth")
 
             if vis:
                 pview = PointCloudViewer()
@@ -198,8 +188,8 @@ class PointCloudLoader:
         print("***READING LAS****")
         pcd = lp.read(path)
         # print('Points from Header:', fh.header.point_count)
-        #print("Std features:", list(pcd.point_format.standard_dimension_names))
-        #print("Cloud Compare Features:", list(pcd.point_format.extra_dimension_names))
+        # print("Std features:", list(pcd.point_format.standard_dimension_names))
+        # print("Cloud Compare Features:", list(pcd.point_format.extra_dimension_names))
         extra_feat_count = len(list(pcd.point_format.extra_dimension_names))
         print("Extra feat count:", extra_feat_count)
         # points = np.transpose(np.vstack((pcd.x, pcd.y, pcd.z)))
@@ -209,14 +199,14 @@ class PointCloudLoader:
             feat = np.nan_to_num(np.vstack((pcd[dim])))
             max_feat = float(max(feat))
             min_feat = float(min(feat))
-            range_feat = max_feat-min_feat
-            
+            range_feat = max_feat - min_feat
+
             if max_feat > 1.0:
                 for point in feat:
                     if point[0] != 0.0:
-                        point[0] = (point[0]-min_feat)/range_feat
+                        point[0] = (point[0] - min_feat) / range_feat
             new_max_feat = float(max(feat))
-            assert(new_max_feat<=1.0)
+            assert new_max_feat <= 1.0
             points = np.hstack((points, feat))
         truths = points[:, 4:5]
         intensity = points[:, 3:4]
@@ -237,44 +227,40 @@ class PointCloudLoader:
             return final_pcd, final_pcd_wtruth
         else:
             return final_pcd
-        
+
     def load_point_cloud_pnet(
         self, vis=False, downsample=False, ds_size=0.0, truth=False
     ):
         print("\n**** Loading Point Cloud (.npy) ****")
         print("File is:", self.pcd_path)
-        
+
         point_cloud = np.load(self.pcd_path)
         print("pnet pcloud shape:", np.shape(point_cloud))
         self.filetype = ".npy"
         print("**** Point Cloud Loaded ****")
-        #self.get_attributes(point_cloud, "Original Point Cloud")
+        # self.get_attributes(point_cloud, "Original Point Cloud")
 
         # divide point_cloud into points and features
         points = point_cloud[:, :3]
-        #print("points [0]", points[0])
+        # print("points [0]", points[0])
         # intensity = point_cloud[:, 3:4]
-        #print("intensity [0]", intensity[0])
+        # print("intensity [0]", intensity[0])
         truth_label = point_cloud[:, 3:4]
-        #print("truth label [0]", truth_label[0])
-        pnet_feats = point_cloud[:,4:]
+        # print("truth label [0]", truth_label[0])
+        pnet_feats = point_cloud[:, 4:]
 
-        print(
-            "\n**** Creating Final Point Cloud w/o GTruth ****"
-        )
+        print("\n**** Creating Final Point Cloud w/o GTruth ****")
         final_pcd = np.hstack((points, pnet_feats))  # without truth label
         print("pnet no truth pcloud shape:", np.shape(final_pcd))
         print("*** Done ***")
-        #self.get_attributes(final_pcd, "Point Cloud w/o GTruth")
+        # self.get_attributes(final_pcd, "Point Cloud w/o GTruth")
 
         if truth:
-            print(
-                "\n**** Creating Final Point Cloud w/ GTruth ****"
-            )
+            print("\n**** Creating Final Point Cloud w/ GTruth ****")
             final_pcd_wtruth = np.hstack((points, truth_label, pnet_feats))
             print("pnet truth pcloud shape:", np.shape(final_pcd_wtruth))
             print("*** Done ***")
-            #self.get_attributes(final_pcd_wtruth, "Point Cloud w/ GTruth")
+            # self.get_attributes(final_pcd_wtruth, "Point Cloud w/ GTruth")
             return final_pcd, final_pcd_wtruth
         else:
             return final_pcd

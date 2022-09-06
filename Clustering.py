@@ -70,9 +70,9 @@ class Clustering:
             pcd,
         )
 
-        #view = pptk.viewer(points, clusters.flatten(), truth.flatten(), intensity.flatten(), debug=True)
-        #view.wait()
-        #view.close()
+        # view = pptk.viewer(points, clusters.flatten(), truth.flatten(), intensity.flatten(), debug=True)
+        # view.wait()
+        # view.close()
 
     def print_heading(self, title="Clustering"):
         heading = (
@@ -140,11 +140,11 @@ class Clustering:
         encoder = cluster_encoder(encoding, clusters, self.pcd)
         encoder.set_encoding(type_encoding.CLUSTER_INDEX_LABELING)
         cluster_labels = np.vstack(np.array(encoder.get_clusters()))
-        #self.clusters_to_ply(cluster_labels, "rock")
+        # self.clusters_to_ply(cluster_labels, "rock")
         self.cluster_labels = cluster_labels
         return self.cluster_labels
 
-    def cure_clustering(self, k=10, reps = 5, comp = 0.5, ccore = True):
+    def cure_clustering(self, k=10, reps=5, comp=0.5, ccore=True):
         self.print_heading("CURE Clustering")
         # *!* to do num rep_points, compression *!*
         cure_cluster = cure(self.pcd, k, reps, comp, ccore)

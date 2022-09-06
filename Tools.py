@@ -5,17 +5,18 @@ import sys
 from PointCloudUtils import PointCloudUtils
 import numpy as np
 
+
 class Tools:
     def __init__(self):
         self.pcutils = PointCloudUtils()
-        
+
     def run_pnet(self):
-            BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-            ROOT_DIR = BASE_DIR
-            sys.path.append(os.path.join(ROOT_DIR, "PointNet++"))
-            pnet = importlib.import_module("test_semseg")
-            return pnet.main_semseg()
-    
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        ROOT_DIR = BASE_DIR
+        sys.path.append(os.path.join(ROOT_DIR, "PointNet++"))
+        pnet = importlib.import_module("test_semseg")
+        return pnet.main_semseg()
+
     def view_pnet(self):
         pnet_cloud = np.load("./Data/church_registered_ds_0.125.npy")
         self.pcutils.get_attributes(pnet_cloud)

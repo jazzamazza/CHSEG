@@ -107,7 +107,8 @@ class PointCloudUtils:
             npoints,
             "\nDS Num Points:",
             ndownpoints,
-            "\nNew is", str("%.3f" % reduction),
+            "\nNew is",
+            str("%.3f" % reduction),
             "% smaller",
         )
 
@@ -163,7 +164,8 @@ class PointCloudUtils:
             npoints,
             "\nDs Num Points:",
             ndownpoints,
-            "\nNew is", str("%.3f" % reduction),
+            "\nNew is",
+            str("%.3f" % reduction),
             "% smaller",
         )
 
