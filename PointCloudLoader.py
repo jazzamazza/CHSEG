@@ -15,6 +15,7 @@ class PointCloudLoader:
 
     def __init__(self, path, file_type=None):
         self.pcd_path = path
+        print("PCL FILE PATH IS", self.pcd_path)
         self.filetype = self.pcd_path[-4:]
         self.dataset = "raw"
         self.ds = False
@@ -25,7 +26,10 @@ class PointCloudLoader:
             if info == "ds":
                 self.ds = True
             if (self.ds) and (info.find("0.") > -1):
-                self.ds_amt = float(info)
+                if info.find("x") > -1:
+                    self.ds_amt = info
+                else:
+                    self.ds_amt = float(info)
             if info == "cc":
                 self.dataset = "cc"
             if info == "pnet":

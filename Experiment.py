@@ -269,7 +269,7 @@ class Experiment:
         cluster_start,
         cluster_end,
         algs=["aggl"],
-        data_set_paths=["./Data/PNet/church_registered_ds_0.075_0.085_pnet.npy"],
+        data_set_paths=["./Data/PNet/church_registered_ds_0.075x0.085x0.1_pnet.npy"],
     ):
         index = 0
         self.classification_metrics = [
