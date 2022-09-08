@@ -1,2 +1,2 @@
-black
-pytest
+black # provides formatting
+pytest # provides unit testing

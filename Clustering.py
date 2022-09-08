@@ -11,6 +11,7 @@ from pyclustering.cluster.cure import cure
 from pyclustering.cluster.rock import rock
 from pyclustering.cluster.encoder import cluster_encoder
 from pyclustering.cluster.encoder import type_encoding
+from sklearn.neighbors import kneighbors_graph
 
 # from pyclustering.cluster import cluster_visualizer
 # from pyclustering.cluster import cluster_visualizer_multidim
@@ -112,8 +113,9 @@ class Clustering:
 
     def agglomerative_clustering(self, k, affinity="euclidean", linkage="ward"):
         self.print_heading("Agglomerative Clustering")
+        #A = kneighbors_graph(self.pcd, 100, mode='connectivity', include_self=True)
         agg_clustering = AgglomerativeClustering(
-            n_clusters=k, affinity=affinity, linkage=linkage
+            n_clusters=k, affinity=affinity, linkage=linkage, memory="./.cache/", connectivity=None
         )
         print(
             "Starting using:",

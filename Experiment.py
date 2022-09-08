@@ -9,6 +9,8 @@ import pandas as pd
 import pptk
 import datetime
 import matplotlib.pyplot as plt
+#import sciplot
+from os.path import exists
 
 
 class Experiment:
@@ -48,7 +50,7 @@ class Experiment:
 
         # Other
         self.date_today = datetime.date.today()
-        self.time = datetime.datetime.now().strftime("%H-%M%p")
+        self.time = datetime.datetime.now().strftime("%H_%M%p")
 
         # Metrics
         self.classification_metrics = [
@@ -114,7 +116,7 @@ class Experiment:
                 self.cluster_labels = np.vstack(self.cluster_labels)
         elif alg == "cure":
             self.cluster_labels = self.clustering.cure_clustering(
-                n_clusters, reps=40, comp=0.5, ccore=True
+                n_clusters, reps=250, comp=0.5, ccore=True
             )
             if np.ndim(self.cluster_labels) != 2:
                 self.cluster_labels = np.vstack(self.cluster_labels)
@@ -262,7 +264,12 @@ class Experiment:
         self.experiment_writer(output_file)
 
     def experiment_writer(self, output_file):
-        self.experiment_df.to_csv(output_file)
+        if exists(output_file):
+            self.experiment_df.to_csv(output_file, mode='a', header=False)
+        else:
+            "Creating CSV"
+            self.experiment_df.to_csv(output_file, mode = 'w', header=True)
+        
 
     def run_experiment(
         self,
@@ -270,6 +277,7 @@ class Experiment:
         cluster_end,
         algs=["aggl"],
         data_set_paths=["./Data/PNet/church_registered_ds_0.075x0.085x0.1_pnet.npy"],
+        test_out_file = "./Results/test_aggl_pnet.csv"
     ):
         index = 0
         self.classification_metrics = [
@@ -292,7 +300,7 @@ class Experiment:
                 for alg in algs:
                     print("Alg:", alg)
                     self.date_today = datetime.date.today()
-                    self.time = datetime.datetime.now().strftime("%H-%M%p")
+                    self.time = datetime.datetime.now().strftime("%H_%M%p")
                     self.cluster(alg, k)
                     self.classify()
                     self.clusters_pred_to_ply(self.alg)
@@ -310,7 +318,7 @@ class Experiment:
                         self.clustering_metrics,
                         metric_choice="all",
                     )
-                    self.experiment_to_pandas(index, "./Results/test_aggl_pnet.csv")
+                    self.experiment_to_pandas(index, test_out_file)
                     print("iteration:", index)
                     index += 1
         # self.experiment_writer()
@@ -330,37 +338,21 @@ class Graph:
         )
         self.plt_graph("n_clusters", "db", "kmeans", self.df, "db - raw vs cc: kmeans")
         self.plt_graph("n_clusters", "db", "birch", self.df, "db - raw vs cc: kmeans")
-
-        # self.plt_graph("n_clusters", ["f1"], res)
-        # f = df_in
-        # res.plot("n_clusters", "f1")
-        # fig, ax = plt.subplots(figsize=(8,6))
-        # res = self.query('kmeans')
-        # res.plot("n_clusters", "f1", ax=ax)
-        # ax.legend(res["data_set"].unique())
-        # ax.set_xlabel("n_clusters")
-        # ax.set_ylabel("f1")
-        # ax.set_title("raw vs cc: kmeans")
-        # plt.show()
-        # fig, ax = plt.subplots(figsize=(8,6))
-        # res = self.query('birch')
-        # res.plot("n_clusters", "f1", ax=ax)
-        # ax.legend(res["data_set"].unique())
-        # ax.set_xlabel("n_clusters")
-        # ax.set_ylabel("f1")
-        # ax.set_title("raw vs cc: kmeans")
-        # plt.show()
-
+        
     def read_file(self, file):
         df = pd.read_csv(file)
         print("Data frame created.")
         print(type(df))
         pd.set_option("display.max.columns", None)
-        print(df.head())
+        print(df.tail(5))
         return df
-
+    
+    #def plot(self):
+        
+    
     def plt_graph(self, x_clusters, y_metric, q_alg, df_in, title):
         df = df_in
+        #with sciplot.style(theme='default'):
         fig, ax = plt.subplots(figsize=(8, 6))
         res = self.query(q_alg, df)
         res.plot(x_clusters, y_metric, ax=ax)
@@ -373,16 +365,6 @@ class Graph:
     def query(self, alg, df):
         df_alg = df[(df["clustering_algorithm"] == alg)].groupby(["data_set"])
         return df_alg
-
-    # df_groupBy = self.df.groupby(["clustering_algorithm"])
-    # df_groupBy = df_groupBy["clustering_algorithm"]
-    # return df_groupBy
-
-    # df = self.df
-    # res = df[(df["data_set"]=='cc')
-    #          & (df["clustering_algorithm"]=='kmeans')]
-    # print (res.head())
-    # return res
 
 
 if __name__ == "__main__":

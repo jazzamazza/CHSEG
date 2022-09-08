@@ -16,3 +16,4 @@ open3d
 pptk
 pyclustering
 pandas
+# sciplot
