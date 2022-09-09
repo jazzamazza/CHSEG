@@ -116,7 +116,7 @@ class Experiment:
                 self.cluster_labels = np.vstack(self.cluster_labels)
         elif alg == "cure":
             self.cluster_labels = self.clustering.cure_clustering(
-                n_clusters, reps=400, comp=0.5, ccore=True
+                n_clusters, reps=50, comp=0.4, ccore=True
             )
             if np.ndim(self.cluster_labels) != 2:
                 self.cluster_labels = np.vstack(self.cluster_labels)
