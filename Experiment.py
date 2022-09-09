@@ -116,7 +116,7 @@ class Experiment:
                 self.cluster_labels = np.vstack(self.cluster_labels)
         elif alg == "cure":
             self.cluster_labels = self.clustering.cure_clustering(
-                n_clusters, reps=250, comp=0.5, ccore=True
+                n_clusters, reps=400, comp=0.5, ccore=True
             )
             if np.ndim(self.cluster_labels) != 2:
                 self.cluster_labels = np.vstack(self.cluster_labels)
@@ -265,7 +265,7 @@ class Experiment:
 
     def experiment_writer(self, output_file):
         if exists(output_file):
-            self.experiment_df.to_csv(output_file, mode='a', header=False)
+            self.experiment_df.tail(1).to_csv(output_file, mode='a', header=False)
         else:
             "Creating CSV"
             self.experiment_df.to_csv(output_file, mode = 'w', header=True)

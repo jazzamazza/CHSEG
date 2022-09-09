@@ -113,9 +113,9 @@ class Clustering:
 
     def agglomerative_clustering(self, k, affinity="euclidean", linkage="ward"):
         self.print_heading("Agglomerative Clustering")
-        #A = kneighbors_graph(self.pcd, 100, mode='connectivity', include_self=True)
+        k_graph = kneighbors_graph(self.pcd, 100, mode='connectivity', include_self=True)
         agg_clustering = AgglomerativeClustering(
-            n_clusters=k, affinity=affinity, linkage=linkage, memory="./.cache/", connectivity=None
+            n_clusters=k, affinity=affinity, linkage=linkage, memory="./.cache/", connectivity=k_graph
         )
         print(
             "Starting using:",
