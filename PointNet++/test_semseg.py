@@ -34,102 +34,54 @@ def main_semseg():
 
     with torch.no_grad():
         scene_data, scene_label = DATASET[0]
-        labels = DATASET.semantic_labels_list
-        print("labels", labels)
 
         print("scene_data", scene_data)
         print("length", len(scene_data[0])) #length is 4096
 
         print("scene_label", scene_label)
-        print("scene_label shape", scene_label.shape) # (799, 4096)
+        print("scene_label shape", scene_label.shape) 
 
         print("Outside DataLoader")
 
         num_blocks = scene_data.shape[0]
         s_batch_num = (num_blocks + BATCH_SIZE - 1) // BATCH_SIZE
         batch_data = np.zeros((BATCH_SIZE, NUM_POINT, 9))
-        
         batch_label = np.zeros((BATCH_SIZE, NUM_POINT))
         
         feat_list, xyz_list, labels_list = [], [], [] 
-        saved_first_batch = False
         for sbatch in range(s_batch_num):
             start_idx = sbatch * BATCH_SIZE
             end_idx = min((sbatch + 1) * BATCH_SIZE, num_blocks)
             real_batch_size = end_idx - start_idx
-            batch_data[0:real_batch_size, ...] = scene_data[start_idx:end_idx, ...]
-            
+            batch_data[0:real_batch_size, ...] = scene_data[start_idx:end_idx, ...]       
             batch_label[0:real_batch_size, ...] = scene_label[start_idx:end_idx, ...]
             
-            torch_data = torch.Tensor(batch_data)
-            torch_data = torch_data.float().cuda()
-            torch_data = torch_data.transpose(2, 1)
+            torch_data = torch.Tensor(batch_data).float().cuda().transpose(2, 1)
             feat, _ = classifier(torch_data)
             
-            f = feat.detach().cpu().numpy()
-  
-            p = torch_data[:,:3,:].transpose(1,2).detach().cpu().numpy()
-          
-
-
-            xyz_list.append(p)
-            # feat_list.append(f)
-            # labels_list.append(batch_label)
-            
-            # xyz_list.append(np.copy(batch_data))
-            feat_list.append(f)
+            xyz_list.append(torch_data[:,:3,:].transpose(1,2).detach().cpu().numpy())
+            feat_list.append(feat.detach().cpu().numpy())
             labels_list.append(np.copy(batch_label))
 
-            # if not saved_first_batch:
-            #   saved_first_batch = True
-              # np.save('/content/drive/Shareddrives/CHSEG/LabelTests/testsemseg_batch_loop_hstack.npy', np.hstack((xyz_list, labels_list)))
-              # np.save('/content/drive/Shareddrives/CHSEG/LabelTests/testsemseg_batch_loop_column_stack.npy', np.column_stack((xyz_list, labels_list)))
+        scalar = preprocessing.MinMaxScaler()
+        final_xyz = np.vstack((np.vstack((xyz_list))))
+        final_labels = np.vstack((np.reshape(np.vstack((labels_list)), (final_xyz.shape[0], -1)))) #5636096
+        final_features = scalar.fit_transform(np.vstack((np.vstack((feat_list)))))
 
-            
-        print("labels_list shape", np.shape(labels_list))
-
-        new_feat_list = np.vstack((feat_list))
-        new_xyz_list = np.vstack((xyz_list))
-        new_labels = np.vstack((labels_list))
-        print("new_labels:", new_labels)
-
-        # new_new_labels = np.reshape(new_labels, new_labels.shape + (1,))
-        new_new_labels = np.reshape(new_labels, (np.shape(new_xyz_list)[1], -1))
-        #new_new_labels = np.reshape(new_labels, (5636096, -1))
-
-        print("new_new_labels", new_new_labels.shape) 
-        print('new_feat_list shape:', new_feat_list.shape)
-        print('new_xyz_list shape:', new_xyz_list.shape)
-
-        final_feat_list = np.vstack((new_feat_list))
-        final_xyz_list = np.vstack((new_xyz_list))
-        final_labels = np.vstack((new_new_labels))
-        
-        print('final_feat_list shape:', final_feat_list.shape)
-        print('final_xyz_list shape:', final_xyz_list.shape)
+        print('final_features shape:', final_features.shape)
+        print('final_xyz shape:', final_xyz.shape)
         print('final_labels shape:', final_labels.shape)
 
-        print("final_feat_list:", final_feat_list)
-        print("final_xyz_list:", final_xyz_list)
+        print("final_features:", final_features)
+        print("final_xyz:", final_xyz)
         print("final_labels:", final_labels)
 
-        scalar = preprocessing.MinMaxScaler()
-        normalised_feat = scalar.fit_transform(final_feat_list)
-
         print("Calculating finalPCD")
-
-        finalPCD = np.column_stack((final_xyz_list, normalised_feat))
-        finalPCD_all = np.column_stack((final_xyz_list, final_labels, normalised_feat))
-        # np.save("/content/drive/Shareddrives/CHSEG/data/pnet_test2_squeeze_vstack.npy", finalPCD_all)
-
-        np.save('./Data/PNet/pnet_final_all', finalPCD_all)
-        np.save('./Data/PNet/pnet_final', finalPCD)
-
-
-        #now we use this .npy file for the rest
-        print("finalPCD shape:", finalPCD.shape)
-        #Done
-        print("*********************************")
+        finalPCD = np.column_stack((final_xyz, final_features))
+        finalPCD_all = np.column_stack((final_xyz, final_labels, final_features))
+        np.save('./Data/PNet/church_registered_pnet_all.npy', finalPCD_all)
+        np.save('./Data/PNet/church_registered_pnet.npy', finalPCD)
+        print("finalPCD shape:", finalPCD.shape, "\n*********************************")
 
         return finalPCD, finalPCD_all
 
