@@ -22,7 +22,7 @@ class PointCloudUtils:
             pcd_out_file = self.downsample_pcd(
                 pcd_arr, input_file_format, pnet, ds, truth
             )
-            print("DS file saved at", pcd_out_file)
+            print("DS file saved at", pcd_out_file,"\n")
             ds += ds_amt_inc
 
     def downsample_pcd(
@@ -37,17 +37,13 @@ class PointCloudUtils:
             "Downsample Called! @",
             downsample_amt,
             "on",
-            (input_file_format + " file"),
-            "formating is",
-            format,
+            (input_file_format + " file")
         )
 
         if input_file_format == ".npy":
             if pnet:
                 out_npy_path, out_ply_path = self.ds_npy(pcd, downsample_amt)
-                out_pnet_path = self.npy_to_pnet(
-                    out_npy_path, truth, True, downsample_amt
-                )
+                out_pnet_path = self.npy_to_pnet(out_npy_path, truth, True, downsample_amt)
                 return out_pnet_path
             else:
                 out_npy_path, out_ply_path = self.ds_npy(pcd, downsample_amt)
@@ -65,57 +61,46 @@ class PointCloudUtils:
                 return out_ply_path
 
     def ds_npy(self, pcd_arr, downsample_amt=float(0.05)):
-        point_cloud = pcd_arr
-        # self.get_attributes(point_cloud, "Predownsampling (.npy raw data)")
-        npoints = np.shape(point_cloud)[0]
-
+        #point_cloud = pcd_arr
+        npoints = np.shape(pcd_arr)[0]
+        print("Point cloud with,",npoints,"to be downsampled")
         # divide pointCloud into points and features
-        points = point_cloud[:, :3]
-        intensity = point_cloud[:, 3:4]
-        truth_label = point_cloud[:, 4:5]
+        points = pcd_arr[:, :3]
+        intensity = pcd_arr[:, 3:4]
+        truth_label = pcd_arr[:, 4:5]
+        zeros = np.zeros((npoints, 1))
 
         # format using open3d
         pcd = o3d.geometry.PointCloud()
-        pcd.points = o3d.utility.Vector3dVector(points)  # add {x,y,z} points to pcd
-        rgb = np.hstack(
-            (truth_label, np.zeros((npoints, 1)), np.zeros((npoints, 1)))
-        )  # form a 3D vector to add to o3d pcd
-        normals = np.hstack(
-            (intensity, np.zeros((npoints, 1)), np.zeros((npoints, 1)))
-        )  # form a 3D vector to add to o3d pcd
-
+        # add {x,y,z} points to pcd
+        pcd.points = o3d.utility.Vector3dVector(points)
+        # form 3D vectors to add to o3d pcd
+        rgb = np.hstack((truth_label, zeros, zeros))
+        normals = np.hstack((intensity, zeros, zeros))
         pcd.colors = o3d.utility.Vector3dVector(rgb)
         pcd.normals = o3d.utility.Vector3dVector(normals)
-
-        print("*******Downsample start**********")
-        downpcd = pcd.voxel_down_sample(voxel_size=float(str("%.3f" % downsample_amt)))
-        print("*******Downsample end**********")
+        
+        #ds rounding
+        ds = float(str("%.3f" % downsample_amt))
+        print("*** downsample start ***","\namt:",ds)
+        downpcd = pcd.voxel_down_sample(voxel_size=ds)
+        print("*** downsample end ***")
 
         down_np_pcloud = np.hstack(
-            (
-                (np.asarray(downpcd.points)),
+                ((np.asarray(downpcd.points)),
                 (np.asarray(downpcd.normals)[:, :1]),
-                (np.asarray(downpcd.colors)[:, :1]),
-            )
-        )
+                (np.asarray(downpcd.colors)[:, :1])))
+        
         ndownpoints = np.shape(down_np_pcloud)[0]
+        print("Downsampled point cloud has,",ndownpoints,"original had,",npoints)
         # self.get_attributes(down_np_pcloud, "Postdownsampling (.npy raw data)")
-
-        reduction = 100 - ((ndownpoints / npoints) * 100)
-        print(
-            "Orig Num Points:",
-            npoints,
-            "\nDS Num Points:",
-            ndownpoints,
-            "\nNew is",
-            str("%.3f" % reduction),
-            "% smaller",
-        )
+        reduction = str("%.3f" % (100 - ((ndownpoints / npoints) * 100))) + "%"
+        print("New point cloud is", reduction, "smaller")
 
         output_path = "./Data/church_registered_ds_" + str("%.3f" % downsample_amt)
         out_pth_npy = output_path + ".npy"
         out_pth_ply = output_path + ".ply"
-        print("Saving pclouds")
+        print("Saving point clouds")
         np.save(out_pth_npy, down_np_pcloud)
         print(".npy saved")
         o3d.io.write_point_cloud(out_pth_ply, downpcd)
@@ -180,15 +165,17 @@ class PointCloudUtils:
 
         return out_pth_npy, out_pth_ply
 
-    def npy_to_pnet(self, file_path, truth=False, is_ds=False, ds_amt=float(0.0)):
+    def npy_to_pnet(self, file_path, is_ds=False, ds_amt=float(0.0)):
 
         point_cloud = np.load(file_path)
+        npoints = np.shape(point_cloud)[1]
         # self.get_attributes(point_cloud, "Orignal PCD")
 
         # divide pointCloud into points and features
         points = point_cloud[:, :3]
         intensity = point_cloud[:, 3:4]
         truth_label = point_cloud[:, 4:5]
+        zeros = np.zeros((npoints, 1))
 
         # format using open3d
         pcd = o3d.geometry.PointCloud()
@@ -198,26 +185,26 @@ class PointCloudUtils:
         intensity_to_rgb = np.hstack((intensity, intensity, intensity))
         # store intensity as every value in color vector
         pcd.colors = o3d.utility.Vector3dVector(intensity_to_rgb)
-        if truth:
-            truth = np.hstack((truth_label, truth_label, truth_label))
-            pcd.normals = o3d.utility.Vector3dVector(truth)
-        if truth:
-            if is_ds:
-                output_path = (
-                    "./Data/church_registered_pnet_wtruth_" + str(ds_amt) + ".ply"
-                )
-                o3d.io.write_point_cloud(output_path, pcd)
-            else:
-                output_path = "./Data/church_registered_pnet_wtruth_no_ds" + ".ply"
-                o3d.io.write_point_cloud(output_path, pcd)
+        truth = np.hstack((truth_label, truth_label, truth_label))
+        pcd.normals = o3d.utility.Vector3dVector(truth)
+        pcd_new = np.hstack((points, intensity_to_rgb, truth))
+        if is_ds:
+            output_path = ("./Data/church_registered_ds_" + str(ds_amt) + "_pnet_ready_wtruth.ply")
+            np.save("./Data/church_registered_ds_" + str(ds_amt) + "_pnet_ready_wtruth.npy", pcd_new)
+            o3d.io.write_point_cloud(output_path, pcd)
+            print("files saved")
         else:
-            if is_ds:
-                output_path = "./Data/church_registered_pnet_" + str(ds_amt) + ".ply"
-                o3d.io.write_point_cloud(output_path, pcd)
-            else:
-                output_path = "./Data/church_registered_pnet_no_ds" + ".ply"
-                o3d.io.write_point_cloud(output_path, pcd)
+            output_path = "./Data/church_registered_pnet_ready_wtruth.ply"
+            np.save("./Data/church_registered_pnet_ready_wtruth.npy", pcd_new)
+            o3d.io.write_point_cloud(output_path, pcd)
+            print("files saved")
 
+    def ds_pnet(self, pcd, ds_amt):
+        points = pcd[:,:3]
+        feats = pcd[:,3:]
+        feats_len = np.shape(feats)[1]
+        print(feats_len)
+        
     def voxel_downsample(self, points, features, upperBound, ds_size):
         ds_points = np.array([])
         x, y = 0, 0
@@ -226,9 +213,7 @@ class PointCloudUtils:
             x += 1
             print("===========================i:", y)
             print("points.size:", points.size, "points.shape:", np.shape(points))
-            print(
-                "features.size:", features.size, "features.shape:", np.shape(features)
-            )
+            print("features.size:", features.size, "features.shape:", np.shape(features))
 
             pc = o3d.geometry.PointCloud()
             pc.points = o3d.utility.Vector3dVector(points)
