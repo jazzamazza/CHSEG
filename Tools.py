@@ -20,6 +20,14 @@ class Tools:
     def view_pnet(self):
         pnet_cloud = np.load("./Data/church_registered_ds_0.125.npy")
         self.pcutils.get_attributes(pnet_cloud)
+        
+    def pnet_test(self):
+        pcd = np.load("./Data/PNet/church_registered_ds_0.075_0.085_pnet.npy")
+        self.pcutils.ds_pnet(pcd, 0.05)
+        
+    def make_pnet(self, file_path, is_ds, ds_amt):
+        #pcd = np.load("./Data/PNet/church_registered_ds_0.075_0.085_pnet.npy")
+        self.pcutils.npy_to_pnet(file_path, is_ds, float(ds_amt))
 
     def menu(self):
         print("Welcome to Tools")
@@ -28,6 +36,8 @@ class Tools:
             + "\n1.) Auto Downsample"
             + "\n2.) Run PointNet++"
             + "\n3.) PointNet++ info"
+            + "\n4.) PointNet++ test"
+            + "\n5.) Make PointNet++ Dataset"
             + "\nSelection: "
         )
 
@@ -41,6 +51,10 @@ class Tools:
             self.run_pnet()
         elif menu_selection == "3":
             self.view_pnet()
+        elif menu_selection == "4":
+            self.pnet_test()
+        elif menu_selection == "5":
+            self.make_pnet("./Data/church_registered_ds_0.075.npy", True, 0.075)
         # else exits
 
 
