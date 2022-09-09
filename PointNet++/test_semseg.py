@@ -94,7 +94,7 @@ def main_semseg():
         print("new_labels:", new_labels)
 
         # new_new_labels = np.reshape(new_labels, new_labels.shape + (1,))
-        new_new_labels = np.reshape(new_labels, (np.shape(new_labels)[1], -1))
+        new_new_labels = np.reshape(new_labels, (np.shape(new_xyz_list)[1], -1))
         #new_new_labels = np.reshape(new_labels, (5636096, -1))
 
         print("new_new_labels", new_new_labels.shape) 
