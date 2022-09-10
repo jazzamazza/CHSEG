@@ -1,4 +1,3 @@
-from ast import arg
 from Experiment import Experiment
 from Experiment import Graph
 from os.path import exists
