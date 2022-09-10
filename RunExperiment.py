@@ -14,7 +14,7 @@ class ExperimentConfig():
         DS_APPEND = '_ds_' + str(ds_amt)
         RAW_DEFAULT = DATA_ROOT + FILE_NAME_BASE + DS_APPEND + DEFAULT_EXT
         GEO_DEFAULT = DATA_ROOT + 'CC/' + FILE_NAME_BASE + DS_APPEND + '_cc_23_feats.las'
-        PNET_DEFAULT = DATA_ROOT + 'PNet/' + FILE_NAME_BASE + '_ds_0.075_0.085_pnet' + DEFAULT_EXT
+        PNET_DEFAULT = DATA_ROOT + 'PNet/' + FILE_NAME_BASE + DS_APPEND +'_pnet_all_fix' + DEFAULT_EXT
         
         files = {'all': [RAW_DEFAULT, GEO_DEFAULT, PNET_DEFAULT],
                  'raw': [RAW_DEFAULT],
