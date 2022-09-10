@@ -30,8 +30,8 @@ class Tools:
         viewer.wait()
         viewer.close()
         
-    def fix_pnet(self):
-        pnet_cloud = np.load("./Data/PNet/church_registered_ds_0.205_pnet_all.npy")
+    def fix_pnet(self, file):
+        pnet_cloud = np.load(file)
         self.pcutils.get_attributes(pnet_cloud)
         points = pnet_cloud[:,:3]
         truth = pnet_cloud[:,3:4]
@@ -41,7 +41,8 @@ class Tools:
         unique_feats = feats[unique_point_indicies]
         print("len input points:",len(points.flatten()),"\nlen unique points:",len(unique_points))
         out_pcd = np.hstack((unique_points, unique_truth, unique_feats))
-        np.save("./Data/PNet/church_registered_ds_0.205_pnet_all_fix.npy", out_pcd)
+        name = file[:-4] + "_fix.npy"
+        np.save(name, out_pcd)
         
     def pnet_test(self):
         pcd = np.load("./Data/PNet/church_registered_ds_0.075_0.085_pnet.npy")
@@ -60,6 +61,7 @@ class Tools:
             + "\n3.) PointNet++ info"
             + "\n4.) PointNet++ test"
             + "\n5.) Make PointNet++ Dataset"
+            + "\n6.) fix pnet"
             + "\nSelection: "
         )
 
@@ -76,7 +78,9 @@ class Tools:
         elif menu_selection == "4":
             self.pnet_test()
         elif menu_selection == "5":
-            self.make_pnet("./Data/church_registered_ds_0.205.npy", True, 0.205)
+            self.make_pnet("./Data/church_registered_ds_0.125.npy", True, 0.125)
+        elif menu_selection == "6":
+            self.fix_pnet("./Data/PNet/church_registered_ds_0.125_pnet_all.npy")
         # else exits
 
 
