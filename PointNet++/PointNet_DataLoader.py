@@ -10,7 +10,7 @@ class DataLoader():
         self.stride = 0.5
         self.scene_points_num, self.scene_points_list, self.semantic_labels_list  = [], [], []
 
-        path = './Data/church_registered_ds_0.205_pnet_ready_wtruth.ply'
+        path = './Data/church_registered_ds_0.125_pnet_ready_wtruth.ply'
         pcd = o3d.io.read_point_cloud(path)
         #ground_truth = np.ceil(np.asarray(pcd.normals)[:,0:1])
         ground_truth = np.asarray(pcd.normals)[:,0:1]

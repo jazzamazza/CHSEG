@@ -112,8 +112,12 @@ class Clustering:
         return self.cluster_labels
 
     def agglomerative_clustering(self, k, affinity="euclidean", linkage="ward"):
-        self.print_heading("Agglomerative Clustering")
-        k_graph = kneighbors_graph(self.pcd, 100, mode='connectivity', include_self=True)
+        #self.print_heading("Agglomerative Clustering")
+        #print(np.shape(self.pcd)[0])
+        #print(np.shape(self.pcd)[0]*0.01)
+        neighbours = int(np.shape(self.pcd)[0]*0.01)
+        print("neighbours",neighbours)
+        k_graph = kneighbors_graph(self.pcd, neighbours, mode='connectivity', include_self=True)
         agg_clustering = AgglomerativeClustering(
             n_clusters=k, affinity=affinity, linkage=linkage, memory="./.cache/", connectivity=k_graph
         )
