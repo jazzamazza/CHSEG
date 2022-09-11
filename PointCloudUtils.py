@@ -1,5 +1,6 @@
 import open3d as o3d
 import numpy as np
+from os.path import exists
 
 
 class PointCloudUtils:
@@ -33,6 +34,7 @@ class PointCloudUtils:
         downsample_amt=float(0.05),
         truth=False,
     ):
+        downsample_amt = float(str("%.3f" % downsample_amt))
         print(
             "Downsample Called! @",
             downsample_amt,
@@ -61,7 +63,13 @@ class PointCloudUtils:
                 return out_ply_path
 
     def ds_npy(self, pcd_arr, downsample_amt=float(0.05)):
-        #point_cloud = pcd_arr
+        output_path = "./Data/church_registered_ds_" + str("%.3f" % downsample_amt)
+        out_pth_npy = output_path + ".npy"
+        out_pth_ply = output_path + ".ply"
+        
+        if (exists(out_pth_npy) and exists(out_pth_ply)):
+            return out_pth_npy, out_pth_ply
+        
         npoints = np.shape(pcd_arr)[0]
         print("Point cloud with,",npoints,"to be downsampled")
         # divide pointCloud into points and features
@@ -97,9 +105,9 @@ class PointCloudUtils:
         reduction = str("%.3f" % (100 - ((ndownpoints / npoints) * 100))) + "%"
         print("New point cloud is", reduction, "smaller")
 
-        output_path = "./Data/church_registered_ds_" + str("%.3f" % downsample_amt)
-        out_pth_npy = output_path + ".npy"
-        out_pth_ply = output_path + ".ply"
+        #output_path = "./Data/church_registered_ds_" + str("%.3f" % downsample_amt)
+        # out_pth_npy = output_path + ".npy"
+        # out_pth_ply = output_path + ".ply"
         print("Saving point clouds")
         np.save(out_pth_npy, down_np_pcloud)
         print(".npy saved")
@@ -112,6 +120,12 @@ class PointCloudUtils:
         pcd_o3d,
         downsample_amt=float(0.05),
     ):
+        output_path = "./Data/church_registered_ds_" + str("%.3f" % downsample_amt)
+        out_pth_npy = output_path + ".npy"
+        out_pth_ply = output_path + ".ply"
+        if (exists(out_pth_npy) and exists(out_pth_ply)):
+            return out_pth_npy, out_pth_ply
+        
         point_cloud = pcd_o3d
         pcd_points = np.asarray(point_cloud.points)
         npoints = np.shape(pcd_points)[0]
@@ -154,9 +168,6 @@ class PointCloudUtils:
             "% smaller",
         )
 
-        output_path = "./Data/church_registered_ds_" + str("%.3f" % downsample_amt)
-        out_pth_npy = output_path + ".npy"
-        out_pth_ply = output_path + ".ply"
         print("Saving pclouds")
         np.save(out_pth_npy, np_ds)
         print(".npy saved")
@@ -189,13 +200,13 @@ class PointCloudUtils:
         pcd.normals = o3d.utility.Vector3dVector(truth)
         pcd_new = np.hstack((points, intensity_to_rgb, truth))
         if is_ds:
-            output_path = ("./Data/church_registered_ds_" + str(ds_amt) + "_pnet_ready_wtruth.ply")
+            output_path = ("./Data/PNetReady/church_registered_ds_" + str(ds_amt) + "_pnet_ready_wtruth.ply")
             np.save("./Data/church_registered_ds_" + str(ds_amt) + "_pnet_ready_wtruth.npy", pcd_new)
             o3d.io.write_point_cloud(output_path, pcd)
             print("files saved")
         else:
-            output_path = "./Data/church_registered_pnet_ready_wtruth.ply"
-            np.save("./Data/church_registered_pnet_ready_wtruth.npy", pcd_new)
+            output_path = "./Data/PNetReady/church_registered_pnet_ready_wtruth.ply"
+            np.save("./Data/PNetReady/church_registered_pnet_ready_wtruth.npy", pcd_new)
             o3d.io.write_point_cloud(output_path, pcd)
             print("files saved")
 
