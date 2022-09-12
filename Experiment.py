@@ -89,14 +89,13 @@ class Experiment:
         self.n_points = np.shape(self.points)[0]
         self.intensity = self.pcd_truth[:, 3:4]
         if self.dataset == "raw" or self.dataset == "cc":
+            print(self.dataset)
             self.truth_index = 4
         elif self.dataset == "pnet":
             self.truth_index = 3
             print(self.truth_index)
             # exit(0)
-        self.ground_truth = self.fix_truth(
-            self.pcd_truth[:, self.truth_index : self.truth_index + 1]
-        )
+        self.ground_truth = self.fix_truth(self.pcd_truth[:, self.truth_index : self.truth_index + 1])
         self.clustering = Clustering(self.pcd, self.pcd_truth, self.dataset)
         self.classification = Classification(self.ground_truth)
 
@@ -130,8 +129,8 @@ class Experiment:
         assert self.cluster_labels is not None
         self.classification.classify(self.unique_clusters, self.cluster_labels)
         self.pred_ground_truth = self.classification.pred_truth_labels
-        assert (np.array_equal(self.ground_truth, self.pred_ground_truth)) != True
-        self.truth_labels = np.hstack((self.ground_truth, self.pred_ground_truth))
+        assert (not np.array_equal(self.ground_truth, self.pred_ground_truth))
+        self.truth_labels = np.hstack((self.ground_truth, self.pred_ground_truth)) #why
 
     def pick_file(
         self,
@@ -218,25 +217,28 @@ class Experiment:
         view.wait()
         view.close()
 
-    def create_pandas(self):
-        columns = [
-            "date",
-            "time",
-            "data_set",
-            "is_down_sample",
-            "down_sample_amount",
-            "n_points",
-            "n_clusters",
-            "clustering_algorithm",
-        ]
-        columns.append("classification_metrics")
-        for metric in self.classification_metrics:
-            columns.append(metric)
-        columns.append("clustering_metrics")
-        for metric in self.clustering_metrics:
-            columns.append(metric)
-        self.experiment_df = pd.DataFrame(data=None, columns=columns)
-        # print(self.experiment_df)
+    def create_pandas(self, output_file):
+        if exists(output_file):
+            self.experiment_df = pd.read_csv(output_file)
+        else:      
+            columns = [
+                "date",
+                "time",
+                "data_set",
+                "is_down_sample",
+                "down_sample_amount",
+                "n_points",
+                "n_clusters",
+                "clustering_algorithm",
+            ]
+            columns.append("classification_metrics")
+            for metric in self.classification_metrics:
+                columns.append(metric)
+            columns.append("clustering_metrics")
+            for metric in self.clustering_metrics:
+                columns.append(metric)
+            self.experiment_df = pd.DataFrame(data=None, columns=columns)
+            # print(self.experiment_df)
 
     def experiment_to_pandas(self, index, output_file="./Results/test_x.csv"):
         data = {}
@@ -275,9 +277,9 @@ class Experiment:
         self,
         cluster_start,
         cluster_end,
-        algs=["aggl"],
-        data_set_paths=["./Data/PNet/church_registered_ds_0.075x0.085x0.1_pnet.npy"],
-        test_out_file = "./Results/test_aggl_pnet.csv"
+        algs=["kmeans","birch","aggl","cure"],
+        data_set_paths=["./Data/PNet/church_registered_ds_0.05.npy"],
+        test_out_file = "./Results/test_default.csv"
     ):
         index = 0
         self.classification_metrics = [
@@ -289,8 +291,8 @@ class Experiment:
             "mean_sqr",
         ]
         self.clustering_metrics = ["db", "rand"]
-        evalualtion = Evaluation(self.truth_labels)
-        self.create_pandas()
+        evaluation = Evaluation(self.truth_labels) #problem?
+        self.create_pandas(test_out_file)
         for path in data_set_paths:
             print("Path:", path)
             self.pick_file(use_default_path=True, default_path=path)
@@ -304,13 +306,13 @@ class Experiment:
                     self.cluster(alg, k)
                     self.classify()
                     self.clusters_pred_to_ply(self.alg)
-                    self.class_eval = evalualtion.evaluate_classification(
+                    self.class_eval = evaluation.evaluate_classification(
                         self.ground_truth,
                         self.pred_ground_truth,
                         self.classification_metrics,
                         metric_choice="all",
                     )
-                    self.clust_eval = evalualtion.evaluate_clusters(
+                    self.clust_eval = evaluation.evaluate_clusters(
                         self.ground_truth,
                         self.pred_ground_truth,
                         self.cluster_labels,

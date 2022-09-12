@@ -19,6 +19,7 @@ class Classification:
         for i in tqdm(unique_clusters):
             # count the number of keep and discard ground truth labels in each cluster
             cluster_points = self.truth_labels[cluster_labels == i]
+            print(len(cluster_points))
             num_discard = 0
             for point in cluster_points:
                 if point > float(0.5):
@@ -35,16 +36,19 @@ class Classification:
             ground_truths = np.append(ground_truths, truth_val)
             # set all points in cluster to majority ground truth of the cluster
             self.pred_truth_labels[cluster_labels == i] = truth_val
-
+        # print(len(np.unique(cluster_labels)))
+        # print(cluster_labels)
         assert len(ground_truths) == len(unique_clusters)
+        # print(np.array_equal(self.truth_labels, self.pred_truth_labels))
+        # print(self.truth_labels[])
+        # print(self.pred_truth_labels)
         assert (np.array_equal(self.truth_labels, self.pred_truth_labels)) != True
+        # assert(np.array_equal(self.truth_labels, self.pred_truth_labels))
         print("\nFinal clusters:")
-        print(
-            "ground_truths:",
+        print("ground_truths:",
             len(ground_truths),
             "\nunique_labels:",
-            len(unique_clusters),
-        )
+            len(unique_clusters))
         print("total_discard:", total_discard, "total_keep:", total_keep)
 
     # def get_attributes(self, arr, title):

@@ -174,7 +174,7 @@ class PointCloudLoader:
             return final_pcd
 
     def load_point_cloud_las(
-        self, vis, downsample=False, ds_size=float(0.05), truth=False
+        self, vis, downsample=False, ds_size=float(0.05), truth=True
     ):
         print(
             "\n******************Loading Point Cloud with Cloud Compare Generated Features *******************"
@@ -217,17 +217,23 @@ class PointCloudLoader:
         extra_features = points[:, 5:]
         points = points[:, :3]
 
+        print("\n**** Creating Final Point Cloud w/o GTruth ****")
+        # without truth label
         final_pcd = np.hstack((points, intensity, extra_features))
-        final_pcd_wtruth = np.hstack((points, intensity, truths, extra_features))
-
+        print("pnet no truth pcloud shape:", np.shape(final_pcd))
+        print("*** Done ***")
+        
         if vis:
             print("to do vis")
-
         if downsample:
             # final_pcd = self.voxel_downsample(points, final_features, 18, ds_size)
             print("to do ds")
 
         if truth == True:
+            print("\n**** Creating Final Point Cloud w/GTruth ****")
+            final_pcd_wtruth = np.hstack((points, intensity, truths, extra_features))
+            print("pnet with truth pcloud shape:", np.shape(final_pcd))
+            print("*** Done ***")
             return final_pcd, final_pcd_wtruth
         else:
             return final_pcd
