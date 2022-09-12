@@ -34,7 +34,13 @@ class Clustering:
         self.pcd_truth = pcd_wtruth
         self.pcd_type = pcd_type
         self.pcutils = PointCloudUtils()
-        self.truth_index = 4
+        if self.pcd_type == "raw" or self.pcd_type == "cc":
+            print(self.pcd_type)
+            self.truth_index = 4
+        elif self.pcd_type == "pnet":
+            self.truth_index = 3
+            print(self.truth_index)
+        # self.truth_index = 4
         self.truth_labels = self.pcd_truth[:, self.truth_index : self.truth_index + 1]
         self.cluster_labels = None
         self.classification = Classification(self.truth_labels)
@@ -43,7 +49,7 @@ class Clustering:
         points = self.pcd_truth[:, :3]
         intensity = self.pcd_truth[:, 3:4]
         if truth_labels is None:
-            truth = self.pcd_truth[:, 4:5]
+            truth = self.pcd_truth[:, self.truth_index : self.truth_index + 1]
         else:
             truth = truth_labels
         zeros = np.zeros((np.shape(points)[0], 1))
