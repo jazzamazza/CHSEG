@@ -35,10 +35,10 @@ class CHSEG_TESTING_main:
         args:
             option: point cloud dataset to load from file
         '''
-        loader = PointCloudLoader()
+        loader = PointCloudLoader(index=self.index)
         self.set_truth_label_idx(option)
         if (option == "1"): 
-            name, path1, path2, div255 = "*************Raw Point Cloud*************", "Data\\raw\FINAL-PCD_raw_0.085.npy", "Data\\raw\FINAL-PCD-ALL_raw_0.085.npy", False
+            name, path1, path2, div255 = "*************Raw Point Cloud*************", "finalPcd_ds_True_ds_size_0.5_raw.npy", "finalPcdAll_ds_True_ds_size_0.5_raw.npy", False
         elif (option == "2"): 
             name, path1, path2, div255 = "*************Point Cloud with Cloud Compare Features*************", "Data\cldCmp\FINAL-PCD_cloudCompare_0.085.npy", "Data\cldCmp\FINAL-PCD-ALL_PCD_cloudCompare_0.085.npy", True
         elif (option == "3"):

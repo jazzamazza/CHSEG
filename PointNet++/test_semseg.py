@@ -14,14 +14,14 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = BASE_DIR
 sys.path.append(os.path.join(ROOT_DIR, 'models'))
 
-def main_semseg():
+def main_semseg(pnet_input_file_path, saved_pnet_file):
     '''HYPER PARAMETER'''
     os.environ["CUDA_VISIBLE_DEVICES"] = '0' 
     NUM_CLASSES = 13
     BATCH_SIZE = 16 
     NUM_POINT = 4096 
 
-    DATASET = DataLoader('/content/drive/Shareddrives/CHSEG/data/church_registered_ds_pointnet0.075.ply') 
+    DATASET = DataLoader(pnet_input_file_path) 
            
     '''MODEL LOADING'''
     model_name = 'pointnet2_sem_seg'
@@ -36,7 +36,7 @@ def main_semseg():
         scene_data, scene_label = DATASET[0]
 
         print("scene_data", scene_data)
-        print("length", len(scene_data[0])) #length is 4096
+        print("length", len(scene_data[0]))
 
         print("scene_label", scene_label)
         print("scene_label shape", scene_label.shape) 
@@ -79,7 +79,7 @@ def main_semseg():
         print("Calculating finalPCD")
         finalPCD = np.column_stack((final_xyz, final_features))
         finalPCD_all = np.column_stack((final_xyz, final_labels, final_features))
-        np.save('/content/drive/Shareddrives/CHSEG/LabelTests/pnet_test_final_all', finalPCD_all)
+        np.save(saved_pnet_file, finalPCD_all)
         print("finalPCD shape:", finalPCD.shape, "\n*********************************")
 
         return finalPCD, finalPCD_all
