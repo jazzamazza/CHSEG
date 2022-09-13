@@ -1,8 +1,5 @@
-import matplotlib.pyplot as plt
-import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.metrics import *
-import matplotlib.cm as cm
 from Outputting import write_results_to_file
 
 class Testing:
@@ -10,15 +7,11 @@ class Testing:
           self.pcd = pointCloud
 
      def silhouette_kmeans(self):
-    
           x = self.pcd
-     
           K = range(2, 20)
           for k in K:
-
                clusterer = KMeans(n_clusters= k)              
                cluster_labels = clusterer.fit_predict(x)
-
                silhouette_avg = silhouette_score(x, cluster_labels)
                print(
                     "For n_clusters =", k,
@@ -28,9 +21,7 @@ class Testing:
 
      def db_index(self):
           x = self.pcd
-
           results = {}
-          
           for i in range(2,100):
                kmeans = KMeans(n_clusters=i, random_state=30)
                labels = kmeans.fit_predict(x)
@@ -39,13 +30,6 @@ class Testing:
                print({i: db_index})
      
      def evaluate(self, metric_choice):
-        print("checking self.y_predict-----------------")
-        for i in self.y_predict:
-            if i != float(0) and i != float(1): print(i)
-        print("checking self.y_true-----------------")
-        for i in self.y_true:
-            if i != float(0) and i != float(1): print(i)
-
         if metric_choice == 0:
             # f1 score 
             score = f1_score(self.y_true, self.y_predict, average='macro')
@@ -99,11 +83,6 @@ class Testing:
         # data
         self.y_true = actual_ground_truths 
         self.y_predict = predicted_ground_truths
-        print("**********************INSIDE METRICS****************")
-        print("---------------------self.y_true:", self.y_true)
-        print("shape:", np.shape(self.y_true), "len:", len(self.y_true))
-        print("---------------------self.y_predict:", self.y_predict)
-        print("shape:", np.shape(self.y_predict), "len:", len(self.y_predict))
 
         userInput = "", ""
         while (userInput != "q"):

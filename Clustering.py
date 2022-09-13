@@ -6,18 +6,13 @@ from kneed import KneeLocator
 from Outputting import write_results_to_file
 import pptk
 
-# Clustering class with various clustering methods
 class Clustering:
-     '''This class is responsible for partitioning a point cloud into clusters'''
-     def __init__(self, pointCloud, pcd_choice):
+     '''This class is responsible for partitioning a point cloud into clusters using four different clustering algorithms'''
+     def __init__(self, pointCloud):
           '''Initialise class variables
           args:
-               pointCloud: the point cloud to cluster
-               pcd_choice: the dataset choice (raw, cldCmp or pnet++)'''
+               pointCloud: the point cloud to cluster, stored in a NumPy array'''
           self.pcd = pointCloud
-          if (pcd_choice == "1"): self.type = "raw"
-          elif (pcd_choice == "2"): self.type = "cldCmp"
-          elif (pcd_choice == "3"): self.type = "pnet++"
           
      def k_means_clustering(self, k, n_init=10):
           '''Cluster point cloud using k-means clustering method
@@ -26,21 +21,15 @@ class Clustering:
                n_init: number of iterations of k-means (default = 10)
           returns:
                unique_labels: an array containg the cluster indexes
-               y_km: the produced clusters
-               A suffix corresponding to the name of the clustering method
-          '''
+               y_km: the produced clusters'''
           print("\n------------------k means---------------------")
           x = self.pcd
           kmeans = KMeans(n_clusters=k, n_init=n_init).fit(x) # number of clusters (k)
           y_km = kmeans.predict(x)
 
-          arrResults = ["*************K-MEANS Parameters*************", "k:" + str(k), "n_init:" + str(n_init)]
-          self.write_results(arrResults)
-          
-          unique_labels = np.unique(y_km)
-          self.get_information(y_km, x, unique_labels)
+          self.write_results(["*************K-MEANS Parameters*************", "k:" + str(k), "n_init:" + str(n_init)])
+          unique_labels = self.get_information(y_km, x)
 
-          self.visualise_clustering(y_km, x)
           return unique_labels, y_km
 
      def optics_clustering(self, min_samp=10, xi=0.05, min_cluster_sz=25, max_e=100):
@@ -60,13 +49,9 @@ class Clustering:
           clust = OPTICS(min_samples=min_samp, xi=xi, min_cluster_size=min_cluster_sz, max_eps=max_e).fit(X)  
           y_op = clust.fit_predict(X)
 
-          arrResults = ["*************OPTICS Parameters*************", "min_samples: " + str(min_samp), "min_cluster_size:" + str(min_cluster_sz), "xi:" + str(xi), "max_eps:" + str(max_e)]
-          self.write_results(arrResults)
+          self.write_results(["*************OPTICS Parameters*************", "min_samples: " + str(min_samp), "min_cluster_size:" + str(min_cluster_sz), "xi:" + str(xi), "max_eps:" + str(max_e)])
+          unique_labels = self.get_information(y_op, X)
           
-          unique_labels = np.unique(y_op)
-          self.get_information(y_op, X, unique_labels)
-          
-          self.visualise_clustering(y_op, X)
           return unique_labels, y_op
 
      def dbscan_clustering(self, min_samples_=6):
@@ -82,19 +67,14 @@ class Clustering:
           print("***************DBSCAN CLUSTERING***************")
           X = self.pcd
           e = self.calculateElbow(min_samples_)
-
-          arrResults = ["*************DBSCAN Parameters*************", "min_samples:"+str(min_samples_), "e:"+str(e).replace('.', ',')]
-          self.write_results(arrResults)
+          self.write_results(["*************DBSCAN Parameters*************", "min_samples:"+str(min_samples_), "e:"+str(e).replace('.', ',')])
           
           db = DBSCAN(eps=e, min_samples=min_samples_).fit(X)
           y_db = db.fit_predict(X)
           
           core_samples_mask = np.zeros_like(y_db, dtype=bool)
           core_samples_mask[db.core_sample_indices_] = True
-          
-          unique_labels = np.unique(y_db)
-          self.get_information(y_db, X, unique_labels)
-          self.visualise_clustering(y_db, X)
+          unique_labels = self.get_information(y_db, X)
 
           return unique_labels, y_db
 
@@ -133,9 +113,7 @@ class Clustering:
           y_ms = ms.predict(X)
 
           self.write_results(["*************MEAN-SHIFT Parameters*************", "bandwidth:" + str(bandwidth).replace('.', ','),  "bin_seeding: True"])
-          unique_labels = np.unique(y_ms)
-          self.get_information(y_ms, X, unique_labels)
-          self.visualise_clustering(y_ms, X)
+          unique_labels = self.get_information(y_ms, X)
 
           return unique_labels, y_ms
 
@@ -146,28 +124,29 @@ class Clustering:
           for r in arrResults:
                write_results_to_file(r)
 
-     def get_information(self, labels, X, unique_labels):
+     def get_information(self, labels, X):
           '''Method to get information about produced clusters
           args:
                labels: the cluster label of each cluster
                X: the point Cloud
                unique_labels: an array of unique cluster labels
           '''
+          unique_labels = np.unique(labels)
           print("Unique Labels:", unique_labels)
           no_clusters = len(np.unique(labels))
           no_noise = np.sum(np.array(labels) == -1, axis=0)
           clust = 'Estimated no. of clusters: %d' % no_clusters
           noise = 'Estimated no. of noise points: %d' % no_noise
-          print(clust)
-          print(noise)
+          print(clust, '\n', noise)
 
           sil_score = silhouette_score(X, labels)
           db_index = davies_bouldin_score(X, labels)
           print("Silhouette Coefficient: %0.3f" % sil_score)
           print("Davies Bouldin Score: %0.3f" % db_index)
           
-          arrResults = ["*************Clustering Metrics*************", "Silhouette Score:"+str(sil_score).replace('.', ','), "Davies Bouldin Index:"+str(db_index).replace('.', ','), clust, noise]
-          self.write_results(arrResults)
+          self.write_results(["*************Clustering Metrics*************", "Silhouette Score:"+str(sil_score).replace('.', ','), "Davies Bouldin Index:"+str(db_index).replace('.', ','), clust, noise])
+          self.visualise_clustering(labels, X)
+          return unique_labels
      
      def visualise_clustering(self, labels, x):
           '''Visualise Clustered Point Cloud with pptk

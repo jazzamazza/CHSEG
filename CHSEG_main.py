@@ -13,14 +13,9 @@ class CHSEG_main:
         self.ds_pcd_all_file_path = ds_pcd_all_file_path
         self.pnet_input_file_path = pnet_input_file_path
         self.pointCloud, self.pcd_with_truths = None, None
-        self.ds = False
+        self.ds, self.load_downsampled = False, False
         self.dsSize = 0
-        self.load_downsampled = False
-
         self.names = {1:'raw', 2:'cldCmp', 3:'pnet'}
-
-        print("_____________---tsting_________________")
-        print("keys:", self.names[1])
 
         # classifying point cloud variables
         self.classifier = Classification()
@@ -104,7 +99,7 @@ class CHSEG_main:
                         self.dsSize = float(userInput)
 
             self.setup(pcd_choice)
-            clustering = Clustering(self.pointCloud , pcd_choice)
+            clustering = Clustering(self.pointCloud)
             
             while (userInput != "r" and userInput != "q"):
                 write_results_to_file("--------------------------------------------------------")

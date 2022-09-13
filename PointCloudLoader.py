@@ -82,7 +82,7 @@ class PointCloudLoader:
         final_pcd: Point cloud without ground truth labels containing (x,y,z, CloudCompare generated features) features
         final_pcd_all: Point cloud with ground truth labels containing (x,y,z, truth_label, CloudCompare generated features) features
     """
-    print("\n******************Loading Point Cloud with CloudCompare Generated Features (x, y, z, intensity) *******************")
+    print("\n******************Loading Point Cloud with CloudCompare Generated Features*******************")
     with lp.open(self.pcd_path) as pcd_f:
         print("Header:", pcd_f.header, "\nPoints:", pcd_f.header.point_count)
 
@@ -119,7 +119,6 @@ class PointCloudLoader:
     features = point_cloud[:,4:] 
     labels_and_features = point_cloud[:,3:]
     final_pcd, final_pcd_all = self.get_point_clouds(points, features, labels_and_features, 126, False)
-
     return final_pcd, final_pcd_all
 
   def get_point_clouds(self, points, features, labels_and_features, num_feats, div255):
@@ -217,9 +216,11 @@ class PointCloudLoader:
         return np.hstack((ds_points, total_ds_features))
 
   def get_attributes(self, pcd, arr_name="Point Cloud", npy_name=None):
-    """Prints attributes of given numpy array to console
+    """Prints attributes of given NumPy array to console
     Args:
-        pcd (Any): Point Cloud Array
+        pcd (Any): Point Cloud in a NumPy array
+        arr_name: string representing the name of the point cloud (default=Point Cloud)
+        npy_name: name of .npy file to save the point cloud in
     """
     heading_label = arr_name+" Attributes:"
     heading_label += ('\n') + (len(heading_label)*'*')
@@ -232,6 +233,11 @@ class PointCloudLoader:
     if npy_name: np.save(npy_name, pcd)
     
   def round_ground_truth(self, final_pcd_all, div255):
+      '''Method to round the ground truth values that get altered during voxel downsampling, 
+         ensuring that all ground truth values are either 0 or 1
+      Args:
+        final_pcd_all: numpy array containing point cloud with ground truth values
+        div255: whether the rounded ground truth values should be divided by 255 or not'''
       if div255:
           final_pcd_all[:,self.index:self.index+1] = np.ceil(final_pcd_all[:,self.index:self.index+1]/255)
       else:
