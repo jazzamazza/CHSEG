@@ -2,7 +2,7 @@ from Clustering import Clustering
 from PointCloudLoader import PointCloudLoader
 from Classification import Classification
 from Metrics import Testing
-from Outputting import write_results_to_file
+from Outputting import Outputting
 
 class CHSEG_main:
     def __init__(self, pcd_path, ds_pcd_file_path, ds_pcd_all_file_path, pnet_input_file_path):
@@ -16,6 +16,7 @@ class CHSEG_main:
         self.ds, self.load_downsampled = False, False
         self.dsSize = 0
         self.names = {1:'raw', 2:'cldCmp', 3:'pnet'}
+        self.out = Outputting("Results_Testing.txt")
 
         # classifying point cloud variables
         self.classifier = Classification()
@@ -46,8 +47,8 @@ class CHSEG_main:
             self.pointCloud = pc_loader.load_pointnet_pcd(pnet_input_file_path) # setup point cloud with PointNet++ features
         else:
             self.pointCloud, self.pcd_with_truths = pc_loader.load_point_cloud(self.names[int(option)], self.load_downsampled, self.ds_pcd_file_path, self.ds_pcd_all_file_path)
-        self.testing = Testing(self.pointCloud)
-        write_results_to_file("Downsample Size:" + str(self.dsSize))
+        self.testing = Testing(self.pointCloud, self.out)
+        self.out.write_results_to_file("Downsample Size:" + str(self.dsSize))
 
     def set_truth_label_idx(self, pcd_choice):
         '''Stores the truth label index of the point cloud in a class variable
@@ -56,7 +57,7 @@ class CHSEG_main:
         '''
         if pcd_choice == "1": self.index = 4 # raw point cloud
         else: self.index = 3 # cloud compare and PointNet++ point cloud
-        write_results_to_file("Ground Truth Index:" + str(self.index))
+        self.out.write_results_to_file("Ground Truth Index:" + str(self.index))
 
     def application(self):
         '''Interative Application, responsible for getting user input'''
@@ -88,10 +89,10 @@ class CHSEG_main:
                         self.dsSize = float(userInput)
 
             self.setup(pcd_choice)
-            clustering = Clustering(self.pointCloud)
+            clustering = Clustering(self.pointCloud, self.out)
             
             while (userInput != "r" and userInput != "q"):
-                write_results_to_file("--------------------------------------------------------")
+                self.out.write_results_to_file("--------------------------------------------------------")
                 # cluster point cloud    
                 userInput = input("\nChoose Clustering Method(s):"+
                                 "\n 0 : K-Means Clustering" +

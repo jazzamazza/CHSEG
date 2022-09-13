@@ -3,16 +3,17 @@ from sklearn.cluster import KMeans, MeanShift, DBSCAN, OPTICS
 from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics import *
 from kneed import KneeLocator
-from Outputting import write_results_to_file
+from Outputting import *
 import pptk
 
 class Clustering:
      '''This class is responsible for partitioning a point cloud into clusters using four different clustering algorithms'''
-     def __init__(self, pointCloud):
+     def __init__(self, pointCloud, out):
           '''Initialise class variables
           args:
                pointCloud: the point cloud to cluster, stored in a NumPy array'''
           self.pcd = pointCloud
+          self.out = out
           
      def k_means_clustering(self, k, n_init=10):
           '''Cluster point cloud using k-means clustering method
@@ -27,7 +28,7 @@ class Clustering:
           kmeans = KMeans(n_clusters=k, n_init=n_init).fit(x) # number of clusters (k)
           y_km = kmeans.predict(x)
 
-          self.write_results(["*************K-MEANS Parameters*************", "k:" + str(k), "n_init:" + str(n_init)])
+          self.out.write_results(["*************K-MEANS Parameters*************", "k:" + str(k), "n_init:" + str(n_init)])
           unique_labels = self.get_information(y_km, x)
 
           return unique_labels, y_km
@@ -49,7 +50,7 @@ class Clustering:
           clust = OPTICS(min_samples=min_samp, xi=xi, min_cluster_size=min_cluster_sz, max_eps=max_e).fit(X)  
           y_op = clust.fit_predict(X)
 
-          self.write_results(["*************OPTICS Parameters*************", "min_samples: " + str(min_samp), "min_cluster_size:" + str(min_cluster_sz), "xi:" + str(xi), "max_eps:" + str(max_e)])
+          self.out.write_results(["*************OPTICS Parameters*************", "min_samples: " + str(min_samp), "min_cluster_size:" + str(min_cluster_sz), "xi:" + str(xi), "max_eps:" + str(max_e)])
           unique_labels = self.get_information(y_op, X)
           
           return unique_labels, y_op
@@ -67,7 +68,7 @@ class Clustering:
           print("***************DBSCAN CLUSTERING***************")
           X = self.pcd
           e = self.calculateElbow(min_samples_)
-          self.write_results(["*************DBSCAN Parameters*************", "min_samples:"+str(min_samples_), "e:"+str(e).replace('.', ',')])
+          self.out.write_results(["*************DBSCAN Parameters*************", "min_samples:"+str(min_samples_), "e:"+str(e).replace('.', ',')])
           
           db = DBSCAN(eps=e, min_samples=min_samples_).fit(X)
           y_db = db.fit_predict(X)
@@ -112,17 +113,10 @@ class Clustering:
           ms = MeanShift(bandwidth=bandwidth, bin_seeding=True).fit(X)
           y_ms = ms.predict(X)
 
-          self.write_results(["*************MEAN-SHIFT Parameters*************", "bandwidth:" + str(bandwidth).replace('.', ','),  "bin_seeding: True"])
+          self.out.write_results(["*************MEAN-SHIFT Parameters*************", "bandwidth:" + str(bandwidth).replace('.', ','),  "bin_seeding: True"])
           unique_labels = self.get_information(y_ms, X)
 
           return unique_labels, y_ms
-
-     def write_results(self, arrResults):
-          '''Write results to a file
-          args: 
-               arrResults: the array of strings to write to file'''
-          for r in arrResults:
-               write_results_to_file(r)
 
      def get_information(self, labels, X):
           '''Method to get information about produced clusters
@@ -144,7 +138,7 @@ class Clustering:
           print("Silhouette Coefficient: %0.3f" % sil_score)
           print("Davies Bouldin Score: %0.3f" % db_index)
           
-          self.write_results(["*************Clustering Metrics*************", "Silhouette Score:"+str(sil_score).replace('.', ','), "Davies Bouldin Index:"+str(db_index).replace('.', ','), clust, noise])
+          self.out.write_results(["*************Clustering Metrics*************", "Silhouette Score:"+str(sil_score).replace('.', ','), "Davies Bouldin Index:"+str(db_index).replace('.', ','), clust, noise])
           self.visualise_clustering(labels, X)
           return unique_labels
      

@@ -1,10 +1,11 @@
 from sklearn.cluster import KMeans
 from sklearn.metrics import *
-from Outputting import write_results_to_file
+from Outputting import *
 
 class Testing:
-     def __init__(self, pointCloud):
+     def __init__(self, pointCloud, out):
           self.pcd = pointCloud
+          self.out = out
 
      def silhouette_kmeans(self):
           x = self.pcd
@@ -33,27 +34,27 @@ class Testing:
         if metric_choice == 0:
             # f1 score 
             score = f1_score(self.y_true, self.y_predict, average='macro')
-            write_results_to_file("F1 Score (Macro):" + str(score))
+            metric_name = "F1 Score (Macro):"
         elif metric_choice == 1:
             # IOU score
             score = jaccard_score(self.y_true, self.y_predict, average='macro')
-            write_results_to_file("IOU Score (Macro):" + str(score))
+            metric_name = "IOU Score (Macro):"
         elif metric_choice == 2:
             # precision
             score = precision_score(self.y_true, self.y_predict, average='macro')
-            write_results_to_file("Precision (Macro):" + str(score))
+            metric_name = "Precision (Macro):"
         elif metric_choice == 3:
             # recall
             score = recall_score(self.y_true, self.y_predict, average='macro')
-            write_results_to_file("Recall (Macro):" + str(score))
+            metric_name = "Recall (Macro):"
         elif metric_choice == 4:
             # mean absolute error 
             score = mean_absolute_error(self.y_true, self.y_predict)
-            write_results_to_file("Mean Absolute Error:" + str(score))
+            metric_name = "Mean Absolute Error:"
         elif metric_choice == 5:
             # mean squared error 
             score = mean_squared_error(self.y_true, self.y_predict)
-            write_results_to_file("Mean Squared Error:" + str(score))
+            metric_name = "Mean Squared Error:"
         elif metric_choice == 6:
             # all metrics
             f2 = f1_score(self.y_true, self.y_predict, average='macro')
@@ -62,24 +63,20 @@ class Testing:
             r2 = recall_score(self.y_true, self.y_predict,  average='macro')
             a = mean_absolute_error(self.y_true, self.y_predict)
             s = mean_squared_error(self.y_true, self.y_predict)
-            print("F1 Score (Macro):", str(f2).replace('.', ','), 
-                  "\nIOU Score (Macro):", str(j2).replace('.', ','), 
-                  "\nPrecision (Macro):", str(p2).replace('.', ','), 
-                  "\nRecall (Macro):", str(r2).replace('.', ','),
-                  "\nMean Absolute Error:", str(a).replace('.', ','),
-                  "\nMean Squared Error:", str(s).replace('.', ','))
-            score = ""
+            score, metric_name = None, None
 
-            write_results_to_file("F1 Score (Macro):" + str(f2).replace('.', ','))
-            write_results_to_file("IOU Score (Macro):" + str(j2).replace('.', ','))
-            write_results_to_file("Precision (Macro):" + str(p2).replace('.', ','))
-            write_results_to_file("Recall (Macro):" + str(r2).replace('.', ','))
-            write_results_to_file("Mean Absolute Error:" + str(a).replace('.', ','))
-            write_results_to_file("Mean Squared Error:" + str(s).replace('.', ','))
-        return score
+            self.out.write_results(["F1 Score (Macro):" + str(f2).replace('.', ','),
+            "IOU Score (Macro):" + str(j2).replace('.', ','),
+            "Precision (Macro):" + str(p2).replace('.', ','),
+            "Recall (Macro):" + str(r2).replace('.', ','),
+            "Mean Absolute Error:" + str(a).replace('.', ','),
+            "Mean Squared Error:" + str(s).replace('.', ',')])
+
+            print("All results written to file")
+        return score, metric_name
 
      def classification_metrics(self, actual_ground_truths, predicted_ground_truths):
-        write_results_to_file("*************Classification Metrics*************")
+        self.out.write_results_to_file("*************Classification Metrics*************")
         # data
         self.y_true = actual_ground_truths 
         self.y_predict = predicted_ground_truths
@@ -96,8 +93,10 @@ class Testing:
                                     "\n 6 : All of the Above"+
                                     "\n q : Quit\n")
             if (userInput == "q"): break
-            score = self.evaluate(int(userInput))
-            print(score)
+            score, metric_name = self.evaluate(int(userInput))
+            if score and metric_name:
+                self.out.write_results_to_file(metric_name + str(score))
+                print(score)
 
 if __name__ == "__main__":
     t = Testing()
