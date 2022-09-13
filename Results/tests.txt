@@ -1,29 +1,34 @@
 Kmeans
 ------
-Raw 0.050 100-750
-Pnet 0.205 100-750 (inc)
-Geo 0.0.075 100-750 (inc)
+{f} Raw 0.050 100-750 (to fix indexes)
+{x} Pnet 0.205 100-750 (medium speed +-20000 points)
+{i} Geo 0.075 100-750 (inc 100-460)
+{i} Geo 0.095 100-750 (inc 100-104)
+{x} Geo 0.150 100-750 (+-36000 points fast)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Birch
 -----
-Raw 0.050 100-750
-Pnet 
-Geo 0.075 100-750 (slow)
-Geo 0.150 100-750 (inc)
+{f} Raw 0.050 100-750 (to fix indexes)
+{x} Pnet 0.175 100-750 (+-27000 points fast)
+{x} Geo 0.075 100-750 (slow +- 1 min per run)
+{ } Geo 0.150 100-750 (inc)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Aggls
 ----
-Raw 0.195 100-750 (kneighbours tree)
-Pnet 0.205 100-750 (inc)
-Geo 
+{ne} Raw 0.195 100-750 (kneighbours tree) MISSING
+{i} Pnet 0.205 100-750 (inc 100-463 +-20000 points)
+{x} Geo 0.195 100-750 (+-22000 points fast and kntree)
+{i} Geo 0.215 100-750 (inc 100-609 +-18000 points fast and kntree)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Cure
 ----
-Raw 0.195 100-750
-Raw 0.125 100-750 (inc) (slow)
-Pnet 
-Geo
+{f} Raw 0.195 100-750 (+-22000 points medium speed) {not sure nreps and comp}
+{i} Raw 0.125 100-750 (inc 100-167) (slow)
+{i} Pnet 0.350 100-750 (inc 100-306 medium speed +-7000 points)
+{i} Geo 0.215 100-750 (inc 100-129 sloow +-18000 points)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+}:^3 BEST DB CURE 0.3 40 }:^3
