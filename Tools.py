@@ -17,8 +17,9 @@ class Tools:
         pnet = importlib.import_module("test_semseg")
         return pnet.main_semseg(in_path, ds_amt)
 
-    def view_pnet(self):
-        pnet_cloud = np.load("./Data/PNet/church_registered_ds_0.205_pnet_all_fix.npy")
+    def view_pnet(self, pnet_cloud = None, file = None):
+        if pnet_cloud is None:
+            pnet_cloud = np.load(file)
         points = pnet_cloud[:,:3]
         truth = pnet_cloud[:,3:4]
         feats = pnet_cloud[:,4:]
@@ -72,15 +73,16 @@ class Tools:
             ds_amt_inc = float(input("Downsample increment value: "))
             self.pcutils.auto_downsample_data(ds_amt_start, ds_amt_end, ds_amt_inc)
         elif menu_selection == "2":
-            self.run_pnet('./Data/PNetReady/church_registered_ds_0.125_pnet_ready_wtruth.ply', 0.125)
+            pcd, pcd_all = self.run_pnet('./Data/PNetReady/church_registered_ds_0.350_pnet_ready_wtruth.ply', 0.350)
+            self.view_pnet(pcd_all)
         elif menu_selection == "3":
-            self.view_pnet()
+            self.view_pnet(file = "./Data/PNet/church_registered_ds_0.250_pnet_all_fix.npy")
         elif menu_selection == "4":
             self.pnet_test()
         elif menu_selection == "5":
-            self.make_pnet("./Data/church_registered_ds_0.125.npy", True, 0.125)
+            self.make_pnet("./Data/church_registered_ds_0.350.npy", True, 0.350)
         elif menu_selection == "6":
-            self.fix_pnet("./Data/PNet/church_registered_ds_0.125_pnet_all.npy")
+            self.fix_pnet("./Data/PNet/church_registered_ds_0.350_pnet_all.npy")
         # else exits
 
 
