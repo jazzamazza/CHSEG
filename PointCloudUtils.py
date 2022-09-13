@@ -200,8 +200,8 @@ class PointCloudUtils:
         pcd.normals = o3d.utility.Vector3dVector(truth)
         pcd_new = np.hstack((points, intensity_to_rgb, truth))
         if is_ds:
-            output_path = ("./Data/PNetReady/church_registered_ds_" + str(ds_amt) + "_pnet_ready_wtruth.ply")
-            np.save("./Data/church_registered_ds_" + str(ds_amt) + "_pnet_ready_wtruth.npy", pcd_new)
+            output_path = ("./Data/PNetReady/church_registered_ds_" + str("%.3f" % ds_amt) + "_pnet_ready_wtruth.ply")
+            np.save("./Data/PNetReady/church_registered_ds_" + str("%.3f" % ds_amt) + "_pnet_ready_wtruth.npy", pcd_new)
             o3d.io.write_point_cloud(output_path, pcd)
             print("files saved")
         else:
