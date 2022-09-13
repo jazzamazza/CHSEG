@@ -46,17 +46,6 @@ class CHSEG_main:
             self.pointCloud = pc_loader.load_pointnet_pcd(pnet_input_file_path) # setup point cloud with PointNet++ features
         else:
             self.pointCloud, self.pcd_with_truths = pc_loader.load_point_cloud(self.names[int(option)], self.load_downsampled, self.ds_pcd_file_path, self.ds_pcd_all_file_path)
-        # if (option == "1"): 
-        #     write_results_to_file("*************Raw Point Cloud*************")
-        #     self.pointCloud, self.pcd_with_truths = pc_loader.load_point_cloud(self.names[int(option)], self.load_downsampled, self.ds_pcd_file_path, self.ds_pcd_all_file_path) # setup point cloud with raw features 
-        # elif (option == "2"): 
-        #     write_results_to_file("*************Point Cloud with Cloud Compare Features*************")
-        #     self.pointCloud, self.pcd_with_truths = pc_loader.load_point_cloud('cldCmp') # setup point cloud with Cloud Compare features
-        # elif (option == "3"):
-        #     write_results_to_file("*************Point Cloud with PointNet++ Features*************")
-        #     self.pointCloud, self.pcd_with_truths = pc_loader.load_point_cloud('pnet')
-        # elif (option == "4"): 
-        #     self.pointCloud = pc_loader.load_pointnet_pcd() # setup point cloud with PointNet++ features
         self.testing = Testing(self.pointCloud)
         write_results_to_file("Downsample Size:" + str(self.dsSize))
 
@@ -112,10 +101,10 @@ class CHSEG_main:
                                 "\n r : Restart the Application\n")
                 if (userInput == "q"): break
                 
-                elif (userInput == "0"): u_lbl, lbl = clustering.k_means_clustering(13)
-                elif (userInput == "1"): u_lbl, lbl = clustering.dbscan_clustering()
-                elif (userInput == "2"): u_lbl, lbl = clustering.optics_clustering()
-                elif (userInput == "3"): u_lbl, lbl = clustering.mean_shift_clustering()
+                elif (userInput == "0"): u_lbl, lbl = clustering.k_means_clustering(k=13, n_init=10)
+                elif (userInput == "1"): u_lbl, lbl = clustering.dbscan_clustering(min_samples_=6)
+                elif (userInput == "2"): u_lbl, lbl = clustering.optics_clustering(min_samp=10, xi=0.05, min_cluster_sz=25, max_e=100)
+                elif (userInput == "3"): u_lbl, lbl = clustering.mean_shift_clustering(bandwidth=1)
 
                 # classify point cloud and evaluate classification
                 userInput = input("\nClassify Clustering Result (y/n)?")
