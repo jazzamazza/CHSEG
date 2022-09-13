@@ -3,34 +3,35 @@ from sklearn.metrics import *
 from Outputting import *
 
 class Testing:
-     def __init__(self, pointCloud, out):
-          self.pcd = pointCloud
-          self.out = out
+    '''This class is responsible for evaluating the clustering and classification results'''
+    def __init__(self, pointCloud, out):
+        '''Initialise class variables
+        Args:
+            pointCloud: the point cloud dataset to evaluate
+            out: the Outputting class to write results to'''
+        self.pcd = pointCloud
+        self.out = out
 
-     def silhouette_kmeans(self):
-          x = self.pcd
-          K = range(2, 20)
-          for k in K:
-               clusterer = KMeans(n_clusters= k)              
-               cluster_labels = clusterer.fit_predict(x)
-               silhouette_avg = silhouette_score(x, cluster_labels)
-               print(
-                    "For n_clusters =", k,
-                    "The average silhouette_score is :",
-                         silhouette_avg,
-               )
+    def silhouette_kmeans(self, upperBound, lowerBound):
+        '''Calculate the average silhouette score for up to upperBound values of k'''
+        for k in range(lowerBound, upperBound):             
+            cluster_labels = KMeans(n_clusters= k).fit_predict(self.pcd)
+            print("For", k, "clusters, the average silhouette score is:", silhouette_score(self.pcd, cluster_labels))
 
-     def db_index(self):
-          x = self.pcd
-          results = {}
-          for i in range(2,100):
-               kmeans = KMeans(n_clusters=i, random_state=30)
-               labels = kmeans.fit_predict(x)
-               db_index = davies_bouldin_score(x, labels)
-               results.update({i: db_index})
-               print({i: db_index})
+    def db_index(self, upperBound, lowerBound):
+        '''Calculate the davies bouldin score for up to upperBound values of k'''
+        for k in range(lowerBound, upperBound):
+            labels = KMeans(n_clusters=k, random_state=30).fit_predict(self.pcd)
+            print("For", k, "clusters, the davies bouldin score is:", davies_bouldin_score(self.pcd, labels))
      
-     def evaluate(self, metric_choice):
+    def evaluate(self, metric_choice):
+        '''Evaluate the classification result using classification evaluation metrics
+        Args: 
+            metric_choice: an integer corresponding to a classification evaluation metric
+        Returns:
+            score: the evaluation metric score
+            metric_name: the name of the metric evaluated
+        '''
         if metric_choice == 0:
             # f1 score 
             score = f1_score(self.y_true, self.y_predict, average='macro')
@@ -75,13 +76,14 @@ class Testing:
             print("All results written to file")
         return score, metric_name
 
-     def classification_metrics(self, actual_ground_truths, predicted_ground_truths):
+    def classification_metrics(self, actual_ground_truths, predicted_ground_truths):
+        '''Compares the actual ground truth labels with the predicted ground truth labels'''
         self.out.write_results_to_file("*************Classification Metrics*************")
-        # data
+        
         self.y_true = actual_ground_truths 
         self.y_predict = predicted_ground_truths
 
-        userInput = "", ""
+        userInput = ""
         while (userInput != "q"):
             userInput = input("\nChoose Classification Metric to Evaluate with:"+
                                     "\n 0 : F1 Score" +
