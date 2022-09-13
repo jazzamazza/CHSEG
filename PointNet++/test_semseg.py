@@ -113,12 +113,12 @@ def createPCD(xyz_list, labels_list, feat_list, ds_amt):
     print("Calculating finalPCD")
     finalPCD = np.column_stack((final_xyz, final_features))
     print("Saving finalPCD")
-    np.save(('./Data/PNet/church_registered_ds_'+ DS_STRING +'_pnet_fixed.npy'), finalPCD)
+    np.save(('./Data/PNet/church_registered_ds_'+ DS_STRING +'_pnet_fix.npy'), finalPCD)
     
     print("Calculating finalPCD w/truth")
     finalPCD_all = np.column_stack((final_xyz, final_labels, final_features))
     print("Saving finalPCD w/truth")
-    np.save(('./Data/PNet/church_registered_ds_'+ DS_STRING +'_pnet_all_fixed.npy'), finalPCD_all)
+    np.save(('./Data/PNet/church_registered_ds_'+ DS_STRING +'_pnet_all_fix.npy'), finalPCD_all)
     
     print("*********************************","\nfinalPCD shape:", finalPCD.shape, "\n*********************************")
 
