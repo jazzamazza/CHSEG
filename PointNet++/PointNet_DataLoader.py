@@ -1,26 +1,24 @@
+"""
+Code adapted from https://github.com/yanx27/Pointnet_Pointnet2_pytorch.git
+"""
+
 import numpy as np
 import open3d as o3d
 
 class DataLoader():
     # prepare to give prediction on each points
-    def __init__(self):
+    def __init__(self, ply_path):
         self.block_points = 4096
         self.block_size = 1.0
         self.padding = 0.001
         self.stride = 0.5
         self.scene_points_num, self.scene_points_list, self.semantic_labels_list  = [], [], []
 
-        path = '/content/drive/Shareddrives/CHSEG/data/church_registered_ds_pointnet0.075.ply'
-        pcd = o3d.io.read_point_cloud(path)
+        pcd = o3d.io.read_point_cloud(ply_path)
         ground_truth = np.ceil(np.asarray(pcd.normals)[:,0:1])
-        print("ground_truth", ground_truth)
         data = np.hstack((np.asarray(pcd.points), np.asarray(pcd.colors))) #xyz intensityx3
         points = data[:, :3]
-        print(points)
         self.scene_points_list.append(data[:, :6])
-        print("=======================")
-        print("data[:, :6]", data[:, :6])
-        print("=======================")
         self.semantic_labels_list.append(ground_truth)
         coord_min, coord_max = np.amin(points, axis=0)[:3], np.amax(points, axis=0)[:3]
         assert len(self.scene_points_list) == len(self.semantic_labels_list)
@@ -35,8 +33,6 @@ class DataLoader():
         data_room, label_room = np.array([]), np.array([])
         
         for index_y in range(0, grid_y):
-            print("index_y:", index_y)
-            
             for index_x in range(0, grid_x):
                 s_x = coord_min[0] + index_x * self.stride
                 e_x = min(s_x + self.block_size, coord_max[0])

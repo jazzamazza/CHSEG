@@ -25,19 +25,15 @@ class PointCloudLoader:
     point_cloud = np.load(self.pcd_path)
     self.get_attributes(point_cloud)   
     
-    # divide point_cloud into points and features 
-    intensity = point_cloud[:,3:4]
-    truth_label = point_cloud[:,4:5]
-    
     print("\n****************** Final Point Cloud *******************")
-    final_pcd = point_cloud[:,:4] #without truth label
+    final_pcd = point_cloud[:,:4] # without truth label
     final_pcd_all = point_cloud[:,:5]
     self.get_attributes(final_pcd, "final_pcd") 
       
     if downsample:
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(point_cloud[:,:3])
-        rawFeatures = np.hstack((intensity, truth_label, truth_label))
+        rawFeatures = np.hstack((point_cloud[:,3:4], point_cloud[:,4:5], point_cloud[:,4:5])) # numpy array of (intensity, truth_label, truth_label)
         pcd.normals = o3d.utility.Vector3dVector(rawFeatures)
         final_pcd = pcd.voxel_down_sample(voxel_size=ds_size) # downsample pcd
         final_pcd = np.delete(final_pcd_all, [4,5], 1) # remove info unneccessary for clustering from pcd

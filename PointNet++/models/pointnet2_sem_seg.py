@@ -1,3 +1,7 @@
+"""
+Code adapted from https://github.com/yanx27/Pointnet_Pointnet2_pytorch.git
+"""
+
 import torch.nn as nn
 import torch.nn.functional as F
 from models.pointnet2_utils import PointNetSetAbstraction,PointNetFeaturePropagation
@@ -33,8 +37,6 @@ class get_model(nn.Module):
         l0_points = self.fp1(l0_xyz, l1_xyz, None, l1_points)
 
         x = F.relu(self.bn1(self.conv1(l0_points)))
-        #x = self.conv2(x)
-        #x = F.log_softmax(x, dim=1)
         x = x.permute(0, 2, 1)
         return x, l0_points
 
@@ -42,7 +44,7 @@ class get_model(nn.Module):
 class get_loss(nn.Module):
     def __init__(self):
         super(get_loss, self).__init__()
+
     def forward(self, pred, target, trans_feat, weight):
         total_loss = F.nll_loss(pred, target, weight=weight)
-
         return total_loss

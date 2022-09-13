@@ -21,7 +21,7 @@ def main_semseg():
     BATCH_SIZE = 16 
     NUM_POINT = 4096 
 
-    DATASET = DataLoader() 
+    DATASET = DataLoader('/content/drive/Shareddrives/CHSEG/data/church_registered_ds_pointnet0.075.ply') 
            
     '''MODEL LOADING'''
     model_name = 'pointnet2_sem_seg'
