@@ -41,7 +41,7 @@ class Clustering:
           self.get_information(y_km, x, unique_labels)
 
           self.visualise_clustering(y_km, x)
-          return unique_labels, y_km, "_kmeans"
+          return unique_labels, y_km
 
      def optics_clustering(self, min_samp=10, xi=0.05, min_cluster_sz=25, max_e=100):
           '''Cluster point cloud using OPTICS clustering method
@@ -67,7 +67,7 @@ class Clustering:
           self.get_information(y_op, X, unique_labels)
           
           self.visualise_clustering(y_op, X)
-          return unique_labels, y_op, "_OPTICS"
+          return unique_labels, y_op
 
      def dbscan_clustering(self, min_samples_=6):
           '''Cluster point cloud using DBSCAN clustering method
@@ -96,7 +96,7 @@ class Clustering:
           self.get_information(y_db, X, unique_labels)
           self.visualise_clustering(y_db, X)
 
-          return unique_labels, y_db, "_DBSCAN"
+          return unique_labels, y_db
 
      def calculateElbow(self, n):
           '''Calculate the value of e for DBSCAN
@@ -137,7 +137,7 @@ class Clustering:
           self.get_information(y_ms, X, unique_labels)
           self.visualise_clustering(y_ms, X)
 
-          return unique_labels, y_ms, "_meanshift"
+          return unique_labels, y_ms
 
      def write_results(self, arrResults):
           '''Write results to a file

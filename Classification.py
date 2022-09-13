@@ -19,7 +19,7 @@ class Classification:
       self.get_attributes(self.predicted_labels, "self.predicted_labels")
       return self.true_labels, self.predicted_labels
           
-    def classify(self, unique_labels, y_km, t, index, file_path, file_name):
+    def classify(self, unique_labels, y_km, t, index):
       '''Method to label each produced cluster as the majority ground truth label in each cluster
       args:
         unique_labels: the cluster indexes
