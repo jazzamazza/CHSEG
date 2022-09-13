@@ -1,16 +1,17 @@
 import numpy as np
 import open3d as o3d
+from tqdm import tqdm
 
 class DataLoader():
     # prepare to give prediction on each points
-    def __init__(self):
+    def __init__(self, path):
         self.block_points = 4096
         self.block_size = 1.0
         self.padding = 0.001
         self.stride = 0.5
         self.scene_points_num, self.scene_points_list, self.semantic_labels_list  = [], [], []
 
-        path = './Data/church_registered_ds_0.125_pnet_ready_wtruth.ply'
+        #path = './Data/PNetReady/church_registered_ds_0.125_pnet_ready_wtruth.ply'
         pcd = o3d.io.read_point_cloud(path)
         #ground_truth = np.ceil(np.asarray(pcd.normals)[:,0:1])
         ground_truth = np.asarray(pcd.normals)[:,0:1]
@@ -40,8 +41,8 @@ class DataLoader():
         grid_y = int(np.ceil(float(coord_max[1] - coord_min[1] - self.block_size) / self.stride) + 1)
         data_room, label_room = np.array([]), np.array([])
         
-        for index_y in range(0, grid_y):
-            print("index_y:", index_y)
+        for index_y in tqdm(range(0, grid_y), "loader"):
+            #print("index_y:", index_y)
             
             for index_x in range(0, grid_x):
                 s_x = coord_min[0] + index_x * self.stride

@@ -10,12 +10,12 @@ class Tools:
     def __init__(self):
         self.pcutils = PointCloudUtils()
 
-    def run_pnet(self):
+    def run_pnet(self, in_path, ds_amt):
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         ROOT_DIR = BASE_DIR
         sys.path.append(os.path.join(ROOT_DIR, "PointNet++"))
         pnet = importlib.import_module("test_semseg")
-        return pnet.main_semseg()
+        return pnet.main_semseg(in_path, ds_amt)
 
     def view_pnet(self):
         pnet_cloud = np.load("./Data/PNet/church_registered_ds_0.205_pnet_all_fix.npy")
@@ -72,7 +72,7 @@ class Tools:
             ds_amt_inc = float(input("Downsample increment value: "))
             self.pcutils.auto_downsample_data(ds_amt_start, ds_amt_end, ds_amt_inc)
         elif menu_selection == "2":
-            self.run_pnet()
+            self.run_pnet('./Data/PNetReady/church_registered_ds_0.125_pnet_ready_wtruth.ply', 0.125)
         elif menu_selection == "3":
             self.view_pnet()
         elif menu_selection == "4":

@@ -9,19 +9,20 @@ import sys
 import importlib
 import numpy as np
 from sklearn import preprocessing 
+from tqdm import tqdm
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = BASE_DIR
 sys.path.append(os.path.join(ROOT_DIR, 'models'))
 
-def main_semseg():
+def main_semseg(in_path, ds_amt):
     '''HYPER PARAMETER'''
     os.environ["CUDA_VISIBLE_DEVICES"] = '0' 
     NUM_CLASSES = 13
-    BATCH_SIZE = 8 
+    BATCH_SIZE = 4 
     NUM_POINT = 4096 
 
-    DATASET = DataLoader() 
+    DATASET = DataLoader(in_path) 
            
     '''MODEL LOADING'''
     model_name = 'pointnet2_sem_seg'
@@ -49,7 +50,7 @@ def main_semseg():
         batch_label = np.zeros((BATCH_SIZE, NUM_POINT))
         
         feat_list, xyz_list, labels_list = [], [], [] 
-        for sbatch in range(s_batch_num):
+        for sbatch in tqdm(range(s_batch_num),"sbatch"):
             start_idx = sbatch * BATCH_SIZE
             end_idx = min((sbatch + 1) * BATCH_SIZE, num_blocks)
             real_batch_size = end_idx - start_idx
@@ -68,22 +69,22 @@ def main_semseg():
         final_labels = np.vstack((np.reshape(np.vstack((labels_list)), (final_xyz.shape[0], -1)))) #5636096
         final_features = scalar.fit_transform(np.vstack((np.vstack((feat_list)))))
 
-        print('final_features shape:', final_features.shape)
-        print('final_xyz shape:', final_xyz.shape)
-        print('final_labels shape:', final_labels.shape)
+        # print('final_features shape:', final_features.shape)
+        # print('final_xyz shape:', final_xyz.shape)
+        # print('final_labels shape:', final_labels.shape)
 
-        print("final_features:", final_features)
-        print("final_xyz:", final_xyz)
-        print("final_labels:", final_labels)
+        # print("final_features:", final_features)
+        # print("final_xyz:", final_xyz)
+        # print("final_labels:", final_labels)
 
         print("Calculating finalPCD")
         finalPCD = np.column_stack((final_xyz, final_features))
         finalPCD_all = np.column_stack((final_xyz, final_labels, final_features))
-        np.save('./Data/PNet/church_registered_pnet_all.npy', finalPCD_all)
-        np.save('./Data/PNet/church_registered_pnet.npy', finalPCD)
+        np.save('./Data/PNet/church_registered_ds_'+str("0.3f" % ds_amt)+'_pnet_all.npy', finalPCD_all)
+        np.save('./Data/PNet/church_registered_ds_'+str("0.3f" % ds_amt)+'_pnet.npy', finalPCD)
         print("finalPCD shape:", finalPCD.shape, "\n*********************************")
 
         return finalPCD, finalPCD_all
 
 if __name__ == '__main__':
-    main_semseg()
+    main_semseg('./Data/PNetReady/church_registered_ds_0.125_pnet_ready_wtruth.ply', 0.125)

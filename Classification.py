@@ -19,7 +19,7 @@ class Classification:
         for i in tqdm(unique_clusters):
             # count the number of keep and discard ground truth labels in each cluster
             cluster_points = self.truth_labels[cluster_labels == i]
-            print(len(cluster_points))
+            # print(len(cluster_points))
             num_discard = 0
             for point in cluster_points:
                 if point > float(0.5):
