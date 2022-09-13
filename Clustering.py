@@ -12,6 +12,7 @@ from pyclustering.cluster.rock import rock
 from pyclustering.cluster.encoder import cluster_encoder
 from pyclustering.cluster.encoder import type_encoding
 from sklearn.neighbors import kneighbors_graph
+from pyclustering.utils import timedcall
 
 # from pyclustering.cluster import cluster_visualizer
 # from pyclustering.cluster import cluster_visualizer_multidim
@@ -156,11 +157,13 @@ class Clustering:
         self.cluster_labels = cluster_labels
         return self.cluster_labels
 
-    def cure_clustering(self, k=10, reps=5, comp=0.5, ccore=True):
+    def cure_clustering(self, k=10, reps=5, comp=0.5, ccore=True, timed = False):
         self.print_heading("CURE Clustering")
         # *!* to do num rep_points, compression *!*
         cure_cluster = cure(self.pcd, k, reps, comp, ccore)
         print("Starting using", k, "clusters")
+        if timed:
+            time, _ = timedcall(cure_cluster.process)
         cure_cluster.process()
         print("Clustering finished")
         clusters = cure_cluster.get_clusters()
@@ -174,4 +177,6 @@ class Clustering:
         cluster_labels = np.vstack(cluster_labels)
         self.clusters_to_ply(cluster_labels, "cure")
         self.cluster_labels = cluster_labels
+        if timed:
+            return time, self.cluster_labels
         return self.cluster_labels

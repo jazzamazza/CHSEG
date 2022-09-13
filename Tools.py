@@ -5,6 +5,8 @@ import sys
 from PointCloudUtils import PointCloudUtils
 import numpy as np
 import pptk
+from Clustering import Clustering
+from Metrics import ClusterMetrics
 
 class Tools:
     def __init__(self):
@@ -63,6 +65,7 @@ class Tools:
             + "\n4.) PointNet++ test"
             + "\n5.) Make PointNet++ Dataset"
             + "\n6.) fix pnet"
+            + "\n7.) cure experiment"
             + "\nSelection: "
         )
 
@@ -84,7 +87,78 @@ class Tools:
             self.make_pnet("./Data/church_registered_ds_0.175.npy", True, 0.175)
         elif menu_selection == "6":
             self.fix_pnet("./Data/PNet/church_registered_ds_0.175_pnet_all.npy")
+        elif menu_selection == '7':
+            self.best_cure("./Data/church_registered_ds_0.300.npy", 100, 50, 0.8)
         # else exits
+        
+    def best_cure(self, pcd_loc, clusters, reps_max, comp_max):
+        pcd_t = np.load(pcd_loc)
+        #raw only
+        pcd = pcd_t[:,:4] 
+        pcd_type = "raw"
+        clustering = Clustering(pcd, pcd_t, pcd_type)
+        best_time = 0
+        best_rep = 0
+        best_comp = 0.0
+        results_i, results_j= [], []
+        repsrange = range(10, reps_max, 10)
+        for i in repsrange:
+            exec_time, cure_clusters = clustering.cure_clustering(clusters, i, comp_max, ccore=True, timed = True)
+            if best_time == 0:
+                best_time = exec_time
+                best_rep = i
+            if exec_time < best_time:
+                best_time = exec_time
+                best_rep = i
+            print('Exec time:', exec_time, 'for reps:', i)
+            clustermetrics = ClusterMetrics(pcd_t[:,4:5],pcd_t[:,4:5],cure_clusters,pcd)
+            db_score = clustermetrics.run_metric("db")
+            print('DB SCORE:', db_score)
+            results_i.append([exec_time, db_score])
+        print("best time rep:", best_time, 'best n reps:', best_rep)
+        comprange = np.arange(0.2, comp_max, 0.1)
+        
+        for j in comprange:
+            exec_time, cure_clusters = clustering.cure_clustering(clusters, best_rep, j, ccore=True, timed = True) 
+            if best_time == 0:
+                best_time = exec_time
+                best_comp = j
+            if exec_time < best_time:
+                best_time = exec_time
+                best_comp = j
+            print('Exec time:', exec_time, 'for reps:', i)
+            clustermetrics = ClusterMetrics(pcd_t[:,4:5],pcd_t[:,4:5],cure_clusters,pcd)
+            db_score = clustermetrics.run_metric("db")
+            print('DB SCORE:', db_score)
+            results_j.append([exec_time, db_score])
+        print("best time comp:", best_time, 'reps used:', best_rep, 'best comp:', best_comp)
+        print('results reps:', results_i)
+        print('results comp:', results_j)
+        
+        bestdb = results_i[0][1]
+        bestdbtime = results_i[0][0]
+        best_index = repsrange[0]
+        index = 0
+        for res in results_i:
+            if res[1] < bestdb:
+                bestdb = res[1]
+                bestdbtime=res[0]
+                best_index = repsrange[index]
+            index += 1
+        print("best n reps", best_index, 'with db score of', bestdb, 'and time of',bestdbtime)
+        
+        bestdb = results_j[0][1]
+        bestdbtime = results_j[0][0]
+        best_index = comprange[0]
+        index = 0
+        for res in results_j:
+            if res[1] < bestdb:
+                bestdb = res[1]
+                bestdbtime=res[0]
+                best_index = comprange[index]
+            index += 1
+        print("best comp", best_index, 'with db score of', bestdb, 'and time of',bestdbtime)
+                
 
 
 if __name__ == "__main__":
