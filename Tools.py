@@ -126,7 +126,7 @@ class Tools:
             if exec_time < best_time:
                 best_time = exec_time
                 best_comp = j
-            print('Exec time:', exec_time, 'for reps:', i)
+            print('Exec time:', exec_time, 'for comp:', j)
             clustermetrics = ClusterMetrics(pcd_t[:,4:5],pcd_t[:,4:5],cure_clusters,pcd)
             db_score = clustermetrics.run_metric("db")
             print('DB SCORE:', db_score)
