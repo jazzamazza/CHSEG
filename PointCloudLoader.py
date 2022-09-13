@@ -142,41 +142,48 @@ class PointCloudLoader:
         final_pcd_all = np.hstack((points, labels_and_features))
     return final_pcd, final_pcd_all
 
-  def convert_pcd(self):
-    # raw point cloud data = x, y, z, intensity
-    # but PointNet++ expects = x, y, z, r, g, b
-    # so we store intensity value as r, g, b
+  def convert_pcd(self, outputPath):
+    '''Method to convert raw point cloud to a format readable by PointNet++ and downsample it by a given voxel. 
+       Raw point cloud data is in the form: {x,y,z,intensity, ground truth}, but PointNet++
+       expects data in the form: {x,y,z,r,g,b}, so we store the intensity values as {r,g,b} values
+    Args:
+      outputPath: the file path to save the converted point cloud
+    Returns:
+      outputPath: an updated file path where the converted point cloud is saved'''
     print("\n******************Convert Point Cloud to PointNet++ Readable Format*******************")
 
-    #load point cloud to numpy
-    path = self.pcd_path  #path to point cloud file
-    point_cloud = np.load(path)
-    print("Point cloud size: ", point_cloud.size)
+    inputPath = self.pcd_path
+    pointCloud = np.load(inputPath)
     
-    # divide point_cloud into points and features 
-    points = point_cloud[:,:3]
-    intensity = point_cloud[:,3:4] 
-    truthLabel = point_cloud[:,4:5] 
-      
+    # divide point cloud into points, truthLabels and features 
+    points = pointCloud[:,:3]
+    intensity = pointCloud[:,3:4] 
+    truthLabel = pointCloud[:,4:5] 
+          
     # format using open3d
-    pcd = o3d.geometry.point_cloud()
+    pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(points) # add {x,y,z} points to pcd
     features = np.hstack((intensity, intensity, intensity)) # form a 3D vector to add to o3d pcd
     pcd.colors = o3d.utility.Vector3dVector(features) # store intensity as every value in color vector
+    labels = np.hstack((truthLabel, truthLabel, truthLabel)) # form a 3D vector to add to o3d pcd
+    pcd.normals = o3d.utility.Vector3dVector(labels) # store intensity as every value in color vector
     print(pcd)
+    downpcd = pcd.voxel_down_sample(voxel_size=self.ds_size)
 
-    downpcd = pcd.voxel_down_sample(voxel_size=0.05)
-    
     # save point cloud 
-    o3d.io.write_point_cloud("./Data/church_registered_updated.ply", downpcd)
+    outputPath = outputPath + "_ds_" + str(self.ds_size) + ".ply"
+    o3d.io.write_point_cloud(outputPath, downpcd)
 
-  def load_pointnet_pcd(self, pnet_input_file_path):
+    return outputPath
+
+  def load_pointnet_pcd(self):
     '''This method calls the PointNet++ code to add ML-generated features to the raw point cloud
     Args:
       pnet_input_file_path: file path of ply file containing point cloud to input to PointNet++
     Returns: 
       point cloud with PointNet++ generated features saved in a numpy array
     '''
+    pnet_input_file_path = self.convert_pcd(self.pcd_path)
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     ROOT_DIR = BASE_DIR
     sys.path.append(os.path.join(ROOT_DIR, 'PointNet++'))
