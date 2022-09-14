@@ -71,28 +71,12 @@ def setup(pnet=False, truth=False):
         print("selected file:", file_path)
         print("file ext:", file_ext)
 
-    pc_loader = PointCloudLoader(file_path, file_ext)
+    pc_loader = PointCloudLoader(file_path)
 
     if pnet:
         # setup point cloud with PointNet++ features
-        point_cloud, point_cloud_all = pc_loader.loadPointCloud_pNet(vis, ds)
-        if ds:
-            np.save(
-                ("./Data/church_registered_final_pnet_" + str(ds_amt) + ".npy"),
-                point_cloud,
-            )
-            np.save(
-                ("./Data/church_registered_final_pnet_all_" + str(ds_amt) + ".npy"),
-                point_cloud_all,
-            )
-        else:
-            np.save(("./Data/church_registered_final_pnet.npy"), point_cloud)
-            np.save(("./Data/church_registered_final_pnet_all.npy"), point_cloud_all)
-
-        if truth:
-            return point_cloud, point_cloud_all
-        else:
-            return point_cloud
+        point_cloud, point_cloud_all = pc_loader.load_point_cloud_pnet(vis, ds, truth = True)
+        return point_cloud, point_cloud_all
 
     if file_ext == ".ply":
         if truth:
@@ -162,7 +146,6 @@ def experiment_menu(clustering_obj, user_input):
             + "\n 2 : CURE Clustering"
             + "\n 3 : BIRCH Clustering"
             + "\n 4 : Agglomorative Clustering"
-            + "\n 5 : ROCK Clustering"
             + "\n q : or quit the app"
             + "\n r : Restart the Application\n"
             + "Selection: "
@@ -181,10 +164,8 @@ def experiment_menu(clustering_obj, user_input):
         elif user_input == "4":
             clusters = int(input(input_prompt))
             clustering.agglomerative_clustering(clusters)
-        elif user_input == "5":
-            clusters = int(input(input_prompt))
-            clustering.rock_clustering(clusters)
 
 
 if __name__ == "__main__":
+    # unused old main file
     application()

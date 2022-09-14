@@ -4,9 +4,13 @@ import numpy as np
 
 
 class PointCloudViewer:
-    """PointCloudViewer for viewing PointClouds"""
 
     def __init__(self, downsample_o3d=0):
+        """PointCloudViewer for viewing PointClouds
+
+        Args:
+            downsample_o3d (int, optional): o3d ds. Defaults to 0.
+        """
         
         self.downsample_o3d = downsample_o3d
 

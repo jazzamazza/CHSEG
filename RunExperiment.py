@@ -3,6 +3,8 @@ from os.path import exists
 from sys import argv
 
 class ExperimentConfig():
+    """Configure experiment
+    """
     
     def config_experiment(self, algs = 'all', input_files = 'all', clust_start = 50, clust_end = 500, ds_amt = 0.0):
         #set defaults here

@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 def make_plots():
+    """Make plots for paper
+    """
     make_plot("./Results/Done/aggl_all_mixedds_100_750.csv", 
               "Agglomerative clustering on Raw, Geometric, Pointnet++:\nRand Score",
               "Rand score",
@@ -106,6 +108,14 @@ def make_plots():
               "recall")
     
 def make_plot(csv_path, title, ylab, metric):
+    """Make plot using mpl
+
+    Args:
+        csv_path (str): .csv path
+        title (str): title
+        ylab (str): y axis label
+        metric (str): plot metric
+    """
     df = pd.read_csv(csv_path, sep=',', header=0, index_col=0)
     print("Data frame created.")
     pd.set_option("display.max.columns", None)
