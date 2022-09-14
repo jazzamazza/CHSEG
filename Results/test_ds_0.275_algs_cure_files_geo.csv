@@ -1,0 +1,3 @@
+,date,time,data_set,is_down_sample,down_sample_amount,n_points,n_clusters,clustering_algorithm,classification_metrics,f1,jaccard,precision,recall,mean_abs,mean_sqr,clustering_metrics,db,rand
+0,2022-09-14,03_48AM,cc,True,0.275,11327,100,cure,"['f1', 'jaccard', 'precision', 'recall', 'mean_abs', 'mean_sqr']",0.44604893702366627,0.2870418172431595,1.0,0.2870418172431595,0.12192107354109649,0.12192107354109649,"['db', 'rand']",0.5307656284369584,0.3901576372495099
+1,2022-09-14,03_49AM,cc,True,0.275,11327,101,cure,"['f1', 'jaccard', 'precision', 'recall', 'mean_abs', 'mean_sqr']",0.44604893702366627,0.2870418172431595,1.0,0.2870418172431595,0.12192107354109649,0.12192107354109649,"['db', 'rand']",0.5271804147183399,0.3901575904803259
