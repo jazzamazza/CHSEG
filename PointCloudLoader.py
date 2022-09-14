@@ -220,7 +220,7 @@ class PointCloudLoader:
         print("\n**** Creating Final Point Cloud w/o GTruth ****")
         # without truth label
         final_pcd = np.hstack((points, intensity, extra_features))
-        print("pnet no truth pcloud shape:", np.shape(final_pcd))
+        print("pcd no truth pcloud shape:", np.shape(final_pcd))
         print("*** Done ***")
         
         if vis:
@@ -232,7 +232,7 @@ class PointCloudLoader:
         if truth == True:
             print("\n**** Creating Final Point Cloud w/GTruth ****")
             final_pcd_wtruth = np.hstack((points, intensity, truths, extra_features))
-            print("pnet with truth pcloud shape:", np.shape(final_pcd))
+            print("pcd with truth pcloud shape:", np.shape(final_pcd_wtruth))
             print("*** Done ***")
             return final_pcd, final_pcd_wtruth
         else:

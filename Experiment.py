@@ -219,7 +219,7 @@ class Experiment:
 
     def create_pandas(self, output_file):
         if exists(output_file):
-            self.experiment_df = pd.read_csv(output_file)
+            self.experiment_df = pd.read_csv(output_file, sep=',', header=0, index_col=0)
         else:      
             columns = [
                 "date",
@@ -267,7 +267,7 @@ class Experiment:
 
     def experiment_writer(self, output_file):
         if exists(output_file):
-            self.experiment_df.tail(1).to_csv(output_file, mode='a', header=False)
+            self.experiment_df.tail(1).to_csv(output_file, mode='a', header=False, index=True)
         else:
             "Creating CSV"
             self.experiment_df.to_csv(output_file, mode = 'w', header=True)
