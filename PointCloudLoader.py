@@ -1,13 +1,8 @@
 import numpy as np
 import open3d as o3d
 import laspy as lp
-import sys
-import importlib
-import os
 from PointCloudViewer import PointCloudViewer
 from PointCloudUtils import PointCloudUtils
-from tkinter import filedialog as fd
-from tkinter import Tk
 
 
 class PointCloudLoader:
@@ -180,7 +175,7 @@ class PointCloudLoader:
             # downsample if one choses to do so
             print("Downsampling Active @", down_size)
             pcd = o3d.io.read_point_cloud(self.pcd_path, print_progress=True)
-            ds_ply_path = self.pcutils.downsample_pcd(pcd, self.filetype, False, down_size, truth)
+            ds_ply_path = self.pcutils.downsample_pcd(pcd, self.filetype, False, down_size)
             pcd = o3d.io.read_point_cloud(ds_ply_path, print_progress=True)
             self.pcd_path = ds_ply_path
             self.set_file_info()

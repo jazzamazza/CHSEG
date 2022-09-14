@@ -48,10 +48,6 @@ class Tools:
         name = file[:-4] + "_fix.npy"
         np.save(name, out_pcd)
         
-    def pnet_test(self):
-        pcd = np.load("./Data/PNet/church_registered_ds_0.075_0.085_pnet.npy")
-        self.pcutils.ds_pnet(pcd, 0.05)
-        
     def make_pnet(self, file_path, is_ds, ds_amt):
         #pcd = np.load("./Data/PNet/church_registered_ds_0.075_0.085_pnet.npy")
         self.pcutils.npy_to_pnet(file_path, is_ds, float(ds_amt))
@@ -87,7 +83,7 @@ class Tools:
         elif menu_selection == "3":
             self.view_pnet(file = "./Data/PNet/church_registered_ds_0.175_pnet_all_fix.npy")
         elif menu_selection == "4":
-            self.pnet_test()
+            print("deprecated")
         elif menu_selection == "5":
             self.make_pnet("./Data/church_registered_ds_0.175.npy", True, 0.175)
         elif menu_selection == "6":

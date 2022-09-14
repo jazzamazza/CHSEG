@@ -1,19 +1,21 @@
+# CHSEG
 from Classification import Classification
 from PointCloudLoader import PointCloudLoader
 from Clustering import Clustering
 from PointCloudUtils import PointCloudUtils
 from Metrics import Evaluation
+# other
 import numpy as np
 import open3d as o3d
 import pandas as pd
 import pptk
 import datetime
-import matplotlib.pyplot as plt
 from os.path import exists
-
 
 class Experiment:
     def __init__(self) -> None:
+        """Experiment Class
+        """
         # Classes
         self.pcutils = PointCloudUtils()
         self.pcloader = None
@@ -63,18 +65,33 @@ class Experiment:
         self.clustering_metrics = ["sill", "db", "rand"]
         self.class_eval = None
         self.clust_eval = None
-
+        
+        # pandas
         self.experiment_df = None
 
     def fix_truth(self, ground_truth):
+        """Correct ground truth labels to binary labels of 1 or 0.
+
+        Args:
+            ground_truth (ndarray): original ground truth labels.
+
+        Returns:
+            ndarray: fixed ground truth labels
+        """
         for i in range(0, len(ground_truth)):
-            # print(truth)
+            # check labels
             ground_truth[i][0] = float(round(ground_truth[i][0]))
             if ground_truth[i][0] != float(0) and ground_truth[i][0] != float(1):
                 print(ground_truth[i][0])
         return ground_truth
 
     def load(self, file_path):
+        """Load file.
+
+        Args:
+            file_path (str): File path
+        """
+        # load file and set globals
         self.pcloader = PointCloudLoader(file_path)
         file_info = self.pcloader.file_info()
         self.file_path = file_info["path"]
@@ -82,8 +99,8 @@ class Experiment:
         self.file_ext = file_info["filetype"]
         self.ds = file_info["downsampled"]
         self.ds_amt = file_info["dsamt"]
+        # return pcd
         self.pcd, self.pcd_truth = self.pcloader.load_point_cloud()
-
         self.points = self.pcd_truth[:, :3]
         self.n_points = np.shape(self.points)[0]
         self.intensity = self.pcd_truth[:, 3:4]
@@ -93,50 +110,74 @@ class Experiment:
         elif self.dataset == "pnet":
             self.truth_index = 3
             print(self.truth_index)
-            # exit(0)
+        # fix truths
         self.ground_truth = self.fix_truth(self.pcd_truth[:, self.truth_index : self.truth_index + 1])
+        # init objects
         self.clustering = Clustering(self.pcd, self.pcd_truth, self.dataset)
         self.classification = Classification(self.ground_truth)
 
-        # view = pptk.viewer(self.points, self.intensity.flatten(), self.ground_truth.flatten(), debug=True)
-        # view.wait()
-        # view.close()
-
     def cluster(self, alg, n_clusters):
+        """Run clustering algorithm.
+
+        Args:
+            alg (str): Algorithm to run. e.g. "kmeans".
+            n_clusters (int): n_clusters to cluster on.
+        """
+        # set globals
         self.alg, self.n_clusters = alg, n_clusters
+        # run algorithm and get per point clusters
         if alg == "kmeans":
             self.cluster_labels = self.clustering.k_means_clustering(n_clusters)
+            # check dims (n, 1)
             if np.ndim(self.cluster_labels) != 2:
                 self.cluster_labels = np.vstack(self.cluster_labels)
         elif alg == "birch":
             self.cluster_labels = self.clustering.birch_clustering(n_clusters)
+            # check dims (n, 1)
             if np.ndim(self.cluster_labels) != 2:
                 self.cluster_labels = np.vstack(self.cluster_labels)
         elif alg == "cure":
+            # params found through experimentation see Tools.py
             self.cluster_labels = self.clustering.cure_clustering(
                 n_clusters, reps=40, comp=0.3, ccore=True
             )
+            # check dims (n, 1)
             if np.ndim(self.cluster_labels) != 2:
                 self.cluster_labels = np.vstack(self.cluster_labels)
         elif alg == "aggl":
             self.cluster_labels = self.clustering.agglomerative_clustering(n_clusters)
+            # check dims (n, 1)
             if np.ndim(self.cluster_labels) != 2:
                 self.cluster_labels = np.vstack(self.cluster_labels)
+        # list of unique labels
         self.unique_clusters = np.unique(self.cluster_labels)
 
     def classify(self):
+        """Run binary classification and get pred truth labels.
+        """
+        # check clustering has happened
         assert self.cluster_labels is not None
+        # run classification
         self.classification.classify(self.unique_clusters, self.cluster_labels)
         self.pred_ground_truth = self.classification.pred_truth_labels
+        # check pred and ground truths are not equal
         assert (not np.array_equal(self.ground_truth, self.pred_ground_truth))
-        self.truth_labels = np.hstack((self.ground_truth, self.pred_ground_truth)) #why
+        # save labels
+        self.truth_labels = np.hstack((self.ground_truth, self.pred_ground_truth))
 
     def pick_file(
         self,
         use_default_path=True,
         default_path="./Data/Datasets/CloudCompare/church_registered_ds_0.075_cc_23_feats.las",
     ):
+        """Pick file to use for experiment.
+
+        Args:
+            use_default_path (bool, optional): Defaults to True.
+            default_path (str, optional): Alternative path. Defaults to "./Data/Datasets/CloudCompare/church_registered_ds_0.075_cc_23_feats.las".
+        """
         if use_default_path:
+            # use defualt path
             file_path = default_path
             file_ext = file_path[-4:]
             print("Selected file: ", file_path)
@@ -144,6 +185,7 @@ class Experiment:
             self.file_path = file_path
             self.file_ext = file_ext
         else:
+            # otherwise pick file using picker
             root_path = "./Data/"
             file = "church_registered"
             if input("Downsampled File? ([y]/n): ") != "n":
@@ -162,13 +204,18 @@ class Experiment:
             self.file_ext = file_ext
 
     def clusters_pred_to_ply(self, algorithm_name="unknown"):
+        """Save cluster and pred and ground truth labels to a .ply file to visualise in Open3D.
+
+        Args:
+            algorithm_name (str, optional): Algorithm name e.g. "birch". Defaults to "unknown".
+        """
         points = self.points
         intensity = self.intensity
         truth = self.ground_truth
         clusters = self.cluster_labels
         pred_truth = self.pred_ground_truth
         zeros = np.zeros((np.shape(points)[0], 1))
-
+        # check labels
         assert np.array_equal(truth, self.ground_truth)
 
         normals = np.hstack((intensity, clusters, zeros))
@@ -202,9 +249,17 @@ class Experiment:
             + ".ply"
         )
         o3d.io.write_point_cloud(file_path, pcd)
-        # self.vis_clusters_pred(points, clusters, truth, pred_truth, intensity)
 
     def vis_clusters_pred(self, points, clusters, truth, pred_truth, intensity):
+        """View clusters and truth labels using PPTK.
+
+        Args:
+            points (ndarray): points
+            clusters (ndarray): cluster labels
+            truth (ndarray): ground truth labels
+            pred_truth (ndarray): pred truth labels
+            intensity (ndarray): intensity labels
+        """
         view = pptk.viewer(
             points,
             clusters.flatten(),
@@ -217,7 +272,13 @@ class Experiment:
         view.close()
 
     def create_pandas(self, output_file):
+        """Create pandas data frame.
+
+        Args:
+            output_file (str): path to output .csv file
+        """
         if exists(output_file):
+            # check if file exists for this alg, dataset and downsample amount.
             self.experiment_df = pd.read_csv(output_file, sep=',', header=0, index_col=0)
         else:      
             columns = [
@@ -237,7 +298,6 @@ class Experiment:
             for metric in self.clustering_metrics:
                 columns.append(metric)
             self.experiment_df = pd.DataFrame(data=None, columns=columns)
-            # print(self.experiment_df)
 
     def experiment_to_pandas(self, index, output_file="./Results/test_x.csv"):
         data = {}
@@ -324,6 +384,6 @@ class Experiment:
                     index += 1
         # self.experiment_writer()
 
-if __name__ == "__main__":
-    #my_experiment = Experiment()
-    #my_experiment.run_experiment(10, 50)
+# if __name__ == "__main__":
+#     my_experiment = Experiment()
+#     my_experiment.run_experiment(10, 50)
