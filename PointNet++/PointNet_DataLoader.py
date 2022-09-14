@@ -8,6 +8,9 @@ import open3d as o3d
 class DataLoader():
     # prepare to give prediction on each points
     def __init__(self, ply_path):
+        '''Initalise class variables and prepare to give prediction on each points
+        Args:
+            ply_path: the path to read the input file from'''
         self.block_points = 4096
         self.block_size = 1.0
         self.padding = 0.001
@@ -24,6 +27,13 @@ class DataLoader():
         assert len(self.scene_points_list) == len(self.semantic_labels_list)
 
     def __getitem__(self, index):
+        '''GetItem Method
+        Args:
+            index:
+        Returns: 
+            data_room:
+            label_room:
+        '''
         point_set_ini = self.scene_points_list[index]
         points = point_set_ini[:,:6]  
         labels = self.semantic_labels_list[index]
@@ -64,4 +74,5 @@ class DataLoader():
         return data_room, label_room
 
     def __len__(self):
+        '''Returns the length of scene_points_list'''
         return len(self.scene_points_list)

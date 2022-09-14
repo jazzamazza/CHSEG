@@ -23,7 +23,7 @@ class CHSEG_main:
 
     def class_and_eval(self, unique_labels, y_km):
         '''Method responsible for classifying point cloud and evaluating the classification results
-        args:
+        Args:
             unique_labels: the unique labels of all the clusters
             y_km: the produced clusters'''
         # Classification
@@ -37,7 +37,7 @@ class CHSEG_main:
    
     def setup(self, option):
         '''Helper method to create PointCloudLoader object and call method to load downsampled point cloud files
-        args:
+        Args:
             option: point cloud dataset to load from file
         '''
         self.set_truth_label_idx(option)
@@ -51,7 +51,7 @@ class CHSEG_main:
 
     def set_truth_label_idx(self, pcd_choice):
         '''Stores the truth label index of the point cloud in a class variable
-        args:
+        Args:
             pcd_choice: point cloud dataset to load
         '''
         if pcd_choice == "1": self.index = 4 # raw point cloud
@@ -59,6 +59,11 @@ class CHSEG_main:
         self.out.write_results_to_file("Ground Truth Index:" + str(self.index))
 
     def ds_user_input(self):
+        '''Request user input about downsampling
+        Returns:
+            0: if the user quits the application
+            1: otherwise
+        '''
         userInput = input("\nDownsample Point Cloud (y/n)?")
         if (userInput == "q"): return 0
         elif (userInput=="y"): 
@@ -126,8 +131,6 @@ if __name__=="__main__":
 
     ds_pcd_file_path = "Data\\raw\FINAL-PCD_raw_0.085.npy" # choose raw, cloud compare or pointnet downsampled finalpcd file
     ds_pcd_all_file_path = "Data\\raw\FINAL-PCD-ALL_raw_0.085.npy" # choose raw, cloud compare or pointnet downsampled finalpcdAll file
-
-    # pnet_input_file_path = "Data\church_registered_downsampled_0.075.ply" # pre-downsampled and restuctured raw point cloud file for inputting into PointNett
 
     main = CHSEG_main(pcd_file_path, ds_pcd_file_path, ds_pcd_all_file_path)
     main.application()

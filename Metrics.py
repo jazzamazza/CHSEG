@@ -13,13 +13,19 @@ class Testing:
         self.out = out
 
     def silhouette_kmeans(self, upperBound, lowerBound):
-        '''Calculate the average silhouette score for up to upperBound values of k'''
+        '''Calculate the average silhouette score for up to upperBound values of k
+        Args:
+            upperBound: the highest value of k to calculate the metrics for
+            lowerBound: the lowest value of k to calculate the metrics for'''
         for k in range(lowerBound, upperBound):             
             cluster_labels = KMeans(n_clusters= k).fit_predict(self.pcd)
             print("For", k, "clusters, the average silhouette score is:", silhouette_score(self.pcd, cluster_labels))
 
     def db_index(self, upperBound, lowerBound):
-        '''Calculate the davies bouldin score for up to upperBound values of k'''
+        '''Calculate the davies bouldin score for up to upperBound values of k
+        Args:
+            upperBound: the highest value of k to calculate the metrics for
+            lowerBound: the lowest value of k to calculate the metrics for'''
         for k in range(lowerBound, upperBound):
             labels = KMeans(n_clusters=k, random_state=30).fit_predict(self.pcd)
             print("For", k, "clusters, the davies bouldin score is:", davies_bouldin_score(self.pcd, labels))
@@ -77,7 +83,10 @@ class Testing:
         return score, metric_name
 
     def classification_metrics(self, actual_ground_truths, predicted_ground_truths):
-        '''Compares the actual ground truth labels with the predicted ground truth labels'''
+        '''Compares the actual ground truth labels with the predicted ground truth labels
+        Args:
+            actual_ground_truths: a NumPy array containing the actual ground truth labels
+            predicted_ground_truths: a NumPy array containing the ground truth labels predicted by the classifier'''
         self.out.write_results_to_file("*************Classification Metrics*************")
         
         self.y_true = actual_ground_truths 

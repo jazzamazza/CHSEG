@@ -10,7 +10,7 @@ class Classification:
 
     def get_ground_truth(self):
       '''Method to get the attribute for the true ground truth labels and the predicted ground truth labels
-      returns:
+      Returns:
         self.true_labels: an array containing the true ground truth labels of the point cloud
         self.predicted_labels: an array containing the predicted ground truth labels of the point cloud
       '''
@@ -21,7 +21,7 @@ class Classification:
           
     def classify(self, unique_labels, y_km, t, index):
       '''Method to label each produced cluster as the majority ground truth label in each cluster
-      args:
+      Args:
         unique_labels: the cluster indexes
         y_km: the produced clusters
         t: the point cloud containing the actual ground truth at index
@@ -58,7 +58,7 @@ class Classification:
     
     def get_attributes(self, arr, title):
       '''Print attributes of a given array
-      args: 
+      Args: 
         arr: the array to print attributes of
         title: the title of the array to display'''
       print("================", title, "\n:", arr)
@@ -66,10 +66,6 @@ class Classification:
 
     def visualise_classification(self, t):
       '''Visualise the classified point cloud in pptk
-      args: 
+      Args: 
         t: the point cloud to display'''
-      xyz = t[:,0:3]
-      predicted_ground_truth = self.predicted_labels.flatten()
-      true_ground_truth = self.true_labels.flatten()
-      print("predicted_labels:", predicted_ground_truth, "\ntrue_labels:", true_ground_truth)
-      pptk.viewer(xyz, predicted_ground_truth, true_ground_truth)
+      pptk.viewer(t[:,0:3], self.predicted_labels.flatten(), self.true_labels.flatten())

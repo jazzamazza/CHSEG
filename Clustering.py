@@ -10,17 +10,17 @@ class Clustering:
      '''This class is responsible for partitioning a point cloud into clusters using four different clustering algorithms'''
      def __init__(self, pointCloud, out):
           '''Initialise class variables
-          args:
+          Args:
                pointCloud: the point cloud to cluster, stored in a NumPy array'''
           self.pcd = pointCloud
           self.out = out
           
      def k_means_clustering(self, k, n_init=10):
           '''Cluster point cloud using k-means clustering method
-          arg: 
+          Args: 
                k: the number of clusters to partition the point cloud into
                n_init: number of iterations of k-means (default = 10)
-          returns:
+          Returns:
                unique_labels: an array containg the cluster indexes
                y_km: the produced clusters'''
           print("\n------------------k means---------------------")
@@ -35,12 +35,12 @@ class Clustering:
 
      def optics_clustering(self, min_samp=10, xi=0.05, min_cluster_sz=25, max_e=100):
           '''Cluster point cloud using OPTICS clustering method
-          arg: 
+          Args: 
                min_samp:
                xi:
                min_cluster_size: (default=25)
                max_e:
-          returns:
+          Returns:
                unique_labels: an array containg the cluster indexes
                y_op: the produced clusters
                A suffix corresponding to the name of the clustering method
@@ -57,10 +57,10 @@ class Clustering:
 
      def dbscan_clustering(self, min_samples_=6):
           '''Cluster point cloud using DBSCAN clustering method
-          arg: 
+          Args: 
                k: the number of clusters to partition the point cloud into
                min_samples: the minimum number of points per cluster
-          returns:
+          Returns:
                unique_labels: an array containg the cluster indexes
                y_db: the produced clusters
                A suffix corresponding to the name of the clustering method
@@ -81,9 +81,9 @@ class Clustering:
 
      def calculateElbow(self, n):
           '''Calculate the value of e for DBSCAN
-          args: 
+          Args: 
                n: min_samples
-          returns:
+          Returns:
                eps: the value of e for DBSCAN
           '''
           # Find optimal epsilon value: use elbow point detection method 
@@ -101,9 +101,9 @@ class Clustering:
 
      def mean_shift_clustering(self, bandwidth=1):
           '''Cluster point cloud using mean-shift clustering method
-          arg: 
+          Args: 
                bandwidth: (default = 1)
-          returns:
+          Returns:
                unique_labels: an array containg the cluster indexes
                y_ms: the produced clusters
                A suffix corresponding to the name of the clustering method
@@ -120,9 +120,10 @@ class Clustering:
 
      def get_information(self, labels, X):
           '''Method to get information about produced clusters
-          args:
+          Args:
                labels: the cluster label of each cluster
                X: the point Cloud
+          Returns:
                unique_labels: an array of unique cluster labels
           '''
           unique_labels = np.unique(labels)
@@ -144,7 +145,7 @@ class Clustering:
      
      def visualise_clustering(self, labels, x):
           '''Visualise Clustered Point Cloud with pptk
-          args:
+          Args:
                labels: the label associated with each cluster
                x: the point cloud to visualise'''
           pptk.viewer(x[:,0:3], labels.flatten())

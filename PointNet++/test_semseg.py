@@ -15,6 +15,14 @@ ROOT_DIR = BASE_DIR
 sys.path.append(os.path.join(ROOT_DIR, 'models'))
 
 def main_semseg(pnet_input_file_path, saved_pnet_file):
+    '''Method to run PointNet++ using the Semantic Segmentation Model
+    Args: 
+        pnet_input_file_path: the input npy file path for PointNet++
+        saved_pnet_file: the file to save the point cloud after PointNet++
+    Returns: 
+        finalPCD: the point cloud without ground truth labels
+        finalPCD_all: the point cloud with ground truth labels'''
+
     '''HYPER PARAMETER'''
     os.environ["CUDA_VISIBLE_DEVICES"] = '0' 
     NUM_CLASSES = 13
