@@ -300,6 +300,12 @@ class Experiment:
             self.experiment_df = pd.DataFrame(data=None, columns=columns)
 
     def experiment_to_pandas(self, index, output_file="./Results/test_x.csv"):
+        """Create data frame for experiment run
+
+        Args:
+            index (int): Run index.
+            output_file (str, optional): output .csv file. Defaults to "./Results/test_x.csv".
+        """
         data = {}
         data["date"] = str(self.date_today)
         data["time"] = str(self.time)
@@ -310,25 +316,30 @@ class Experiment:
         data["n_clusters"] = self.n_clusters
         data["clustering_algorithm"] = self.alg
         data["classification_metrics"] = str(self.classification_metrics)
-        # data['classification_metrics_results'] = str(self.class_eval)
         for metric in self.classification_metrics:
             data[metric] = self.class_eval[metric]
         data["clustering_metrics"] = str(self.clustering_metrics)
         for metric in self.clustering_metrics:
             data[metric] = self.clust_eval[metric]
-        # data['clustering_metrics_results'] = str(self.clust_eval)
 
-        # new_data = pd.Series(data = data, index = self.experiment_df.columns, name=index)
         self.experiment_df = self.experiment_df.append(data, ignore_index=True)
-        # print(self.experiment_df)
         print(self.experiment_df.tail(5))
+        # write out run
         self.experiment_writer(output_file)
 
     def experiment_writer(self, output_file):
+        """Write pandas data frame of experiment runs to .csv file.
+
+        Args:
+            output_file (str): output .csv file.
+        """
+        # check if file exists
         if exists(output_file):
+            # append to file
             self.experiment_df.tail(1).to_csv(output_file, mode='a', header=False, index=True)
         else:
-            "Creating CSV"
+            # create file
+            print("Creating CSV")
             self.experiment_df.to_csv(output_file, mode = 'w', header=True)
         
 
@@ -340,7 +351,17 @@ class Experiment:
         data_set_paths=["./Data/PNet/church_registered_ds_0.05.npy"],
         test_out_file = "./Results/test_default.csv"
     ):
+        """Cnetral experiment function. Run an experiment.
+
+        Args:
+            cluster_start (int): nclusters start value
+            cluster_end (int): nclusters end value
+            algs (list, optional): list of algorithms to run. Defaults to ["kmeans","birch","aggl","cure"].
+            data_set_paths (list, optional): list of datasets to use for experiment. Defaults to ["./Data/PNet/church_registered_ds_0.05.npy"].
+            test_out_file (str, optional): .csv file to write results to. Defaults to "./Results/test_default.csv".
+        """
         index = 0
+        # default metrics
         self.classification_metrics = [
             "f1",
             "jaccard",
@@ -350,27 +371,36 @@ class Experiment:
             "mean_sqr",
         ]
         self.clustering_metrics = ["db", "rand"]
-        evaluation = Evaluation(self.truth_labels) #problem?
+        # create eval object
+        evaluation = Evaluation(self.truth_labels)
+        # create data frame
         self.create_pandas(test_out_file)
         for path in data_set_paths:
+            # select input data file
             print("Path:", path)
             self.pick_file(use_default_path=True, default_path=path)
             self.load(self.file_path)
             for k in range(cluster_start, cluster_end + 1):
+                # run alg on k clusters
                 print("Clusters:", k)
                 for alg in algs:
+                    # run alg
                     print("Alg:", alg)
+                    # save experiment data
                     self.date_today = datetime.date.today()
                     self.time = datetime.datetime.now().strftime("%H_%M%p")
+                    # cluster, classify, save pcd.
                     self.cluster(alg, k)
                     self.classify()
                     self.clusters_pred_to_ply(self.alg)
+                    # eval classification
                     self.class_eval = evaluation.evaluate_classification(
                         self.ground_truth,
                         self.pred_ground_truth,
                         self.classification_metrics,
                         metric_choice="all",
                     )
+                    # eval clustering
                     self.clust_eval = evaluation.evaluate_clusters(
                         self.ground_truth,
                         self.pred_ground_truth,
@@ -379,11 +409,12 @@ class Experiment:
                         self.clustering_metrics,
                         metric_choice="all",
                     )
+                    # save results to file
                     self.experiment_to_pandas(index, test_out_file)
                     print("iteration:", index)
                     index += 1
-        # self.experiment_writer()
 
+# can run from main:
 # if __name__ == "__main__":
 #     my_experiment = Experiment()
 #     my_experiment.run_experiment(10, 50)
