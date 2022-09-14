@@ -94,9 +94,15 @@ class Tools:
         elif menu_selection == '7':
             self.best_cure("./Data/church_registered_ds_0.300.npy", 100, 50, 0.8)
         elif menu_selection == '8':
-            self.fix_csv("./Results/Done/test_ds_0.050_algs_kmeans_files_raw.csv")
+            self.fix_csv("./Results/Done/test_ds_0.195_algs_cure_files_raw.csv")
         elif menu_selection == '9':
-            self.rename_csv("./Results/Done/test_ds_0.050_algs_birch_files_raw.csv")
+            #self.rename_csv("./Results/Done/test_ds_0.050_algs_birch_files_raw.csv")
+            base_dir = "./Results/Done/"
+            with os.scandir(base_dir) as entries:
+                for entry in entries:
+                    if entry.is_file():
+                        self.rename_csv(entry.path)
+                
         elif menu_selection == '10':
             self.split_csv("./Results/old results/test_cure_0.090_raw.csv")
         # else exits
@@ -186,17 +192,31 @@ class Tools:
         print(df.tail(2))
         
     def rename_csv(self, csv_path):
-        # csv = pd.read_csv(csv_path, sep=',', header=0, index_col=0)
-        # clusters_min = csv['n_clusters'].min()
-        # clusters_max = csv['n_clusters'].max()
-        # algs = np.unique(csv['clustering_algorithm'])
-        # data_set = np.unique(csv['data_set'])
-        # ds_amt = np.unique(csv['down_sample_amount'])
-        # if len(data_set)>1 or len(ds_amt)>1 or len(algs)>1:
-        #     print("split ds")
-        #     exit(1)
-        # print(clusters_min,clusters_max,algs,data_set,ds_amt)
-        pass
+        csv = pd.read_csv(csv_path, sep=',', header=0, index_col=0)
+        ds_amt = np.unique(csv['down_sample_amount'])
+        if len(ds_amt)>1:
+            print('multiple downsamples', ds_amt)
+            print("figure out issue manually")
+            exit(1)
+        ds_amt = ds_amt[0]
+        algs = np.unique(csv['clustering_algorithm'])
+        if len(algs)>1:
+            print('multiple algs', algs)
+            print("figure out issue manually")
+            exit(1)
+        alg = algs[0]
+        data_sets = np.unique(csv['data_set'])
+        if len(data_sets)>1:
+            print('multiple data sets', data_sets)
+            print("figure out issue manually")
+            exit(1)
+        data_set = data_sets[0]
+        clusters_min = csv['n_clusters'].min()
+        clusters_max = csv['n_clusters'].max()
+        print(clusters_min,clusters_max,alg,data_set,ds_amt)
+        output_path = "./Results/NewNew/"+self.name_csv(alg, clusters_min, clusters_max,data_set, ds_amt)
+        print('outpath is ', output_path)
+        csv.to_csv(output_path, sep = ',', header=True, index=True)
         
     def name_csv(self,alg,cmin,cmax,dataset,dsamt):
         csv_name = alg + '_' + dataset + '_' + str("%.3f" % dsamt) + '_' + str(cmin) + '_' + str(cmax) + ".csv"
