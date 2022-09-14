@@ -6,8 +6,8 @@ import numpy as np
 class PointCloudViewer:
     """PointCloudViewer for viewing PointClouds"""
 
-    def __init__(self, viewer="default", downsample_o3d=0):
-        self.viewer = viewer
+    def __init__(self, downsample_o3d=0):
+        
         self.downsample_o3d = downsample_o3d
 
     def vis_npy(self, points, intensity, truth_label):
@@ -51,7 +51,9 @@ class PointCloudViewer:
                 print("Visualising in PPTK")
                 intensity_1d = intensity.flatten()
                 truth_label_1d = truth_label.flatten()
-                view = pptk.viewer(points, intensity_1d, truth_label_1d)
+                view = pptk.viewer(points, intensity_1d, truth_label_1d, debug=True)
+                view.wait()
+                view.close()
                 print("PPTK Loaded")
 
             else:
@@ -108,24 +110,23 @@ class PointCloudViewer:
         except ValueError:
             print("Invalid Input. Please Enter a number.")
 
-    def vis_npy_pnet_feat(self, pcd, points, features):
-        # print("Visualising in PPTK")
-        # feats1d = features.flatten()
-        # print("shape feats 1d", np.shape(feats1d))
-        # print("feats pnet", feats1d)
-        # view = pptk.viewer(points, feats1d)
-        # print("PPTK Loaded")
-
-        for i in range(3, 127):
-            print("Visualising in PPTK")
+    def vis_npy_pnet_feat(self, pcd_all):
+        print("Visualising Pnet in PPTK")
+        points = pcd_all[:,:3]
+        truth = pcd_all[:,3:4]
+        pnet_feats = pcd_all[:,4:]
+        feats = []
+        for i in range(0, 127):
             print("index", i)
-            # intensity = point_cloud[:,3:4]
-            feat_1d = pcd[:, i : (i + 1)]
+            feat_1d = pnet_feats[:, i : (i + 1)]
             feat_1d = feat_1d.flatten()
-            print("View set")
-            view = pptk.viewer(points, feat_1d)
-            view.wait()
-            view.close()
+            feats.append(feat_1d)
+            
+        view = pptk.viewer(points, debug=True)
+        view.set(point_size=0.025)
+        view.attributes(*feats)
+        view.wait()
+        view.close()
 
     def vis_ply(self, pcd, points, intensity, truth_label):
         options = {0: "O3D", 1: "PPTK"}
@@ -169,3 +170,9 @@ class PointCloudViewer:
                 print("Invalid option selected")
         except ValueError:
             print("Invalid Input. Please Enter a number.")
+            
+if __name__ == "__main__":
+    pcd_pnet_all = np.load("./Data/PNet/church_registered_ds_0.095_pnet_all_fix.npy")
+    pcviewer = PointCloudViewer()
+    pcviewer.vis_npy_pnet_feat(pcd_pnet_all)
+    

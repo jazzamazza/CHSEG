@@ -70,6 +70,7 @@ class Tools:
             + "\n8.) csv fix"
             + "\n9.) csv rename"
             + "\n10.) csv split"
+            + "\n11.) make comb ds"
             + "\nSelection: "
         )
 
@@ -103,10 +104,28 @@ class Tools:
                     if entry.is_file() and entry.path[-4:]=='.csv':
                         print(entry.path)
                         self.rename_csv(entry.path)
-                
         elif menu_selection == '10':
             self.split_csv("./Results/old results/test_cure_0.090_raw.csv")
+        elif menu_selection == "11":
+            self.make_alg_ds(["./Results/Done/kmeans_cc_0.150_100_750.csv", 
+                              "./Results/Done/kmeans_pnet_0.205_100_750.csv",
+                              "./Results/Done/kmeans_raw_0.050_100_750.csv"],
+                             "./Results/Done/kmeans_all_mixedds_100_750.csv")
+            self.make_alg_ds(["./Results/Done/aggl_cc_0.195_100_750.csv", 
+                              "./Results/Done/aggl_pnet_0.205_100_750.csv",
+                              "./Results/Done/aggl_raw_0.205_100_750.csv"],
+                             "./Results/Done/aggl_all_mixedds_100_750.csv")
         # else exits
+        
+    def make_alg_ds(self, csv_list, out_csv_path):
+        df0 = pd.read_csv(csv_list[0], sep=',', header=0, index_col=0)
+        df1 = pd.read_csv(csv_list[1], sep=',', header=0, index_col=0)
+        df2 = pd.read_csv(csv_list[2], sep=',', header=0, index_col=0)
+        
+        frames = [df0, df1, df2]
+        result = pd.concat(frames, ignore_index=True)
+        
+        result.to_csv(out_csv_path, sep = ',', header=True, index=True)
         
     def best_cure(self, pcd_loc, clusters, reps_max, comp_max):
         pcd_t = np.load(pcd_loc)

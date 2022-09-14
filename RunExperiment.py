@@ -1,5 +1,4 @@
 from Experiment import Experiment
-from Experiment import Graph
 from os.path import exists
 from sys import argv
 
@@ -32,12 +31,6 @@ class ExperimentConfig():
         self.output_file = "./Results/test_ds_" + ds_str + '_algs_' + algs + '_files_' + input_files + '.csv' 
         self.clust_start = clust_start
         self.clust_end = clust_end
-    
-    def config_graph(self, csv_file, metric, alg, title):
-        self.csv_file = csv_file
-        self.metric = metric
-        self.alg = alg
-        self.title = title
         
 
 if __name__ == "__main__":

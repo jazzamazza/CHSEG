@@ -42,13 +42,14 @@ done 1/3
 Cure
 -------------------------
 {x} Raw 0.195 100-750 (+-22000 points medium speed) {not sure nreps and comp}
+{x} Pnet 0.350 100-750 (medium speed +-7000 points)
+{x} Geo 0.300 100-750 (medium speed +-9500 points)
+
 {i} Raw 0.125 100-750 (inc 100-167) (slow)
-{i} Pnet 0.350 100-750 (inc 100-306 medium speed +-7000 points)
-{i} Geo 0.215 100-750 (inc 100-129 sloow +-18000 points)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 ds 3/3
 fix 0/3
-done 1/3
+done 3/3
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 }:^3 BEST DB CURE 0.3 40 }:^3
