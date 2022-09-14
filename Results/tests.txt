@@ -1,7 +1,7 @@
 -------------------------
 Kmeans
 -------------------------
-{f} Raw 0.050 100-750 (to fix indexes)
+{x} Raw 0.050 100-750 (+- 300k points)
 {x} Pnet 0.205 100-750 (medium speed +-20000 points)
 {i} Geo 0.075 100-750 (inc 100-460)
 {i} Geo 0.095 100-750 (inc 100-104)
@@ -15,7 +15,7 @@ done = 3/3
 -------------------------
 Birch
 -------------------------
-{f} Raw 0.050 100-750 (to fix indexes)
+{x} Raw 0.050 100-750 (+- 300k points)
 {x} Pnet 0.175 100-750 (+-27000 points fast)
 {x} Geo 0.075 100-750 (slow +- 1 min per run)
 {ne} Geo 0.150 100-750 (inc) MISSING

@@ -7,6 +7,7 @@ import numpy as np
 import pptk
 from Clustering import Clustering
 from Metrics import ClusterMetrics
+import pandas as pd
 
 class Tools:
     def __init__(self):
@@ -66,6 +67,9 @@ class Tools:
             + "\n5.) Make PointNet++ Dataset"
             + "\n6.) fix pnet"
             + "\n7.) cure experiment"
+            + "\n8.) csv fix"
+            + "\n9.) csv rename"
+            + "\n10.) csv split"
             + "\nSelection: "
         )
 
@@ -89,6 +93,12 @@ class Tools:
             self.fix_pnet("./Data/PNet/church_registered_ds_0.175_pnet_all.npy")
         elif menu_selection == '7':
             self.best_cure("./Data/church_registered_ds_0.300.npy", 100, 50, 0.8)
+        elif menu_selection == '8':
+            self.fix_csv("./Results/Done/test_ds_0.050_algs_kmeans_files_raw.csv")
+        elif menu_selection == '9':
+            self.rename_csv("./Results/Done/test_ds_0.050_algs_birch_files_raw.csv")
+        elif menu_selection == '10':
+            self.split_csv("./Results/old results/test_cure_0.090_raw.csv")
         # else exits
         
     def best_cure(self, pcd_loc, clusters, reps_max, comp_max):
@@ -159,6 +169,122 @@ class Tools:
             index += 1
         print("best comp", best_index, 'with db score of', bestdb, 'and time of',bestdbtime)
                 
+    def fix_csv(self, csv_path):
+        df = pd.read_csv(csv_path, sep=',', header=0, index_col=0)
+        print(df.head(2))
+        print(df.tail(2))
+        #old save and move
+        out_path = csv_path[:-4] + "_old_broken.csv"
+        df.to_csv(out_path, sep = ',', header=True)
+        
+        #new index reset
+        out_path = csv_path[:-4] + "_temp.csv"
+        df.to_csv(out_path, sep = ',', header=True, index=False)
+        df = pd.read_csv(out_path, sep=',', header=0, index_col=None)
+        df.to_csv(csv_path, sep = ',', header=True, index=True)
+        print(df.head(2))
+        print(df.tail(2))
+        
+    def rename_csv(self, csv_path):
+        # csv = pd.read_csv(csv_path, sep=',', header=0, index_col=0)
+        # clusters_min = csv['n_clusters'].min()
+        # clusters_max = csv['n_clusters'].max()
+        # algs = np.unique(csv['clustering_algorithm'])
+        # data_set = np.unique(csv['data_set'])
+        # ds_amt = np.unique(csv['down_sample_amount'])
+        # if len(data_set)>1 or len(ds_amt)>1 or len(algs)>1:
+        #     print("split ds")
+        #     exit(1)
+        # print(clusters_min,clusters_max,algs,data_set,ds_amt)
+        pass
+        
+    def name_csv(self,alg,cmin,cmax,dataset,dsamt):
+        csv_name = alg + '_' + dataset + '_' + str("%.3f" % dsamt) + '_' + str(cmin) + '_' + str(cmax) + ".csv"
+        return csv_name
+    
+    def split_csv(self,csv_path):
+        csv = pd.read_csv(csv_path, sep=',', header=0, index_col=0)
+        ds_amt = np.unique(csv['down_sample_amount'])
+        if len(ds_amt)>1:
+            print('multiple downsamples', ds_amt)
+            print("figure out ds issue manually")
+            exit(1)
+        ds_amt = ds_amt[0]
+        algs = np.unique(csv['clustering_algorithm'])
+        if len(algs)>1:
+            print('multiple algs', algs)
+            for alg in algs:
+                print('process', alg)
+                data = csv[(csv['clustering_algorithm']==alg)]
+                data_sets = np.unique(data['data_set'])
+                if len(data_sets)>1:
+                    print('multiple datasets', data_sets)
+                    for data_set in data_sets:
+                        print('process', data_set)
+                        data = csv[(csv['data_set']==data_set)&(csv['clustering_algorithm']==alg)]
+                        clusters_min = data['n_clusters'].min()
+                        clusters_max = data['n_clusters'].max()
+                        print(clusters_min,clusters_max,alg,data_set,ds_amt)
+                        output_path = "./Results/New/"+self.name_csv(alg, clusters_min, clusters_max,data_set, ds_amt)
+                        print('outpath is ', output_path)
+                        data.to_csv(output_path, sep = ',', header=True, index=True)
+                else:   
+                    data_set = data_sets[0] 
+                    print('process', data_set)  
+                    clusters_min = data['n_clusters'].min()
+                    clusters_max = data['n_clusters'].max()
+                    print(clusters_min,clusters_max,alg,data_set,ds_amt)
+                    output_path = "./Results/New/"+self.name_csv(alg, clusters_min, clusters_max,data_set, ds_amt)
+                    print('outpath is ', output_path)
+                    data.to_csv(output_path, sep = ',', header=True, index=True)
+        else:
+            alg = algs[0]
+            print('process', alg)
+            data = csv[(csv['clustering_algorithm']==alg)]
+            data_sets = np.unique(data['data_set'])
+            if len(data_sets)>1:
+                for data_set in data_sets:
+                    print('process', data_set)
+                    data = csv[(csv['data_set']==data_set)&(csv['clustering_algorithm']==alg)]
+                    clusters_min = data['n_clusters'].min()
+                    clusters_max = data['n_clusters'].max()
+                    print(clusters_min,clusters_max,alg,data_set,ds_amt)
+                    output_path = "./Results/New/"+self.name_csv(alg, clusters_min, clusters_max,data_set, ds_amt)
+                    print('outpath is ', output_path)
+                    data.to_csv(output_path, sep = ',', header=True, index=True)
+            else:   
+                data_set = data_sets[0]   
+                print('process', data_set)
+                clusters_min = data['n_clusters'].min()
+                clusters_max = data['n_clusters'].max()
+                print(clusters_min,clusters_max,alg,data_set,ds_amt)
+                output_path = "./Results/New/"+self.name_csv(alg, clusters_min, clusters_max,data_set, ds_amt)
+                print('outpath is ', output_path)
+                data.to_csv(output_path, sep = ',', header=True, index=True)
+        
+        
+        
+    def set_query(self, csv_path):
+        df = pd.read_csv(csv_path, sep=',', header=0, index_col=0)
+        #print('columns', df.columns)
+        #print('indexs', df.index)
+        #print(df.keys())
+        print(df.head(5))
+        print(df.tail(5))
+        out_path = csv_path[:-4] + "_temp.csv"
+        df.to_csv(out_path, sep = ',', header=True,index=False)
+        data = pd.read_csv(out_path, sep=',', header=0, index_col=None)
+        print(df.head(5))
+        print(df.tail(5))
+        algs = data['clustering_algorithm'].head(5)
+        print(algs)
+        
+        arange = df.iloc[42:48]
+        print(arange.head(8))
+        
+        print(data["db"].min())
+        print(data[(data["db"]==data["db"].min())])
+        
 
 
 if __name__ == "__main__":
