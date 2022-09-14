@@ -6,7 +6,11 @@ from Outputting import Outputting
 
 class CHSEG_main:
     def __init__(self, pcd_path, ds_pcd_file_path, ds_pcd_all_file_path):
-        '''Initialise class variables'''
+        '''Initialise class variables
+        Args:
+            pcd_path: file path to non-downsampled point cloud file
+            ds_pcd_file_path: file path to downsampled point cloud file without ground truth labels
+            ds_pcd_all_file_path: file path to downsampled point cloud file without ground truth labels'''
         # loading point cloud variables
         self.pcd_file_path = pcd_path
         self.ds_pcd_file_path = ds_pcd_file_path
