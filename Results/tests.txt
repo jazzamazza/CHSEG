@@ -31,7 +31,7 @@ Aggls
 {ne} Raw 0.195 100-750 (kneighbours tree) MISSING
 {i} Pnet 0.205 100-750 (inc 100-463 +-20000 points)
 {x} Geo 0.195 100-750 (+-22000 points fast and kntree)
-{i} Geo 0.215 100-750 (inc 100-609 +-18000 points fast and kntree)
+{x} Geo 0.215 100-750 (+-18000 points fast and kntree)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 ds 2/3
 fix 0/3

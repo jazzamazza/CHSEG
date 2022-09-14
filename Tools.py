@@ -97,10 +97,11 @@ class Tools:
             self.fix_csv("./Results/Done/test_ds_0.195_algs_cure_files_raw.csv")
         elif menu_selection == '9':
             #self.rename_csv("./Results/Done/test_ds_0.050_algs_birch_files_raw.csv")
-            base_dir = "./Results/Done/"
+            base_dir = "./Results/"
             with os.scandir(base_dir) as entries:
                 for entry in entries:
-                    if entry.is_file():
+                    if entry.is_file() and entry.path[-4:]=='.csv':
+                        print(entry.path)
                         self.rename_csv(entry.path)
                 
         elif menu_selection == '10':
@@ -214,7 +215,7 @@ class Tools:
         clusters_min = csv['n_clusters'].min()
         clusters_max = csv['n_clusters'].max()
         print(clusters_min,clusters_max,alg,data_set,ds_amt)
-        output_path = "./Results/NewNew/"+self.name_csv(alg, clusters_min, clusters_max,data_set, ds_amt)
+        output_path = "./Results/NewInc/"+self.name_csv(alg, clusters_min, clusters_max,data_set, ds_amt)
         print('outpath is ', output_path)
         csv.to_csv(output_path, sep = ',', header=True, index=True)
         
