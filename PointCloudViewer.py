@@ -127,7 +127,25 @@ class PointCloudViewer:
         view.attributes(*feats)
         view.wait()
         view.close()
-
+    
+    def vis_las(self, points, truth, intensity, extra):
+        print("Visualising Pnet in PPTK")
+        truth1d = truth.flatten()
+        intensity1d = intensity.flatten()
+        feats = []
+        feats.append(truth1d)
+        feats.append(intensity1d)
+        for i in range(0, (len(extra)-1)):
+            print("index", i)
+            feat_1d = extra[:, i : (i + 1)]
+            feat_1d = feat_1d.flatten()
+            feats.append(feat_1d)
+        view = pptk.viewer(points, debug=True)
+        view.set(point_size=0.025)
+        view.attributes(*feats)
+        view.wait()
+        view.close()
+    
     def vis_ply(self, pcd, points, intensity, truth_label):
         options = {0: "O3D", 1: "PPTK"}
         try:
