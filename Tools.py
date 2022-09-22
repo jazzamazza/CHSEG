@@ -3,6 +3,7 @@ import importlib
 import os
 import sys
 from PointCloudUtils import PointCloudUtils
+from PointCloudViewer import PointCloudViewer
 import numpy as np
 import pptk
 from Clustering import Clustering
@@ -23,16 +24,18 @@ class Tools:
     def view_pnet(self, pnet_cloud = None, file = None):
         if pnet_cloud is None:
             pnet_cloud = np.load(file)
-        points = pnet_cloud[:,:3]
-        truth = pnet_cloud[:,3:4]
-        feats = pnet_cloud[:,4:]
-        feat_1 = feats[:,:1]
-        feat_2 = feats[:,1:2]
-        feat_3 = feats[:,2:3]
-        #print(np.shape(feats[:,:1]))
-        viewer = pptk.viewer(points, truth.flatten(), feat_1.flatten(), feat_2.flatten(), feat_3.flatten(), debug = True)
-        viewer.wait()
-        viewer.close()
+        pview = PointCloudViewer()
+        pview.vis_npy_pnet_feat(pnet_cloud)
+        # points = pnet_cloud[:,:3]
+        # truth = pnet_cloud[:,3:4]
+        # feats = pnet_cloud[:,4:]
+        # feat_1 = feats[:,:1]
+        # feat_2 = feats[:,1:2]
+        # feat_3 = feats[:,2:3]
+        # #print(np.shape(feats[:,:1]))
+        # viewer = pptk.viewer(points, truth.flatten(), feat_1.flatten(), feat_2.flatten(), feat_3.flatten(), debug = True)
+        # viewer.wait()
+        # viewer.close()
         
     def fix_pnet(self, file):
         pnet_cloud = np.load(file)
@@ -78,16 +81,16 @@ class Tools:
             self.pcutils.auto_downsample_data(ds_amt_start, ds_amt_end, ds_amt_inc)
         elif menu_selection == "2":
             #pcd, pcd_all = self.run_pnet('./Data/PNetReady/church_registered_ds_0.350_pnet_ready_wtruth.ply', 0.350)
-            self.run_pnet('./Data/PNetReady/church_registered_ds_0.175_pnet_ready_wtruth.ply', 0.175)
+            self.run_pnet('./Data/PNetReady/church_registered_ds_0.175_pnet_ready_wtruth.ply', 0.050)
             #self.view_pnet(pcd_all)
         elif menu_selection == "3":
-            self.view_pnet(file = "./Data/PNet/church_registered_ds_0.175_pnet_all_fix.npy")
+            self.view_pnet(file = "./Data/PNet/church_registered_ds_0.050_pnet_all_fix.npy")
         elif menu_selection == "4":
             print("deprecated")
         elif menu_selection == "5":
-            self.make_pnet("./Data/church_registered_ds_0.175.npy", True, 0.175)
+            self.make_pnet("./Data/church_registered_ds_0.050.npy", True, 0.050)
         elif menu_selection == "6":
-            self.fix_pnet("./Data/PNet/church_registered_ds_0.175_pnet_all.npy")
+            self.fix_pnet("./Data/PNet/church_registered_ds_0.050_pnet_all.npy")
         elif menu_selection == '7':
             self.best_cure("./Data/church_registered_ds_0.300.npy", 100, 50, 0.8)
         elif menu_selection == '8':

@@ -249,6 +249,16 @@ class Experiment:
             + ".ply"
         )
         o3d.io.write_point_cloud(file_path, pcd)
+        
+        # labels = []
+        truth_1d, pred_1d, clusters_1d = truth.flatten(), pred_truth.flatten(), clusters.flatten()
+        # labels = labels.append(truth_1d)
+        # labels = labels.append(pred_1d)
+        # labels = labels.append(clusters_1d)
+        view = pptk.viewer(points, debug = True)
+        view.attributes(truth_1d, pred_1d, clusters_1d)
+        view.set(point_size=0.025)
+        view.wait()
 
     def vis_clusters_pred(self, points, clusters, truth, pred_truth, intensity):
         """View clusters and truth labels using PPTK.
