@@ -188,8 +188,10 @@ class ClusterMetrics:
             list: List of scores for each or one metric.
         """
         if metric_choice == "sill":
+            print("run silhoutte")
             return silhouette_score(self.input_pcd, self.cluster_labels)
         elif metric_choice == "db":
+            print("run db")
             return davies_bouldin_score(self.input_pcd, self.cluster_labels)
         elif metric_choice == "rand":
             return rand_score(self.y_true.flatten(), self.cluster_labels)

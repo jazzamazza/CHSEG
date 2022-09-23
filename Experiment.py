@@ -11,6 +11,7 @@ import pandas as pd
 import pptk
 import datetime
 from os.path import exists
+import time
 
 class Experiment:
     def __init__(self) -> None:
@@ -52,6 +53,7 @@ class Experiment:
         # Other
         self.date_today = datetime.date.today()
         self.time = datetime.datetime.now().strftime("%H_%M%p")
+        pd.set_option('max_columns', None)
 
         # Metrics
         self.classification_metrics = [
@@ -251,16 +253,17 @@ class Experiment:
         o3d.io.write_point_cloud(file_path, pcd)
         
         # labels = []
-        truth_1d, pred_1d, clusters_1d = truth.flatten(), pred_truth.flatten(), clusters.flatten()
+        # truth_1d, pred_1d, clusters_1d = truth.flatten(), pred_truth.flatten(), clusters.flatten()
         # labels = labels.append(truth_1d)
         # labels = labels.append(pred_1d)
         # labels = labels.append(clusters_1d)
-        view = pptk.viewer(points, debug = True)
-        view.attributes(truth_1d, pred_1d, clusters_1d)
-        view.set(point_size=0.025)
-        view.wait()
+        # view = pptk.viewer(points, debug = True)
+        # view.attributes(truth_1d, pred_1d, clusters_1d)
+        # view.set(point_size=0.025)
+        # view.wait()
+        self.vis_clusters_pred(points, clusters, truth, pred_truth)
 
-    def vis_clusters_pred(self, points, clusters, truth, pred_truth, intensity):
+    def vis_clusters_pred(self, points, clusters, truth, pred_truth):
         """View clusters and truth labels using PPTK.
 
         Args:
@@ -275,10 +278,22 @@ class Experiment:
             clusters.flatten(),
             truth.flatten(),
             pred_truth.flatten(),
-            intensity.flatten(),
-            debug=True,
+            #debug=True,
         )
-        view.wait()
+        view.set(point_size=0.015)
+        poses = []
+        poses.append([0, 0, 0, 0 * np.pi/2, np.pi/4, 25])
+        poses.append([0, 0, 0, 1 * np.pi/2, np.pi/4, 25])
+        poses.append([0, 0, 0, 2 * np.pi/2, np.pi/4, 25])
+        poses.append([0, 0, 0, 3 * np.pi/2, np.pi/4, 25])
+        poses.append([0, 0, 0, 4 * np.pi/2, np.pi/4, 25])
+        view.play(poses, 2 * np.arange(5), repeat=True, interp='linear')
+        time.sleep(6)
+        view.set(curr_attribute_id = 1)
+        time.sleep(6)
+        view.set(curr_attribute_id = 2)
+        #view.wait()
+        time.sleep(6)
         view.close()
 
     def create_pandas(self, output_file):
@@ -333,7 +348,9 @@ class Experiment:
             data[metric] = self.clust_eval[metric]
 
         self.experiment_df = self.experiment_df.append(data, ignore_index=True)
+        print("\nPandas DataFrame Tail:")
         print(self.experiment_df.tail(5))
+        print("End Pandas DataFrame Tail\n")
         # write out run
         self.experiment_writer(output_file)
 
@@ -378,9 +395,11 @@ class Experiment:
             "precision",
             "recall",
             "mean_abs",
-            "mean_sqr",
-        ]
-        self.clustering_metrics = ["db", "rand"]
+            "mean_sqr"]
+        self.clustering_metrics = [
+            #"sill", 
+            "db", 
+            "rand"]
         # create eval object
         evaluation = Evaluation(self.truth_labels)
         # create data frame
@@ -404,6 +423,7 @@ class Experiment:
                     self.classify()
                     self.clusters_pred_to_ply(self.alg)
                     # eval classification
+                    print("\nEvalute Classification")
                     self.class_eval = evaluation.evaluate_classification(
                         self.ground_truth,
                         self.pred_ground_truth,
@@ -411,6 +431,7 @@ class Experiment:
                         metric_choice="all",
                     )
                     # eval clustering
+                    print("\nEvalute Clustering")
                     self.clust_eval = evaluation.evaluate_clusters(
                         self.ground_truth,
                         self.pred_ground_truth,
